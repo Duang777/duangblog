@@ -36,13 +36,13 @@ Humanizer checklist that matters most for this blog:
 ### Hard bans
 
 - Do not use Chinese corner quotes: 「」
-- Do not use arrow characters or arrow-like connectors in prose: → ← ⇒ ➜, or chains like A → B → C
-- Do not lean on Mermaid or ASCII flowcharts unless the user explicitly asks for a diagram
+- Do not use arrow characters or arrow-like connectors in **prose**: → ← ⇒ ➜, or chains like A → B → C (Mermaid / code diagrams are fine)
 - Do not open with era throat-clearing (在当今… / 随着 AI…)
 - Do not stack buzzwords: 赋能、闭环生态、一站式、降维打击、完美、颠覆
 - Do not write symmetrical slogan triplets that sound generated
 - Do not pad with outline-restating summaries
 - Do not say you are an AI or that the post was generated
+- Do not dump decorative diagrams or huge unrealted file dumps
 
 ### Prefer
 
@@ -51,6 +51,14 @@ Humanizer checklist that matters most for this blog:
 - Real resource names, package names, file paths, YAML/JSON snippets, failure modes.
 - First person when it is your judgment.
 - Longer sections that stay with one subsystem until it is clear.
+
+### Diagrams and core code (required when they clarify)
+
+When a breakdown talks about process topology, agent loops, graph routing, claim/lease, dual buses, or UI↔API live updates:
+
+- **Draw it**: use Mermaid (`flowchart` / `sequenceDiagram`) for the topology or call path. One diagram per idea. Label real component names (`orlojd`, `AgentWorker`, `EventSource`).
+- **Show core code**: paste short excerpts from the real repo (trimmed with `// ...`), citing path. Prefer the loop / SQL / authorize / watch / embed that proves the claim. Do not paste entire files.
+- Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
 
 ## Breakdown posts (Agent / open-source projects)
 
