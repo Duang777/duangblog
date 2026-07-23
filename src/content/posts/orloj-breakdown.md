@@ -1,56 +1,92 @@
 ---
 author: Duang
 pubDatetime: 2026-07-24T02:30:00+08:00
-title: 拆 Orloj：把多智能体当成基础设施来跑
+modDatetime: 2026-07-24T02:45:00+08:00
+title: 拆 Orloj：多智能体怎么被当成基础设施跑起来
 featured: true
 draft: false
 tags:
   - Agent
   - 拆解
   - Orloj
-description: Orloj 用 YAML 声明 Agent、工具与策略，再用控制器、Worker 租约和失败闭环把它跑成可运维系统。这篇按执行链路拆一遍。
+description: 从 YAML 资源、orlojd、Worker 租约到策略审批，细拆 Orloj 怎么把多智能体从脚本变成可运维系统。
 ---
 
-仓库：[OrlojHQ/orloj](https://github.com/OrlojHQ/orloj)
+仓库在这里：[OrlojHQ/orloj](https://github.com/OrlojHQ/orloj)
 
-Orloj 自己的定位很硬：**Agents are infrastructure.** 它不是「再包一层 LLM SDK」，而是把多智能体当成可声明、可调度、可审计的运行时来做。
+README 第一句写得很直：Agents are infrastructure。我读完仓库结构和文档后，觉得这不是营销口号，而是整套设计的出发点。Orloj 要做的事，不是再给你一个 chat 循环模板，而是把多智能体当成能声明、能调度、能审计、能扩容的运行时来管。
 
-状态也写得很诚实：还在活跃开发，1.0 前 schema 可能变。下面按我常用的拆法看：它解决什么、主链路怎么走、哪里值得抄、哪里我还保留。
+项目还在活跃开发，1.0 之前 API 和 schema 可能变。这不影响拆：拆的是它的问题意识、资源切法和执行模型。下面按我实际读代码和文档的顺序写。
 
-## 它在解决什么
+## 先说它针对的痛
 
-Demo 阶段，Agent 往往是：prompt + while 循环 + 几个 tool。上线后缺的是另一堆东西：
+多数人做过的 Agent demo，形态都很像：一段 system prompt，一个 while，几次 tool call，本地跑通就算成功。真要挂到业务上，缺的东西会一起冒出来。
 
-- 模型路由、密钥、配额
-- 工具权限、超时、重试、人工审批
-- 多 Agent 交接、fan-out / fan-in
-- 任务所有权（谁在跑、挂了谁接手）
-- 轨迹、指标、可回放的历史
+模型不是写死在代码里就完事，还要换提供商、做 fallback、管密钥和预算。工具不是函数列表就完事，还要鉴权、超时、重试、高风险操作等人点头。多个 Agent 协作时，交接顺序、分支汇合、委托审核，如果埋在控制流里，事后几乎没法查。更麻烦的是所有权：这个任务现在谁在跑？进程挂了会不会双跑？失败是进死信还是假装成功？
 
-Orloj 的假设是：这些不该散落在脚本里，而应该像服务一样有 **manifest、desired state、controller、lease、worker、policy**。
+这些东西如果继续散落在脚本、环境变量和口头约定里，系统会越来越难运维。Orloj 的回答很明确：把它们提升成版本化资源，有期望状态，有控制器去推，有 Worker 去认领，有策略在调用时裁决，有轨迹把过程留下来。
 
-适合谁：已经过了玩具 demo，开始需要 owner、策略、重试和可观测性的人。  
-不适合谁：只想快速验证一个 prompt 的人——这套概念面偏重。
+所以它不是给只想验证一句 prompt 的人用的。它更像给已经觉得 demo 撑不住、开始要 owner 和边界的团队准备的。
 
-## 资源模型：先声明，再和解
+## 仓库里你先会碰到谁
 
-对外接口是熟悉的那套味道：YAML / `orlojctl` / REST / CRD / 控制台。核心资源大致是：
+从进程视角看，三个名字会反复出现。
 
-| 资源 | 干什么 |
-|------|--------|
-| `Agent` | prompt、模型引用、工具边界、步数/超时 |
-| `AgentSystem` | 多个 Agent 组成的图：边、条件路由、委托、人工检查点 |
-| `Task` | 对某个 System 的一次执行：阶段、租约、消息、轨迹 |
-| `ModelEndpoint` | 提供商与密钥，集中路由和 fallback |
-| `Tool` / `McpServer` | HTTP、gRPC、MCP、WASM… 外加运行时策略 |
-| `Memory` | 任务级或持久记忆 |
-| `AgentPolicy` / `ToolPermission` / `*Approval` | 治理：失败默认拒绝 |
-| `TaskSchedule` / `TaskWebhook` | 定时与事件触发 |
-| `Worker` | 容量、心跳、当前负载 |
+`orlojd` 是控制面加可选执行面。它起 REST API、Web 控制台、资源存储、watch 和事件、各类 controller，以及调度逻辑。本地开发时，它还可以内嵌一个 worker，省得你一上来就搭分布式。
 
-本地可以单进程；往上加 Postgres、NATS JetStream、分布式 Worker。资源模型尽量不变——这是它比「两套代码」更值钱的地方。
+`orlojworker` 是干活的。它认领 Task，续租约，跑 AgentSystem 图，调模型，调工具，消费消息驱动模式下的 inbox，然后把阶段、消息、轨迹写回去。
 
-一个最小图长这样（概念上）：
+`orlojctl` 是操作入口。apply 清单、脚手架、创建密钥、跑任务、盯资源、处理审批、看日志和指标，基本都从这里进。
+
+存储上，本地可以内存态；生产倾向 Postgres，用来扛资源状态、任务认领和租约。消息面上，简单场景可以顺序执行；要分布式交接时，再上 NATS JetStream 一类后端。Orloj 想保住的是：你换底座，资源语义尽量别换。
+
+## 资源怎么切：节点和图分开
+
+这是我读 Orloj 时最想先钉住的一点。
+
+`Agent` 描述单个角色怎么工作：引用哪个 `ModelEndpoint`，用什么 prompt，能碰哪些工具，步数和超时怎么限。它不负责整条业务拓扑。
+
+`AgentSystem` 才是拓扑。它把多个 Agent 放进一张图，边怎么连、条件怎么拐、哪里 fan-out、哪里 fan-in、哪里要人审，都写在 system 上。任务执行时绑定的是 system，不是某个孤立 agent。
+
+这样做的直接好处是：改流程不等于改每个角色的 prompt；查一次跑偏，可以对照图，而不是在代码里搜 if。
+
+一个很常见的最小例子是研究写作流水线。先定义研究角色：
+
+```yaml
+apiVersion: orloj.dev/v1
+kind: Agent
+metadata:
+  name: research-agent
+spec:
+  model_ref: openai-default
+  prompt: |
+    You are the research stage.
+    Produce concise, verifiable findings for the writer.
+  tools:
+    - web_search
+  allowed_tools:
+    - web_search
+  limits:
+    max_steps: 6
+    timeout: 30s
+```
+
+模型不写死在 Agent 里，而是引用 endpoint：
+
+```yaml
+apiVersion: orloj.dev/v1
+kind: ModelEndpoint
+metadata:
+  name: openai-default
+spec:
+  provider: openai
+  base_url: https://api.openai.com/v1
+  default_model: gpt-4o
+  auth:
+    secretRef: openai-api-key
+```
+
+然后把策划、研究、写作串成 system：
 
 ```yaml
 apiVersion: orloj.dev/v1
@@ -58,100 +94,109 @@ kind: AgentSystem
 metadata:
   name: report-system
 spec:
-  agents: [planner-agent, research-agent, writer-agent]
+  agents:
+    - planner-agent
+    - research-agent
+    - writer-agent
   graph:
     planner-agent:
-      edges: [{ to: research-agent }]
+      edges:
+        - to: research-agent
     research-agent:
-      edges: [{ to: writer-agent }]
+      edges:
+        - to: writer-agent
 ```
 
-Agent 自己则引用 `model_ref`、`tools`、`limits`。图和节点拆开，比把拓扑埋进代码好查。
+最后用 `Task` 跑一次：
 
-## 主执行链路
-
-我把它压成一条运维向的路径：
-
-```mermaid
-flowchart LR
-  declare["声明资源"] --> reconcile["控制器和解"]
-  reconcile --> schedule["调度 Task"]
-  schedule --> claim["Worker 认领租约"]
-  claim --> execute["执行图与工具"]
-  execute --> govern["策略与审批"]
-  govern --> observe["轨迹与指标"]
+```yaml
+apiVersion: orloj.dev/v1
+kind: Task
+metadata:
+  name: weekly-report
+spec:
+  system: report-system
+  input:
+    topic: enterprise AI copilots
+  retry:
+    max_attempts: 2
+    backoff: 2s
 ```
 
-对应到组件：
+Task 上还会带 phase、output、attempt、lease、消息、join、委托、trace、history、blocker 这些状态。你可以把它理解成：一次多智能体作业的运行记录，而不只是请求响应。
 
-1. **`orlojd`**：API、控制台、存储、controller、调度；可选内嵌 worker  
-2. **`orlojworker`**：claim 任务、续租、跑 Agent 图、调模型与工具、回写状态  
-3. **`orlojctl`**：apply、跑 task、看 trace / 审批 / 指标  
+周围还有一圈配套资源，读的时候别当成装饰。
 
-一次任务的时序更接近分布式系统，而不是单次 RPC：
+`ContextAdapter` 会在 system 启动前清洗或改写原始输入。`Memory` 管任务级或持久记忆，后端可以是内存、pgvector 或 HTTP。`Secret` 和 `SealedSecret` 管运行时凭证，后者偏向 git 友好的加密清单。`McpServer` 用来接外部 MCP，并把发现到的工具物化进系统。`TaskSchedule` 和 `TaskWebhook` 负责定时和带签名校验的事件触发，顺带处理并发和幂等。`EvalDataset` 与 `EvalRun` 用黄金数据压测 system。`Worker` 声明容量、区域、支持的模型、GPU、心跳和当前负载。
 
-```mermaid
-sequenceDiagram
-  participant C as orlojctl或API
-  participant A as orlojd
-  participant W as orlojworker
-  participant M as Model或Tool
+资源面确实大。好处是边界清楚；坏处是你得先接受自己在学一个平台，而不只是抄一个示例仓库。
 
-  C->>A: apply清单并创建Task
-  A->>A: 校验资源并更新status
-  A->>W: 按容量调度
-  W->>A: claim并续租heartbeat
-  W->>M: 模型调用或工具调用
-  M-->>W: 结果
-  W->>A: 写回phase消息与trace
-  Note over W,A: 租约过期可被其他Worker接管
-```
+## 一次任务到底怎么跑起来
 
-这里有几个我不轻易略过的点：
+我按时间顺序把主路径说清楚。
 
-- **Lease + heartbeat**：进程挂了，任务不会永远「假装还在跑」  
-- **Idempotency / dead-letter**：失败可见，而不是静默丢  
-- **Message-driven 模式**：本地可顺序跑；扩规模再上 NATS——同一套资源语义  
+你先用 `orlojctl` 或 API 把 YAML apply 进去。controller 做校验，写 status，发现 MCP 工具，维护调度相关状态。然后创建一个指向某个 `AgentSystem` 的 Task。调度器按 Worker 容量和要求把任务派出去。
 
-## 工具与治理：写进运行时，不是写进 README
+Worker 不是被动挨打。它要 claim 任务，拿到租约，并持续 heartbeat。租约过期，别的 Worker 可以接管。这比 fire-and-forget 的脚本现实得多：进程没了，系统至少知道所有权失效了，而不是永远显示 running。
 
-很多项目把「别乱用工具」写在 prompt 里。Orloj 把治理做成运行时求值：
+认领之后进入执行。顺序模式适合本地；消息驱动模式适合分布式交接。图上的节点按边推进，模型调用走 `ModelEndpoint`，工具调用走 Tool 运行时，记忆按声明读写。每一步都可能触发策略检查。高风险工具或关键节点可以生成 `ToolApproval` / `TaskApproval`，把任务卡住等人处理，而不是让模型自行决定硬闯。
 
-- `AgentPolicy`：模型、工具黑名单、token、子任务深度  
-- `ToolPermission`：调用前要满足的规则  
-- `ToolApproval` / `TaskApproval`：高风险步骤卡住等人审  
+执行过程中，Task 持续积累消息、分支汇合信息、委托记录和 trace。失败会按重试策略退避；仍然不行就进入可见失败态，而不是静默消失。idempotency key 用来抑制重复副作用，这在 webhook 和重试场景尤其重要。
 
-未授权默认 **fail closed**，并进 trace。这和「模型说自己不会乱调用」不是一类保证。
+如果把角色再说人话一点：`orlojd` 负责让世界状态正确；`orlojworker` 负责在有租约的前提下把图跑完；策略和审批负责在关键调用处拦一下；观测数据负责事后还能讲清楚发生过什么。
 
-代价也很清楚：资源种类多，上手曲线陡；审批链路会拉长端到端时延。换生产场景，这通常是可接受的交换。
+## 工具层：调用本身就是受控动作
 
-## 可观测性
+Orloj 支持的工具形态很多：HTTP、外部服务、gRPC、webhook 回调、MCP、CLI、WASM、A2A 互操作。重点不在清单有多长，而在每次调用都会经过统一的运行时外壳：鉴权、隔离、超时、重试、权限规则，必要时审批。
 
-Task 轨迹覆盖模型调用、工具调用、错误、token、延迟、审批与重试；再加上 Prometheus、OTel、控制台视图。调试多智能体时，缺的往往不是更多 log 行，而是「这一跳为什么走到这个节点」——Orloj 把图状态和消息生命周期放进同一套 Task 视图，这点方向对。
+这和把工具函数直接塞进 agent 进程里调用，体感完全不同。后者快，前者可审计。Orloj 选的是后者。
 
-## 做得好的点
+`McpServer` 资源值得单独提一句。外部 MCP 不是手工抄工具名，而是连接后发现、再物化。工具集合会变，系统仍然有机会保持一致视图。当然，发现失败、工具漂移、权限映射，这些都是你落地时要额外盯的运维点。
 
-- 概念对齐基础设施：manifest → reconcile → worker → policy → observe  
-- 图（`AgentSystem`）与节点（`Agent`）分离，交接可检查  
-- 工具权限和审批是运行时门禁，不是文档约定  
-- 本地到分布式的升级路径清楚（内存 → Postgres / NATS / 多 Worker）  
+## 治理：写进运行时，而不是写进 prompt
 
-## 我有保留的点
+很多项目把别乱调工具写进 system prompt。模型偶尔听话，但那不是保证。
 
-- 资源面很大，早期团队容易「先学平台、后写业务」  
-- 1.0 前 API / schema 可能变，选它当长期底座要接受跟版本  
-- 「全栈」承诺重：控制台、CRD、评测、WASM… 维护成本不低；用之前先确认你真的需要整层，而不是只要编排内核  
+Orloj 把治理做成执行期求值。`AgentPolicy` 约束可用模型、屏蔽工具、token 预算、子任务深度和能否派生子任务。`AgentRole` 给角色挂权限名。`ToolPermission` 规定某次工具调用需要满足什么规则。`ToolApproval` 让风险工具在批准前停住。`TaskApproval` 让图上的关键节点或最终输出进入人工循环：通过、拒绝、或要求修改后再来。
 
-## 可复用清单
+未授权默认拒绝，并且进 trace。这句话很关键。它意味着安全模型是 fail closed，不是 fail open 再靠日志补救。
 
-下次自己搭或评估同类项目，可以直接问：
+代价也很实在。资源种类变多，新人要先搞懂一堆 kind。审批会拉长端到端时延。如果你的场景几乎没有副作用工具，这套会显得重。如果工具能改库、能发消息、能动外部账号，这套突然就变得合理。
 
-1. Agent / 工具 / 策略是不是一等资源，还是散落在代码常量里？  
-2. 任务有没有明确的所有权（lease）和可见失败态（dead-letter）？  
-3. 多 Agent 拓扑是声明式图，还是藏在控制流里？  
-4. 工具调用能否 fail closed，并留下可审计轨迹？  
-5. 本地单进程和分布式 Worker 是否共用同一资源模型？  
+## 可观测性：你要的是可解释的一跳
 
-Orloj 对这五问的答案大多是「是」。所以它更像 **agent 系统的控制面 + 数据面雏形**，而不是又一个聊天脚手架。
+多智能体难查，通常不是日志太少，而是缺少结构化的一跳一跳。为什么从 research 到了 writer？这次 tool call 花了多少 token？审批卡在哪？重试第几次？
 
-若你也在从 demo 往可运维多智能体挪，这个仓库值得按「基础设施」而不是「示例 App」来读。
+Orloj 把模型调用、工具调用、错误、token、延迟、审批、重试、消息生命周期收进 Task 轨迹和历史，再叠 Prometheus、OpenTelemetry 和控制台。调试时你追的是 Task，而不是五六个互不相关的日志流。
+
+这套如果做得扎实，后期排障成本会明显下降。它现在仍在快速迭代，字段和 UI 完整度我会保持观察，但方向是对的。
+
+## 本地到分布式，它想保住什么
+
+Orloj 反复强调一条升级路径：先单进程把资源模型和业务图跑顺，再换 Postgres，再上消息中间件和多 Worker，必要时走 Kubernetes 和 CRD GitOps。
+
+值不值得信，取决于它是否真能做到资源语义稳定。如果本地用一套对象，上生产又换一套概念，那只是两个产品缝在一起。如果 Task、AgentSystem、lease、policy 在两种部署形态里仍是同一套，那才叫基础设施。从文档和目录看，它在往第二个目标走。Go 写的 runtime、控制器、worker，外加 charts 和 compose，也都符合这个定位。
+
+## 我认可的地方
+
+第一，问题定义准。它盯住的是 demo 之后那批脏活，而不是再发明一种 prompt 写法。
+
+第二，节点和图分离。Agent 管角色能力，AgentSystem 管协作结构，Task 管一次运行。这三层拆开后，系统才像能运维的东西。
+
+第三，Worker 租约和失败可见。所有权和死信一旦成为一等概念，很多半吊子编排会立刻显得不完整。
+
+第四，治理落在调用路径上。审批和权限不是附录，是执行中的门。
+
+## 我暂时不会全盘押上的地方
+
+资源面太全。控制台、CRD、评测、WASM、A2A 都堆上来以后，维护成本和心智成本都不低。小团队很容易陷入先学平台、后写业务。
+
+版本风险真实存在。活跃开发加 1.0 前可变 schema，意味着你要有跟版本的预算，不能把它当已经冻住的内核。
+
+不是所有业务都需要这层厚度。若你只是单 Agent、工具少、失败可重跑、没有强审计，上 Orloj 可能过重。更合理的用法，是先确认你已经反复撞上交接不可见、工具越权、任务双跑这类问题，再引入。
+
+## 收尾
+
+读 Orloj，我建议按基础设施的标准读，而不是按示例 App 的标准读。先搞清 Agent、AgentSystem、Task 三层，再搞清 Worker 如何 claim 和续租，再看工具调用如何被策略拦住，最后才看控制台和周边集成。
+
+它想证明的事其实就一句：多智能体一旦离开 demo，就该有声明、有调度、有边界、有痕迹。这句我认同。至于你现在要不要把它用到自己的系统里，取决于你缺的是编排内核，还是已经缺一整张控制面。
