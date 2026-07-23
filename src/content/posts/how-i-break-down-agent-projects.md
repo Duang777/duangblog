@@ -25,10 +25,10 @@ description: 面对一个 Agent 相关开源或案例时，我通常会按什么
 
 ```mermaid
 flowchart LR
-  入口[入口<br/>UI / API / 定时] --> 规划[规划 / 路由]
-  规划 --> 工具[工具与外部系统]
-  工具 --> 记忆[记忆与状态]
-  记忆 --> 结束[结束 / 失败回退]
+  entry["入口"] --> plan["规划 / 路由"]
+  plan --> tools["工具"]
+  tools --> memory["记忆"]
+  memory --> done["结束或回退"]
 ```
 
 对应到步骤上：
