@@ -4,7 +4,7 @@ export default defineAstroPaperConfig({
   site: {
     url: "https://duangblog.pages.dev/",
     title: "Duang",
-    description: "记录思考、技术与日常的个人博客。",
+    description: "Agent 项目拆解、全栈学习与分享、Idea 与日常。",
     author: "Duang",
     profile: "https://github.com/Duang777",
     ogImage: "default-og.jpg",
