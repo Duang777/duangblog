@@ -9,22 +9,81 @@ const category = "General";
 const categoryId = "DIC_kwDOThhAqM4DB0kU";
 ---
 
-<section class="app-layout mt-10 mb-4" aria-label="评论">
-  <h2 class="text-foreground mb-4 text-xl font-semibold">评论</h2>
-  <div class="giscus"></div>
+<section class="comments" aria-label="评论">
+  <div class="comments-inner app-layout">
+    <header class="comments-head">
+      <p class="comments-eyebrow">Discussion</p>
+      <h2 class="comments-title">评论</h2>
+      <p class="comments-desc">
+        用 GitHub 账号登录即可留言。想法、纠错、补充都欢迎。
+      </p>
+    </header>
+    <div class="giscus"></div>
+  </div>
 </section>
+
+<style>
+  .comments {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 2.25rem;
+  }
+
+  .comments-head {
+    margin-bottom: 1.25rem;
+  }
+
+  .comments-eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .comments-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+  }
+
+  .comments-desc {
+    margin: 0;
+    max-width: 36rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .comments :global(.giscus),
+  .comments :global(.giscus-frame) {
+    width: 100%;
+  }
+
+  .comments :global(iframe.giscus-frame) {
+    border: 0 !important;
+    color-scheme: light dark;
+  }
+</style>
 
 <script
   is:inline
   define:vars={{ repo, repoId, category, categoryId }}
 >
   function currentGiscusTheme() {
+    const origin = window.location.origin;
     const theme = document.documentElement.getAttribute("data-theme");
-    if (theme === "dark") return "dark";
-    if (theme === "light") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    const dark =
+      theme === "dark" ||
+      (theme !== "light" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return dark
+      ? `${origin}/giscus/dark.css`
+      : `${origin}/giscus/light.css`;
   }
 
   function loadGiscus() {
@@ -43,7 +102,7 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
     script.setAttribute("data-strict", "0");
     script.setAttribute("data-reactions-enabled", "1");
     script.setAttribute("data-emit-metadata", "0");
-    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-input-position", "top");
     script.setAttribute("data-theme", currentGiscusTheme());
     script.setAttribute("data-lang", "zh-CN");
     script.setAttribute("data-loading", "lazy");

@@ -1,0 +1,8 @@
+name = "duangblog"
+compatibility_date = "2026-07-24"
+pages_build_output_dir = "dist"
+
+[[headers]]
+for = "/giscus/*"
+[headers.values]
+  Access-Control-Allow-Origin = "*"
