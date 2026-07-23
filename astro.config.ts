@@ -7,6 +7,7 @@ import {
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
+import mermaid from "astro-mermaid";
 import { unified } from "@astrojs/markdown-remark";
 import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
@@ -22,6 +23,12 @@ import config from "./astro-paper.config";
 export default defineConfig({
   site: config.site.url,
   integrations: [
+    // Must come before other markdown-processing integrations
+    mermaid({
+      theme: "neutral",
+      autoTheme: true,
+      enableLog: false,
+    }),
     mdx(),
     sitemap({
       filter: page =>
@@ -43,6 +50,10 @@ export default defineConfig({
       ],
       rehypePlugins: [rehypeCallouts],
     }),
+    syntaxHighlight: {
+      type: "shiki",
+      excludeLangs: ["mermaid"],
+    },
     shikiConfig: {
       themes: { light: "min-light", dark: "night-owl" },
       defaultColor: false,
