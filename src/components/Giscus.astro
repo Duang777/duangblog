@@ -1,0 +1,72 @@
+---
+/**
+ * Giscus comments (GitHub Discussions).
+ * Requires the Giscus GitHub App installed on Duang777/duangblog.
+ */
+const repo = "Duang777/duangblog";
+const repoId = "R_kgDOThhAqA";
+const category = "General";
+const categoryId = "DIC_kwDOThhAqM4DB0kU";
+---
+
+<section class="app-layout mt-10 mb-4" aria-label="评论">
+  <h2 class="text-foreground mb-4 text-xl font-semibold">评论</h2>
+  <div class="giscus"></div>
+</section>
+
+<script
+  is:inline
+  define:vars={{ repo, repoId, category, categoryId }}
+>
+  function currentGiscusTheme() {
+    const theme = document.documentElement.getAttribute("data-theme");
+    if (theme === "dark") return "dark";
+    if (theme === "light") return "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+
+  function loadGiscus() {
+    const container = document.querySelector(".giscus");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.setAttribute("data-repo", repo);
+    script.setAttribute("data-repo-id", repoId);
+    script.setAttribute("data-category", category);
+    script.setAttribute("data-category-id", categoryId);
+    script.setAttribute("data-mapping", "pathname");
+    script.setAttribute("data-strict", "0");
+    script.setAttribute("data-reactions-enabled", "1");
+    script.setAttribute("data-emit-metadata", "0");
+    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-theme", currentGiscusTheme());
+    script.setAttribute("data-lang", "zh-CN");
+    script.setAttribute("data-loading", "lazy");
+    script.setAttribute("crossorigin", "anonymous");
+    script.async = true;
+    container.appendChild(script);
+  }
+
+  function syncGiscusTheme() {
+    const iframe = document.querySelector("iframe.giscus-frame");
+    if (!iframe?.contentWindow) return;
+    iframe.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: currentGiscusTheme() } } },
+      "https://giscus.app"
+    );
+  }
+
+  loadGiscus();
+  document.addEventListener("astro:page-load", loadGiscus);
+
+  const themeObserver = new MutationObserver(syncGiscusTheme);
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class"],
+  });
+</script>
