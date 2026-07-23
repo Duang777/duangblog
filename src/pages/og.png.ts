@@ -1,4 +1,6 @@
 import type { APIRoute } from "astro";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import satori from "satori";
 import sharp from "sharp";
 import { fontData, experimental_getFontFileURL } from "astro:assets";
@@ -6,6 +8,22 @@ import { getFontPathByWeight } from "@/utils/getFontPathByWeight";
 import config from "@/config";
 
 export const GET: APIRoute = async context => {
+  // Local woff2 fonts are not supported by Satori; use the static OG asset instead.
+  if (!config.features.dynamicOgImage) {
+    const filePath = path.join(
+      process.cwd(),
+      "public",
+      config.site.ogImage || "default-og.jpg"
+    );
+    const bytes = await readFile(filePath);
+    const contentType = filePath.endsWith(".png")
+      ? "image/png"
+      : "image/jpeg";
+    return new Response(bytes, {
+      headers: { "Content-Type": contentType },
+    });
+  }
+
   const fonts = fontData["--font-google-sans-code"];
   const regularFontPath = getFontPathByWeight(fonts, 400);
   const boldFontPath = getFontPathByWeight(fonts, 700);

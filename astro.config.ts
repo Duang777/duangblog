@@ -29,8 +29,8 @@ export default defineConfig({
     }),
   ],
   i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    locales: ["en", "zh-CN"],
+    defaultLocale: "zh-CN",
     routing: {
       prefixDefaultLocale: false,
     },
@@ -66,22 +66,78 @@ export default defineConfig({
       provider: fontProviders.local(),
       fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       options: {
-        variants: [300, 400, 500, 600, 700].flatMap(weight => [
+        variants: [
           {
-            weight,
+            weight: 300,
             style: "normal",
             src: [
-              `./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-${weight}-normal.woff2`,
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2",
             ],
           },
           {
-            weight,
+            weight: 300,
             style: "italic",
             src: [
-              `./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-${weight}-italic.woff2`,
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-italic.woff2",
             ],
           },
-        ]),
+          {
+            weight: 400,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
+            ],
+          },
+          {
+            weight: 400,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2",
+            ],
+          },
+          {
+            weight: 500,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2",
+            ],
+          },
+          {
+            weight: 500,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-italic.woff2",
+            ],
+          },
+          {
+            weight: 600,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2",
+            ],
+          },
+          {
+            weight: 600,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-italic.woff2",
+            ],
+          },
+          {
+            weight: 700,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff2",
+            ],
+          },
+          {
+            weight: 700,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-italic.woff2",
+            ],
+          },
+        ],
       },
     },
   ],
