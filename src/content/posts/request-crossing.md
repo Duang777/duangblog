@@ -1,76 +1,150 @@
 ---
 author: Duang
-pubDatetime: 2026-07-25T01:30:00+08:00
-modDatetime: 2026-07-25T01:30:00+08:00
-title: 请求过境：后端专栏开张
+pubDatetime: 2026-07-25T01:35:00+08:00
+modDatetime: 2026-07-25T01:45:00+08:00
+title: HTTP 进到 Go 进程之后，超时到底卡在哪
 featured: true
 draft: false
 tags:
+  - 后端专栏
   - 请求过境
-  - 后端
-  - 专栏
-description: 后端大专栏导读。跟着一个请求从进进程到出响应，拆并发、存储、缓存、队列、鉴权和排障。
+description: 请求过境小栏目首篇。对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteTimeout、IdleTimeout，把一次请求在进程里卡死的位置拆开。
 ---
 
-后端这块，我单独开一个大专栏，名字叫 **请求过境**。
+这篇挂在 **后端专栏** 下面的小栏目 **请求过境** 里。小栏目只干一件事：顺着一次请求，把「卡在哪一层」写清楚。大专栏的入口在 [后端专栏](/posts/backend-column/)。
 
-意思很直：一个请求进了你的进程之后，要过 handler、业务逻辑、存储、缓存、队列、鉴权，再带着响应出去。专栏就盯这条路，把路上每个关卡怎么工作、会在哪儿翻车写清楚。
+我以前排超时，习惯先怪业务代码慢。后来对过几次才发现：很多单子在 handler 进门之前就已经被 `net/http.Server` 的读超时砍掉了；还有些是 keep-alive 空闲连接被 `IdleTimeout` 收走，日志里却长得像「偶发断开」。这篇把进程内侧前半段钉死，后面小栏目再往 handler、下游 I/O 延。
 
-它不是「语言语法合集」，也不是「框架对比榜」。更像一本跟着调用走的服务端手记。标签统一用 `请求过境`，方便以后按专栏筛。
+依据是 Go 标准库文档里的 [`net/http.Server`](https://pkg.go.dev/net/http#Server) 字段说明，不是框架封装后的体感。
 
-## 为什么单独开
-
-Agent 拆解已经有一块。全栈学习也写过，但后端一深就容易散：协议、并发、存储、中间件各是一座山。
-
-我更想按**请求路径**串起来。学一个点时，知道它卡在链路的哪一段；排障时，知道下一刀该砍哪里。专栏会慢，但每篇尽量落到机制和失败模式，该画图就画图，该贴核心代码就贴。
-
-## 请求在链路上会经过哪儿
-
-后面单篇会各自展开。先给一张总图，当作专栏地图：
+## 请求过境在总图上的位置
 
 ```mermaid
-flowchart LR
-  client["客户端"] --> edge["接入<br/>反向代理 / TLS"]
-  edge --> proc["进程内<br/>路由 / handler"]
-  proc --> biz["业务"]
-  biz --> store["存储"]
-  biz --> cache["缓存"]
-  biz --> queue["队列 / 异步"]
-  biz --> auth["鉴权 / 限流"]
-  store --> out["响应"]
-  cache --> out
-  queue --> out
-  auth --> out
-  out --> client
+flowchart TB
+  client["客户端"] --> proxy["反向代理 / LB"]
+  proxy --> accept["Listen + Accept"]
+  accept --> readh["读 header<br/>ReadHeaderTimeout"]
+  readh --> readb["读 body<br/>受 ReadTimeout 约束"]
+  readb --> handler["Handler"]
+  handler --> write["写响应<br/>WriteTimeout"]
+  write --> idle["连接空闲<br/>IdleTimeout"]
+  idle --> accept
 ```
 
-旁路还有日志、指标、链路追踪。它们不改业务结果，但决定你出事时能不能把这条路径复原出来。
+旁路的 access log、metrics 先不展开。先把 Server 这几个 deadline 分清楚，排障时才知道该看哪一段的日志。
 
-## 专栏大概会写哪些关卡
+## 默认 ListenAndServe 几乎没设墙钟
 
-顺序不是死课表，会按我正在啃的问题和线上踩坑来插队。大致地盘是这些：
+很多人入门写法是：
 
-1. **进进程**：监听、连接、HTTP 语义、超时从哪儿来  
-2. **并发模型**：线程 / goroutine、池、阻塞点、背压  
-3. **接口与契约**：REST / RPC、幂等、版本、错误怎么返回  
-4. **存储**：连接池、事务边界、锁、慢查询  
-5. **缓存**：命中与穿透、过期、一致性代价  
-6. **异步**：队列、重试、死信、至少一次语义  
-7. **鉴权与边界**：会话、token、权限、限流  
-8. **可观测与排障**：该看日志还是指标，一次超时怎么追  
+```go
+log.Fatal(http.ListenAndServe(":8080", mux))
+```
 
-每篇尽量带：它在总图上的位置、一段能说明问题的核心代码或配置、常见失败怎么表现。
+它内部会起一个几乎「裸」的 `Server`。字段零值在文档里的含义是：多数超时「没有限制」（零或负值表示 no timeout；`IdleTimeout` / `ReadHeaderTimeout` 在未设置时还会回落到 `ReadTimeout` 的语义）。本地 demo 没问题；丢到会慢传 body、会挂长连接、会碰上坏客户端的环境里，连接和 goroutine 会慢慢堆起来。
 
-## 怎么读
+我现在起 HTTP 服务，至少会显式写出这几个字段（数值按业务再调，重点是别留零值幻想）：
 
-新文会打上 `请求过境`。想跟专栏，从标签页进即可：[请求过境](/tags/请求过境/)。
+```go
+s := &http.Server{
+	Addr:              ":8080",
+	Handler:           mux,
+	ReadHeaderTimeout: 5 * time.Second,
+	ReadTimeout:       15 * time.Second,
+	WriteTimeout:      30 * time.Second,
+	IdleTimeout:       60 * time.Second,
+	MaxHeaderBytes:    1 << 20, // 1 MiB，文档示例里常见写法
+}
+log.Fatal(s.ListenAndServe())
+```
 
-你也可以只挑关卡看。比如最近在跟连接池抖动，就直接找存储相关篇，不必按编号从头刷。
+文档原话大意如下，我按排障用途意译对齐：
 
-和本站其他内容的分工：Agent 拆解继续写开源与运行时；全栈笔记继续写「一条链路跑通」的体会；**请求过境**专门把服务端关卡挖深。
+- `ReadTimeout`：读完整个请求（含 body）的上限。Handler 没法按请求再改这层 deadline，所以很多人更偏向先设 `ReadHeaderTimeout`。
+- `ReadHeaderTimeout`：只限制读完 header 的时间。header 读完后连接的读 deadline 会重置，body 快慢可以交给 Handler 自己用 `Request.Context()` 或自己的读策略判断。
+- `WriteTimeout`：写响应的上限；每次新请求读到 header 后会重置。同样不是按 Handler 细调的那种。
+- `IdleTimeout`：keep-alive 开启时，等下一个请求的最长空闲时间。未设置时回退到 `ReadTimeout` 的规则。
 
-## 第一篇之后
+官方也写了：`ReadTimeout` 和 `ReadHeaderTimeout` 可以一起用。这不是重复配置，是「header 一道门、整包再一道门」。
 
-导读之后，下一篇会从「请求进到进程里之后发生了什么」起笔。语言和示例会尽量落到能跑的最小片段，并对照官方文档核过再写。
+## 一次卡死，我会按层问
 
-如果你也在补后端，欢迎按关卡对照着看，缺哪块告诉我，我可能就接着写哪块。
+客户端报 timeout，我现在习惯拆成四问，而不是一上来翻业务函数。
+
+**1. 死在进 handler 之前吗？**  
+若 access log 里根本没有这条路由的进入记录，优先怀疑：代理超时、TLS 握手、`ReadHeaderTimeout`、header 过大撞上 `MaxHeaderBytes`。慢客户端用很慢的速度搓 header，没有 `ReadHeaderTimeout` 时会长期占着连接。
+
+**2. header 过了，body 没读完？**  
+大上传、被掐断的客户端、自己用 `ReadTimeout` 掐得太短，都会表现为「请求到了网关、服务端却像没处理完」。Handler 如果一上来 `io.ReadAll(r.Body)`，还会把问题放大成内存和耗时。
+
+**3. Handler 跑很久，响应写不完？**  
+`WriteTimeout` 会在写回阶段下手。流式响应、大 JSON、慢慢 flush 的场景，写超时和业务「算得慢」容易混在一起。要对照：是算完了写一半断的，还是压根算不完。
+
+**4. 处理完了，连接却在复用时掉？**  
+看 `IdleTimeout` 和前面代理的 idle / keep-alive 是否一致。两边数字拧着，症状常是「第二次请求偶发失败」，第一次明明是好的。
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant P as Proxy
+  participant S as Go Server
+  participant H as Handler
+
+  C->>P: request
+  P->>S: TCP + HTTP
+  Note over S: ReadHeaderTimeout
+  S->>S: parse headers
+  Note over S: ReadTimeout covers body
+  S->>H: ServeHTTP
+  H-->>S: write body
+  Note over S: WriteTimeout
+  S-->>P: response
+  Note over S: IdleTimeout waits next req
+```
+
+## 和代理超时错开时会发生什么
+
+进程内设对了，外面还有一层。Nginx / Envoy / 云 LB 各自有 connect / send / read 超时。常见拧巴是：
+
+- 代理 60s 断连，Go `WriteTimeout` 仍是 10s：客户端看到的是代理错误页，Go 日志可能是自己先写失败。
+- 反过来，Go 先 `WriteTimeout`，代理还在等：客户端像「服务端突然断」，代理 access log 才是真源头。
+
+所以「请求过境」后面一定会写到：同一条请求在多跳超时上的对照表。这篇先把进程内四件套立住，否则对照表没有左侧坐标。
+
+## Handler 里我至少做什么
+
+超时字段管的是连接读写墙钟，不管你业务里有没有把取消信号传下去。进了 Handler，我最低限度会：
+
+```go
+func handleCreate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context() // 客户端断开或 Server 取消时会 done
+	// 下游 DB / HTTP 客户端都带上 ctx，而不是用 context.Background()
+	if err := doWork(ctx, r); err != nil {
+		if errors.Is(err, context.Canceled) {
+			// 别再当 500 业务失败刷屏；多数是对端走了
+			return
+		}
+		http.Error(w, "failed", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+```
+
+`r.Context()` 和 `WriteTimeout` 不是同一件事。一个是取消传播，一个是连接写 deadline。两个都要，漏一个排障都会误判。
+
+## 我认栽过的误判
+
+把 `http.ListenAndServe` 当「生产默认」。本地压测看不出来，流量上来才像鬼打墙。
+
+只设 `ReadTimeout`，以为 header 和 body 都稳了。文档已经提示：整包读超时不适合让 Handler 做 per-request 决策，于是大上传和慢客户端会挤在同一根绳子上。
+
+`WriteTimeout` 设太短，却在 Handler 里做重活再一次性写。看起来像写超时，根因是先算太久。正确姿势往往是：重活可取消、可拆；写超时留给「真的在写」的阶段。
+
+日志只打业务 error，不打「在读 header / 在写响应」的阶段。没有阶段，就无法把上面四问落到证据上。
+
+## 这篇在小栏目里的位置
+
+请求过境后面几篇会接着往下走：`Context` 如何穿过 DB 驱动、连接池借还和请求取消谁先谁后、以及代理超时怎么和 `Server` 字段对齐。每篇继续打 `后端专栏` + `请求过境`。
+
+若你只想扫后端全部笔记，走 [后端专栏](/tags/后端专栏/)；若只跟请求路径，走 [请求过境](/tags/请求过境/)。

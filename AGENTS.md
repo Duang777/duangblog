@@ -4,7 +4,7 @@ This file steers agents that write or edit content for Duang's blog.
 
 ## What this blog is
 
-Personal notes on Agent project breakdowns, full-stack learning, ideas, occasional daily notes, and the backend column **请求过境**.
+Personal notes on Agent project breakdowns, full-stack learning, ideas, occasional daily notes, and the **后端专栏** (with sub-columns such as 请求过境).
 
 Do not pitch hosting or framework brand names in reader-facing copy unless the article is specifically about that.
 
@@ -42,7 +42,7 @@ Humanizer checklist that matters most for this blog:
 - Do not write symmetrical slogan triplets that sound generated
 - Do not pad with outline-restating summaries
 - Do not say you are an AI or that the post was generated
-- Do not dump decorative diagrams or huge unrealted file dumps
+- Do not dump decorative diagrams or huge unrelated file dumps
 
 ### Prefer
 
@@ -60,29 +60,37 @@ When a post talks about process topology, request paths, agent loops, graph rout
 - **Show core code**: paste short excerpts from a real repo or minimal repro (trimmed with `// ...`), citing path or version. Prefer the loop / SQL / handler / config that proves the claim. Do not paste entire files.
 - Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
 
-## Column: 请求过境 (backend)
+## Backend: 后端专栏 (parent) and sub-columns
 
-Large ongoing column on backend learning. Tag every post with `请求过境` (and usually `后端`). The column intro is `src/content/posts/request-crossing.md`.
+**Parent column tag:** `后端专栏`  
+Every post under the backend mega-column must carry this tag. Hub post: `src/content/posts/backend-column.md`.
 
-**Angle:** follow a request from process entry to response: handler, concurrency, storage, cache, queue, auth, observability, failure modes. Not a framework catalog. Not "从零到专家".
+**Sub-column tags** (narrow series inside 后端专栏; never promote these to the parent name):
 
-**Skills for this column:**
+| Tag | Angle | Hub / first post |
+|-----|--------|------------------|
+| `请求过境` | Follow one request from listen/accept through handler, I/O, and timeouts | `src/content/posts/request-crossing.md` |
 
-1. `source-driven-development` (`~/.claude/skills/source-driven-development/SKILL.md`) when citing Go / HTTP / DB / Redis / queue behavior: verify against official docs for the version you name
-2. Draft under this file's voice + diagram/code rules
-3. `humanizer` (`~/.cursor/skills/humanizer/SKILL.md`) before publish
-4. Topic add-ons when needed: `api-and-interface-design`, `observability-and-instrumentation`, `performance-optimization`, `security-and-hardening`, `doubt-driven-development`
+Do **not** use a lone vague tag like `专栏`. Do **not** label 请求过境 as "the backend column".
 
-**Per-article shape:**
+**Skills (required for 后端专栏 prose):**
 
-1. What pain or misconception this piece attacks
-2. Where it sits on the request path (one Mermaid)
-3. How it actually runs (mechanics + short core code)
-4. Failure modes and what you would check first
-5. What I would copy; what I would not overfit yet
-6. Optional: link prev / next 请求过境 posts
+1. `source-driven-development` when naming library/API behavior: fetch official docs for the version you cite
+2. Draft under this file (voice, diagrams, core code, depth)
+3. **`humanizer` before publish** (`~/.cursor/skills/humanizer/SKILL.md`) in file mode; Chinese hard bans still apply after it
+4. Topic add-ons: `api-and-interface-design`, `observability-and-instrumentation`, `performance-optimization`, `security-and-hardening`, `doubt-driven-development`
 
-Titles prefer concrete objects (`连接池为什么会抖`, `一次 HTTP 进到 Go 进程之后`) over vague series numbering in the H1. Series membership is the `请求过境` tag.
+**Depth bar:** a 后端专栏 post is not a catalog or "开张导读" with eight bullet topics. Stay with one mechanism long enough that a reader could debug it. Prefer one Mermaid + real code over a roadmap list.
+
+**Per-article shape (请求过境 and similar):**
+
+1. What I kept getting wrong, or what symptom showed up
+2. Where this sits on the request path (one diagram)
+3. How it runs (mechanics + short official-docs-backed code)
+4. Failure modes and what I check first
+5. Short close; no "欢迎留言告诉我缺哪块"
+
+Titles name the object (`ReadHeaderTimeout 和 ReadTimeout 别混`, `连接池为什么会抖`). Parent/sub membership is tags, not H1 slogans.
 
 ## Breakdown posts (Agent / open-source projects)
 
@@ -141,8 +149,10 @@ End without a corporate-sounding checklist if the body already made the points. 
 ## Files
 
 - Posts: `src/content/posts/*.md`
-- Column intro (请求过境): `src/content/posts/request-crossing.md`
+- 后端专栏 hub: `src/content/posts/backend-column.md`
+- 请求过境 (sub-column): `src/content/posts/request-crossing.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 
-Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly. Column posts must include tag `请求过境`.
+Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly.  
+Backend mega-column posts: tag `后端专栏`. Sub-column posts add their own tag (e.g. `请求过境`).
