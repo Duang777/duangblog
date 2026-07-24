@@ -12,7 +12,16 @@ Do not pitch hosting or framework brand names in reader-facing copy unless the a
 
 Professional. Engineer notebook. Not AI.
 
-Write like a long WeChat tech article by a working engineer: narrative, concrete, a bit dry, willing to spend paragraphs on how something actually runs.
+Primary tone: a long WeChat tech article by a working engineer. For depth and teaching shape, also follow the prose habits of [深入理解 AI Agent](https://bojieli.github.io/ai-agent-book/) ([bojieli/ai-agent-book](https://github.com/bojieli/ai-agent-book)): concrete scene first, one core claim, define terms on first use, then walk a real trajectory with code. Do **not** copy that book's textbook scaffolding (全书十章目录、阅读路径矩阵、致谢式开场) into blog posts. Do **not** copy its corner-quote habit; this blog still bans 「」.
+
+### What to steal from that book
+
+1. **Open with something the reader has already seen** (a product, a timeout ticket, a log line), not with column taxonomy or era throat-clearing.
+2. **State one core claim early** in plain words (their `Agent = LLM + 上下文 + 工具`; our equivalent might be `超时先分清读 header / 读 body / 写响应 / 空闲`).
+3. **Define on first use** in the same sentence or the next: what the field does, who resets it, what it does not cover.
+4. **Walk a trajectory**: numbered steps or a short message/sequence dump that shows state accumulating, like their ReAct tool-call walkthrough.
+5. **Optional deeper layer** can be marked skippable (有 RL 背景再看 / 初次可跳过原理), instead of dumping everything as equal-weight bullets.
+6. **Wrong mental model** sits next to the right mechanism; keep it specific, not a sermon.
 
 ### De-AI skill (required for reader-facing prose)
 
@@ -82,15 +91,17 @@ Do **not** use a lone vague tag like `专栏`. Do **not** label 请求过境 as 
 3. **`humanizer` before publish** (`~/.cursor/skills/humanizer/SKILL.md`) in file mode; Chinese hard bans still apply after it
 4. Topic add-ons: `api-and-interface-design`, `observability-and-instrumentation`, `performance-optimization`, `security-and-hardening`, `doubt-driven-development`
 
-**Depth bar:** a 后端专栏 post is not a catalog or "开张导读" with eight bullet topics. Stay with one mechanism long enough that a reader could debug it. Prefer one Mermaid + real code over a roadmap list.
+**Depth bar:** stay with one mechanism long enough that a reader could debug it. Prefer one Mermaid + real code over a roadmap list. Write normal paragraphs; do not sound like a product launch or a correction notice.
 
 **Per-article shape (请求过境 and similar):**
 
-1. What I kept getting wrong, or what symptom showed up
-2. Where this sits on the request path (one diagram)
-3. How it runs (mechanics + short official-docs-backed code)
-4. Failure modes and what I check first
-5. Short close; no "欢迎留言告诉我缺哪块"
+1. Concrete symptom or scene the reader recognizes
+2. One core claim
+3. Diagram of where this sits on the path
+4. Field-by-field or step-by-step mechanics + short docs-backed code
+5. A request trajectory (what happens in order)
+6. Failure modes / wrong assumptions I actually held
+7. One-line forward link; no taxonomy lecture, no 欢迎互动
 
 Titles name the object (`ReadHeaderTimeout 和 ReadTimeout 别混`, `连接池为什么会抖`). Parent/sub membership is tags, not H1 slogans.
 
