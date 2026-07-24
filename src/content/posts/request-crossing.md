@@ -11,9 +11,9 @@ tags:
 description: 请求过境小栏目首篇。对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteTimeout、IdleTimeout，把一次请求在进程里卡死的位置拆开。
 ---
 
-这篇挂在 **后端专栏** 下面的小栏目 **请求过境** 里。小栏目只干一件事：顺着一次请求，把「卡在哪一层」写清楚。大专栏的入口在 [后端专栏](/posts/backend-column/)。
+这篇挂在 **后端专栏** 下面的小栏目 **请求过境** 里。小栏目只干一件事：顺着一次请求，把卡在哪一层写清楚。大专栏的入口在 [后端专栏](/posts/backend-column/)。
 
-我以前排超时，习惯先怪业务代码慢。后来对过几次才发现：很多单子在 handler 进门之前就已经被 `net/http.Server` 的读超时砍掉了；还有些是 keep-alive 空闲连接被 `IdleTimeout` 收走，日志里却长得像「偶发断开」。这篇把进程内侧前半段钉死，后面小栏目再往 handler、下游 I/O 延。
+我以前排超时，习惯先怪业务代码慢。后来对过几次才发现：很多单子在 handler 进门之前就已经被 `net/http.Server` 的读超时砍掉了；还有些是 keep-alive 空闲连接被 `IdleTimeout` 收走，日志里却长得像偶发断开。这篇把进程内侧前半段钉死，后面小栏目再往 handler、下游 I/O 延。
 
 依据是 Go 标准库文档里的 [`net/http.Server`](https://pkg.go.dev/net/http#Server) 字段说明，不是框架封装后的体感。
 
@@ -41,7 +41,7 @@ flowchart TB
 log.Fatal(http.ListenAndServe(":8080", mux))
 ```
 
-它内部会起一个几乎「裸」的 `Server`。字段零值在文档里的含义是：多数超时「没有限制」（零或负值表示 no timeout；`IdleTimeout` / `ReadHeaderTimeout` 在未设置时还会回落到 `ReadTimeout` 的语义）。本地 demo 没问题；丢到会慢传 body、会挂长连接、会碰上坏客户端的环境里，连接和 goroutine 会慢慢堆起来。
+它内部会起一个几乎裸的 `Server`。字段零值在文档里的含义是：多数超时没有限制（零或负值表示 no timeout；`IdleTimeout` / `ReadHeaderTimeout` 在未设置时还会回落到 `ReadTimeout` 的语义）。本地 demo 没问题；丢到会慢传 body、会挂长连接、会碰上坏客户端的环境里，连接和 goroutine 会慢慢堆起来。
 
 我现在起 HTTP 服务，至少会显式写出这几个字段（数值按业务再调，重点是别留零值幻想）：
 
@@ -65,7 +65,7 @@ log.Fatal(s.ListenAndServe())
 - `WriteTimeout`：写响应的上限；每次新请求读到 header 后会重置。同样不是按 Handler 细调的那种。
 - `IdleTimeout`：keep-alive 开启时，等下一个请求的最长空闲时间。未设置时回退到 `ReadTimeout` 的规则。
 
-官方也写了：`ReadTimeout` 和 `ReadHeaderTimeout` 可以一起用。这不是重复配置，是「header 一道门、整包再一道门」。
+官方也写了：`ReadTimeout` 和 `ReadHeaderTimeout` 可以一起用。这不是重复配置，是 header 一道门、整包再一道门。
 
 ## 一次卡死，我会按层问
 
@@ -75,13 +75,13 @@ log.Fatal(s.ListenAndServe())
 若 access log 里根本没有这条路由的进入记录，优先怀疑：代理超时、TLS 握手、`ReadHeaderTimeout`、header 过大撞上 `MaxHeaderBytes`。慢客户端用很慢的速度搓 header，没有 `ReadHeaderTimeout` 时会长期占着连接。
 
 **2. header 过了，body 没读完？**  
-大上传、被掐断的客户端、自己用 `ReadTimeout` 掐得太短，都会表现为「请求到了网关、服务端却像没处理完」。Handler 如果一上来 `io.ReadAll(r.Body)`，还会把问题放大成内存和耗时。
+大上传、被掐断的客户端、自己用 `ReadTimeout` 掐得太短，都会表现为：请求到了网关，服务端却像没处理完。Handler 如果一上来 `io.ReadAll(r.Body)`，还会把问题放大成内存和耗时。
 
 **3. Handler 跑很久，响应写不完？**  
-`WriteTimeout` 会在写回阶段下手。流式响应、大 JSON、慢慢 flush 的场景，写超时和业务「算得慢」容易混在一起。要对照：是算完了写一半断的，还是压根算不完。
+`WriteTimeout` 会在写回阶段下手。流式响应、大 JSON、慢慢 flush 的场景，写超时和业务算得慢容易混在一起。要对照：是算完了写一半断的，还是压根算不完。
 
 **4. 处理完了，连接却在复用时掉？**  
-看 `IdleTimeout` 和前面代理的 idle / keep-alive 是否一致。两边数字拧着，症状常是「第二次请求偶发失败」，第一次明明是好的。
+看 `IdleTimeout` 和前面代理的 idle / keep-alive 是否一致。两边数字拧着，症状常是第二次请求偶发失败，第一次明明是好的。
 
 ```mermaid
 sequenceDiagram
@@ -107,9 +107,9 @@ sequenceDiagram
 进程内设对了，外面还有一层。Nginx / Envoy / 云 LB 各自有 connect / send / read 超时。常见拧巴是：
 
 - 代理 60s 断连，Go `WriteTimeout` 仍是 10s：客户端看到的是代理错误页，Go 日志可能是自己先写失败。
-- 反过来，Go 先 `WriteTimeout`，代理还在等：客户端像「服务端突然断」，代理 access log 才是真源头。
+- 反过来，Go 先 `WriteTimeout`，代理还在等：客户端像服务端突然断，代理 access log 才是真源头。
 
-所以「请求过境」后面一定会写到：同一条请求在多跳超时上的对照表。这篇先把进程内四件套立住，否则对照表没有左侧坐标。
+所以请求过境后面一定会写到：同一条请求在多跳超时上的对照表。这篇先把进程内四件套立住，否则对照表没有左侧坐标。
 
 ## Handler 里我至少做什么
 
@@ -135,13 +135,13 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 
 ## 我认栽过的误判
 
-把 `http.ListenAndServe` 当「生产默认」。本地压测看不出来，流量上来才像鬼打墙。
+把 `http.ListenAndServe` 当生产默认。本地压测看不出来，流量上来才像鬼打墙。
 
 只设 `ReadTimeout`，以为 header 和 body 都稳了。文档已经提示：整包读超时不适合让 Handler 做 per-request 决策，于是大上传和慢客户端会挤在同一根绳子上。
 
-`WriteTimeout` 设太短，却在 Handler 里做重活再一次性写。看起来像写超时，根因是先算太久。正确姿势往往是：重活可取消、可拆；写超时留给「真的在写」的阶段。
+`WriteTimeout` 设太短，却在 Handler 里做重活再一次性写。看起来像写超时，根因是先算太久。正确姿势往往是：重活可取消、可拆；写超时留给真正在写的阶段。
 
-日志只打业务 error，不打「在读 header / 在写响应」的阶段。没有阶段，就无法把上面四问落到证据上。
+日志只打业务 error，不打在读 header / 在写响应的阶段。没有阶段，就无法把上面四问落到证据上。
 
 ## 这篇在小栏目里的位置
 
