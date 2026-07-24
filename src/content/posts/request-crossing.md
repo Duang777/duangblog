@@ -8,16 +8,14 @@ draft: false
 tags:
   - 后端专栏
   - 请求过境
-description: 请求过境小栏目首篇。对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteTimeout、IdleTimeout，把一次请求在进程里卡死的位置拆开。
+description: 对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteTimeout、IdleTimeout，把一次请求在进程里卡死的位置拆开。
 ---
 
-这篇挂在 **后端专栏** 下面的小栏目 **请求过境** 里。小栏目只干一件事：顺着一次请求，把卡在哪一层写清楚。大专栏的入口在 [后端专栏](/posts/backend-column/)。
+排超时我以前习惯先怪业务代码慢。对过几单之后才发现：不少请求在进 handler 之前就被 `net/http.Server` 的读超时砍了；还有些是 keep-alive 空闲连接被 `IdleTimeout` 收走，日志看上去像偶发断开。
 
-我以前排超时，习惯先怪业务代码慢。后来对过几次才发现：很多单子在 handler 进门之前就已经被 `net/http.Server` 的读超时砍掉了；还有些是 keep-alive 空闲连接被 `IdleTimeout` 收走，日志里却长得像偶发断开。这篇把进程内侧前半段钉死，后面小栏目再往 handler、下游 I/O 延。
+这篇把进程内侧前半段说清楚。它属于后端专栏里的小栏目请求过境，专栏入口在 [后端专栏](/posts/backend-column/)。依据是 Go 标准库 [`net/http.Server`](https://pkg.go.dev/net/http#Server) 的字段说明。
 
-依据是 Go 标准库文档里的 [`net/http.Server`](https://pkg.go.dev/net/http#Server) 字段说明，不是框架封装后的体感。
-
-## 请求过境在总图上的位置
+## 一次请求在进程里怎么走
 
 ```mermaid
 flowchart TB
@@ -133,18 +131,14 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 
 `r.Context()` 和 `WriteTimeout` 不是同一件事。一个是取消传播，一个是连接写 deadline。两个都要，漏一个排障都会误判。
 
-## 我认栽过的误判
+## 我踩过的坑
 
 把 `http.ListenAndServe` 当生产默认。本地压测看不出来，流量上来才像鬼打墙。
 
-只设 `ReadTimeout`，以为 header 和 body 都稳了。文档已经提示：整包读超时不适合让 Handler 做 per-request 决策，于是大上传和慢客户端会挤在同一根绳子上。
+只设 `ReadTimeout`，以为 header 和 body 都稳了。文档已经提示：整包读超时不适合让 Handler 按请求细调，大上传和慢客户端会挤在同一根绳子上。
 
-`WriteTimeout` 设太短，却在 Handler 里做重活再一次性写。看起来像写超时，根因是先算太久。正确姿势往往是：重活可取消、可拆；写超时留给真正在写的阶段。
+`WriteTimeout` 设太短，却在 Handler 里先做重活再一次性写。看起来像写超时，其实是前面算太久。重活要能取消、能拆；写超时留给真正在写的那段。
 
-日志只打业务 error，不打在读 header / 在写响应的阶段。没有阶段，就无法把上面四问落到证据上。
+日志如果只打业务 error，不区分在读 header 还是在写响应，上面那几问就落不到证据上。
 
-## 这篇在小栏目里的位置
-
-请求过境后面几篇会接着往下走：`Context` 如何穿过 DB 驱动、连接池借还和请求取消谁先谁后、以及代理超时怎么和 `Server` 字段对齐。每篇继续打 `后端专栏` + `请求过境`。
-
-若你只想扫后端全部笔记，走 [后端专栏](/tags/后端专栏/)；若只跟请求路径，走 [请求过境](/tags/请求过境/)。
+下一篇会写 `Context` 怎么传到 DB，以及代理超时怎么跟这些字段对齐。相关笔记在 [请求过境](/tags/请求过境/)，后端总入口在 [后端专栏](/tags/后端专栏/)。

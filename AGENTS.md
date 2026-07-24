@@ -43,6 +43,8 @@ Humanizer checklist that matters most for this blog:
 - Do not pad with outline-restating summaries
 - Do not say you are an AI or that the post was generated
 - Do not dump decorative diagrams or huge unrelated file dumps
+- Do not narrate editorial process in posts (e.g. 之前搞错了、这里改清楚、分层搅在一起、开张导读). Just state the current structure or jump into the topic.
+- Do not write meta about how the blog is organized unless the reader needs a one-line link; never explain a past naming mistake
 
 ### Prefer
 
