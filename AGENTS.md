@@ -4,7 +4,7 @@ This file steers agents that write or edit content for Duang's blog.
 
 ## What this blog is
 
-Personal notes on Agent project breakdowns, full-stack learning, ideas, and occasional daily notes.
+Personal notes on Agent project breakdowns, full-stack learning, ideas, occasional daily notes, and the backend column **请求过境**.
 
 Do not pitch hosting or framework brand names in reader-facing copy unless the article is specifically about that.
 
@@ -54,11 +54,35 @@ Humanizer checklist that matters most for this blog:
 
 ### Diagrams and core code (required when they clarify)
 
-When a breakdown talks about process topology, agent loops, graph routing, claim/lease, dual buses, or UI↔API live updates:
+When a post talks about process topology, request paths, agent loops, graph routing, claim/lease, dual buses, storage/cache/queue internals, or UI↔API live updates:
 
-- **Draw it**: use Mermaid (`flowchart` / `sequenceDiagram`) for the topology or call path. One diagram per idea. Label real component names (`orlojd`, `AgentWorker`, `EventSource`).
-- **Show core code**: paste short excerpts from the real repo (trimmed with `// ...`), citing path. Prefer the loop / SQL / authorize / watch / embed that proves the claim. Do not paste entire files.
+- **Draw it**: use Mermaid (`flowchart` / `sequenceDiagram` / `stateDiagram`) for the topology or call path. One diagram per idea. Label real component names.
+- **Show core code**: paste short excerpts from a real repo or minimal repro (trimmed with `// ...`), citing path or version. Prefer the loop / SQL / handler / config that proves the claim. Do not paste entire files.
 - Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
+
+## Column: 请求过境 (backend)
+
+Large ongoing column on backend learning. Tag every post with `请求过境` (and usually `后端`). The column intro is `src/content/posts/request-crossing.md`.
+
+**Angle:** follow a request from process entry to response: handler, concurrency, storage, cache, queue, auth, observability, failure modes. Not a framework catalog. Not "从零到专家".
+
+**Skills for this column:**
+
+1. `source-driven-development` (`~/.claude/skills/source-driven-development/SKILL.md`) when citing Go / HTTP / DB / Redis / queue behavior: verify against official docs for the version you name
+2. Draft under this file's voice + diagram/code rules
+3. `humanizer` (`~/.cursor/skills/humanizer/SKILL.md`) before publish
+4. Topic add-ons when needed: `api-and-interface-design`, `observability-and-instrumentation`, `performance-optimization`, `security-and-hardening`, `doubt-driven-development`
+
+**Per-article shape:**
+
+1. What pain or misconception this piece attacks
+2. Where it sits on the request path (one Mermaid)
+3. How it actually runs (mechanics + short core code)
+4. Failure modes and what you would check first
+5. What I would copy; what I would not overfit yet
+6. Optional: link prev / next 请求过境 posts
+
+Titles prefer concrete objects (`连接池为什么会抖`, `一次 HTTP 进到 Go 进程之后`) over vague series numbering in the H1. Series membership is the `请求过境` tag.
 
 ## Breakdown posts (Agent / open-source projects)
 
@@ -117,7 +141,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 ## Files
 
 - Posts: `src/content/posts/*.md`
+- Column intro (请求过境): `src/content/posts/request-crossing.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 
-Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly.
+Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly. Column posts must include tag `请求过境`.
