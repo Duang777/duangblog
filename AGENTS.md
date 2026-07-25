@@ -166,6 +166,9 @@ End without a corporate-sounding checklist if the body already made the points. 
 - 请求过境 (sub-column): `src/content/posts/request-crossing.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
+- **How to write (human guide, not published):** `notes/怎么写博客.md`
+- Topic inbox: `notes/ideas.md`
+- Optional voice sample for humanizer: `notes/voice-sample.md`
 
 Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly.  
 Backend mega-column posts: tag `后端专栏`. Sub-column posts add their own tag (e.g. `请求过境`).

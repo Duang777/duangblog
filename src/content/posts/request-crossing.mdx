@@ -1,7 +1,7 @@
 ---
 author: Duang
 pubDatetime: 2026-07-25T01:35:00+08:00
-modDatetime: 2026-07-25T01:55:00+08:00
+modDatetime: 2026-07-25T22:10:00+08:00
 title: HTTP 进到 Go 进程之后，超时到底卡在哪
 featured: true
 draft: false
@@ -10,6 +10,9 @@ tags:
   - 请求过境
 description: 对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteTimeout、IdleTimeout，把一次请求在进程里卡死的位置拆开。
 ---
+
+import Collapsible from "@/components/Collapsible.astro";
+import TimeoutDemo from "@/components/TimeoutDemo.astro";
 
 客户端报 timeout，看板只有业务耗时，access log 里却找不到对应 handler。另一种更烦人：第一次请求正常，第二次复用连接时偶发断开，日志像网络抖了一下。
 
@@ -23,6 +26,8 @@ description: 对照 net/http.Server 的 ReadHeaderTimeout、ReadTimeout、WriteT
 
 ## 路径先立住
 
+<Collapsible title="请求在进程里的四段路径" open>
+
 ```mermaid
 flowchart TB
   client["客户端"] --> proxy["反向代理 / LB"]
@@ -34,6 +39,8 @@ flowchart TB
   write --> idle["连接空闲<br/>IdleTimeout"]
   idle --> accept
 ```
+
+</Collapsible>
 
 access log 和 metrics 先当旁路。先把这四段 deadline 分清，后面才知道日志该打在哪一段。
 
@@ -99,6 +106,12 @@ t5   同连接上下一请求的 header 到来，或空闲超时断开
 
 排障时把客户端报错时间戳往这条轨迹上靠：若 `t2` 根本没发生，别先优化 SQL。
 
+下面这个可以自己拨：选一段卡住，拖它的耗时，看先被哪个字段打掉。
+
+<TimeoutDemo />
+
+<Collapsible title="同一条路径的时序图">
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -117,6 +130,8 @@ sequenceDiagram
   S-->>P: response
   Note over S: IdleTimeout waits next req
 ```
+
+</Collapsible>
 
 ## 客户端 timeout 时我按层问
 

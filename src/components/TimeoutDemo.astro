@@ -1,0 +1,259 @@
+---
+/**
+ * Interactive walkthrough of which net/http.Server field cuts a stalled stage.
+ * Wall-clock numbers mirror the article example; not production recommendations.
+ */
+const stages = [
+  { id: "header", label: "读 header", field: "ReadHeaderTimeout 5s" },
+  { id: "body", label: "读 body", field: "ReadTimeout 15s" },
+  { id: "handler", label: "Handler", field: "无 Server 字段约束" },
+  { id: "write", label: "写响应", field: "WriteTimeout 30s" },
+  { id: "idle", label: "空闲等下一跳", field: "IdleTimeout 60s" },
+];
+---
+
+<div
+  class="timeout-demo not-prose border-border bg-background my-8 rounded-lg border p-4 sm:p-5"
+  data-timeout-demo
+>
+  <p class="text-foreground m-0 text-sm font-medium">
+    卡在哪一段，先被哪道墙钟打掉
+  </p>
+  <p class="text-muted-foreground mt-1 mb-4 text-xs">
+    Server 固定为上面那份示例配置：ReadHeaderTimeout 5s、ReadTimeout 15s、WriteTimeout
+    30s、IdleTimeout 60s
+  </p>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <label class="flex flex-col gap-1.5 text-sm">
+      <span class="text-muted-foreground">卡住的阶段</span>
+      <select
+        class="border-border bg-background text-foreground focus-visible:outline-accent rounded border px-2 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-dashed"
+        data-stage
+      >
+        {stages.map(s => <option value={s.id}>{s.label}</option>)}
+      </select>
+    </label>
+
+    <label class="flex flex-col gap-1.5 text-sm">
+      <span class="text-muted-foreground">
+        该段耗时 <span class="text-foreground tabular-nums" data-delay-label>8</span>s
+      </span>
+      <input
+        type="range"
+        min="1"
+        max="90"
+        value="8"
+        class="accent-accent w-full"
+        data-delay
+      />
+    </label>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <button
+      type="button"
+      class="bg-accent text-accent-foreground focus-visible:outline-accent rounded px-3 py-1.5 text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-dashed disabled:opacity-50"
+      data-run
+    >
+      跑一次
+    </button>
+    <button
+      type="button"
+      class="border-border text-foreground focus-visible:outline-accent rounded border px-3 py-1.5 text-sm hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-dashed"
+      data-reset
+    >
+      重置
+    </button>
+  </div>
+
+  <ol class="m-0 mt-5 list-none space-y-2 p-0" aria-live="polite">
+    {
+      stages.map(s => (
+        <li
+          class="border-border/50 flex items-center gap-3 rounded border px-3 py-2 text-sm"
+          data-step={s.id}
+        >
+          <span
+            class="border-border text-muted-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px]"
+            data-dot
+          >
+            ·
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="text-foreground">{s.label}</span>
+            <span class="text-muted-foreground ml-2 text-xs">{s.field}</span>
+          </span>
+          <span
+            class="text-muted-foreground text-xs tabular-nums"
+            data-status
+          />
+        </li>
+      ))
+    }
+  </ol>
+
+  <p
+    class="bg-muted/60 text-foreground mt-4 mb-0 rounded px-3 py-2 text-sm"
+    data-verdict
+  >
+    选一段卡住的位置，拖耗时，点跑一次。
+  </p>
+</div>
+
+<script>
+  const LIMITS: Record<string, number | null> = {
+    header: 5000,
+    body: 15000,
+    handler: null,
+    write: 30000,
+    idle: 60000,
+  };
+
+  const ORDER = ["header", "body", "handler", "write", "idle"];
+
+  const LABELS: Record<string, string> = {
+    header: "读 header",
+    body: "读 body",
+    handler: "Handler",
+    write: "写响应",
+    idle: "空闲等下一跳",
+  };
+
+  const FIELDS: Record<string, string> = {
+    header: "ReadHeaderTimeout（5s）",
+    body: "ReadTimeout（15s）",
+    handler: "",
+    write: "WriteTimeout（30s）",
+    idle: "IdleTimeout（60s）",
+  };
+
+  const DOT_BASE =
+    "inline-flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px]";
+
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function initDemo(root: HTMLElement) {
+    const stageEl = root.querySelector<HTMLSelectElement>("[data-stage]");
+    const delayEl = root.querySelector<HTMLInputElement>("[data-delay]");
+    const delayLabel = root.querySelector<HTMLElement>("[data-delay-label]");
+    const runBtn = root.querySelector<HTMLButtonElement>("[data-run]");
+    const resetBtn = root.querySelector<HTMLButtonElement>("[data-reset]");
+    const verdict = root.querySelector<HTMLElement>("[data-verdict]");
+    if (!stageEl || !delayEl || !delayLabel || !runBtn || !resetBtn || !verdict)
+      return;
+
+    let running = false;
+
+    delayEl.addEventListener("input", () => {
+      delayLabel.textContent = delayEl.value;
+    });
+
+    function paint(
+      id: string,
+      state: "idle" | "active" | "pass" | "fail",
+      status: string
+    ) {
+      const li = root.querySelector<HTMLElement>(`[data-step="${id}"]`);
+      if (!li) return;
+      const dot = li.querySelector<HTMLElement>("[data-dot]");
+      const statusEl = li.querySelector<HTMLElement>("[data-status]");
+
+      li.className =
+        "flex items-center gap-3 rounded border px-3 py-2 text-sm " +
+        (state === "fail"
+          ? "border-accent bg-accent/10"
+          : state === "idle"
+            ? "border-border/50"
+            : "border-accent/40 bg-accent/5");
+
+      if (dot) {
+        const glyph =
+          state === "pass" ? "✓" : state === "fail" ? "×" : state === "active" ? "…" : "·";
+        dot.textContent = glyph;
+        dot.className =
+          DOT_BASE +
+          " " +
+          (state === "idle"
+            ? "border-border text-muted-foreground"
+            : "border-accent text-accent");
+      }
+      if (statusEl) statusEl.textContent = status;
+    }
+
+    function resetSteps() {
+      ORDER.forEach(id => paint(id, "idle", ""));
+    }
+
+    resetBtn.addEventListener("click", () => {
+      if (running) return;
+      resetSteps();
+      verdict.textContent = "选一段卡住的位置，拖耗时，点跑一次。";
+    });
+
+    runBtn.addEventListener("click", async () => {
+      if (running) return;
+      running = true;
+      runBtn.disabled = true;
+      resetSteps();
+
+      const stallAt = stageEl.value;
+      const stallMs = Number(delayEl.value) * 1000;
+      verdict.textContent = "请求进入路径…";
+
+      let failedAt: string | null = null;
+
+      for (const id of ORDER) {
+        paint(id, "active", "进行中");
+        const cost = id === stallAt ? stallMs : 80;
+        const limit = LIMITS[id];
+        // Animate briefly instead of waiting the simulated wall clock.
+        await sleep(id === stallAt ? Math.min(800, 180 + cost / 120) : 200);
+
+        if (limit != null && cost > limit) {
+          paint(id, "fail", `${(cost / 1000).toFixed(0)}s 超时`);
+          failedAt = id;
+          const from = ORDER.indexOf(id) + 1;
+          for (let i = from; i < ORDER.length; i++) {
+            paint(ORDER[i], "idle", "未到达");
+          }
+          break;
+        }
+
+        paint(
+          id,
+          "pass",
+          id === stallAt ? `耗时 ${(cost / 1000).toFixed(0)}s` : "通过"
+        );
+      }
+
+      if (failedAt) {
+        verdict.textContent = `卡在${LABELS[failedAt]}，先被 ${FIELDS[failedAt]} 打掉。后面几段根本没到，业务 Handler 也可能没进。`;
+      } else if (stallAt === "handler") {
+        verdict.textContent =
+          "Handler 里慢，Server 那几个读写字段管不到。这段要靠 r.Context()、下游超时，以及外面代理的超时。";
+      } else {
+        verdict.textContent =
+          "四段都在墙钟内走完。这时候再把客户端报错时间戳往轨迹上靠，看是哪一跳。";
+      }
+
+      running = false;
+      runBtn.disabled = false;
+    });
+  }
+
+  function bindAll() {
+    document
+      .querySelectorAll<HTMLElement>("[data-timeout-demo]")
+      .forEach(el => {
+        if (el.dataset.bound) return;
+        el.dataset.bound = "1";
+        initDemo(el);
+      });
+  }
+
+  bindAll();
+  document.addEventListener("astro:page-load", bindAll);
+</script>

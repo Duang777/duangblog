@@ -1,0 +1,23 @@
+---
+interface Props {
+  title: string;
+  open?: boolean;
+}
+
+const { title, open = false } = Astro.props;
+---
+
+<details
+  class="collapsible border-border bg-muted/40 my-6 rounded-lg border"
+  {...open ? { open: true } : {}}
+>
+  <summary
+    class="text-foreground flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium"
+  >
+    <span>{title}</span>
+    <span class="collapsible-state text-accent text-xs" aria-hidden="true"></span>
+  </summary>
+  <div class="border-border border-t px-4 py-2">
+    <slot />
+  </div>
+</details>

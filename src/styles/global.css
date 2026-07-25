@@ -46,3 +46,32 @@
   @apply max-w-full h-auto;
 }
 
+/* Collapsible blocks in posts: opt out of the prose <details> collapsing rules */
+.app-prose details.collapsible {
+  @apply block cursor-default select-text;
+}
+
+.app-prose details.collapsible summary {
+  @apply cursor-pointer select-none;
+}
+
+.app-prose details.collapsible :is(p, ul, ol) {
+  display: revert;
+}
+
+.app-prose details.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-prose details.collapsible .mermaid {
+  @apply my-3;
+}
+
+.collapsible-state::after {
+  content: "展开";
+}
+
+.collapsible[open] .collapsible-state::after {
+  content: "收起";
+}
+
