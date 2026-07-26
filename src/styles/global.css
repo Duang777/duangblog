@@ -154,6 +154,34 @@ html[data-theme="dark"] body::before {
   transform: rotate(-4deg);
 }
 
+/* Column scent: one hairline, warm for backend notes, cool for Agent teardowns. */
+.post-card[data-column] {
+  padding-inline-start: 0.9rem;
+}
+
+.post-card[data-column]::after {
+  content: "";
+  position: absolute;
+  inset-block: 0.4rem 0.55rem;
+  inset-inline-start: 0;
+  width: 1px;
+  background: var(--column-tint);
+  opacity: 0.6;
+}
+
+.post-card[data-column="backend"] {
+  --column-tint: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+}
+
+.post-card[data-column="agent"] {
+  --column-tint: color-mix(in oklab, #6f8794 65%, var(--muted-foreground));
+}
+
+/* Today’s pick owns the edge — hide column scent so two rules never stack. */
+.post-card.is-today-pick[data-column]::after {
+  display: none;
+}
+
 /* Read echo: already opened — quieter title, tiny check. */
 .post-card.is-read .post-card-title {
   opacity: 0.72;

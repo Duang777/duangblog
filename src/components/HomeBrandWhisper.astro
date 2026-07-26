@@ -1,0 +1,116 @@
+---
+/**
+ * Clicking the site name on the homepage drops one short line
+ * instead of re-navigating to the page you are already on.
+ */
+import { getRelativeLocaleUrl } from "astro:i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const homeHref = getRelativeLocaleUrl(locale, "");
+
+const whispers = [
+  "先把一次请求走完，再谈抽象。",
+  "超时不是配置项，是边界。",
+  "读代码比读 README 少绕路。",
+  "笔记写给半年后的自己。",
+  "能画出来的，才算想清楚。",
+  "线上不复现，多半是时序。",
+  "少一层封装，多一分可查。",
+];
+---
+
+<div
+  id="home-brand-whisper"
+  class="home-whisper font-mono"
+  data-home-href={homeHref}
+  data-lines={JSON.stringify(whispers)}
+  role="status"
+  aria-live="polite"
+>
+</div>
+
+<style>
+  .home-whisper {
+    position: fixed;
+    top: 4.25rem;
+    inset-inline-start: 1rem;
+    z-index: 45;
+    max-width: min(22rem, calc(100vw - 2rem));
+    padding: 0.35rem 0.6rem;
+    border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
+    border-radius: 0.35rem;
+    background: color-mix(in oklab, var(--background) 92%, transparent);
+    backdrop-filter: blur(6px);
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    pointer-events: none;
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease;
+  }
+
+  .home-whisper.is-shown {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (min-width: 640px) {
+    .home-whisper {
+      inset-inline-start: max(1rem, calc((100vw - 48rem) / 2));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-whisper {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  function initWhisper() {
+    const box = document.getElementById("home-brand-whisper");
+    if (!box) return;
+
+    let lines: string[] = [];
+    try {
+      lines = JSON.parse(box.dataset.lines ?? "[]");
+    } catch {
+      lines = [];
+    }
+    if (lines.length === 0) return;
+
+    const homeHref = (box.dataset.homeHref ?? "/").replace(/\/+$/, "") || "/";
+    const brand = document.querySelector<HTMLAnchorElement>(
+      `header a[href="${box.dataset.homeHref}"]`
+    );
+    if (!brand) return;
+
+    let hideTimer = 0;
+    let step = 0;
+
+    brand.addEventListener("click", event => {
+      const here = window.location.pathname.replace(/\/+$/, "") || "/";
+      if (here !== homeHref) return;
+
+      event.preventDefault();
+      const daySeed = Math.floor(Date.now() / 86_400_000);
+      box.textContent = lines[(daySeed + step) % lines.length] ?? "";
+      step += 1;
+      box.classList.add("is-shown");
+
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(
+        () => box.classList.remove("is-shown"),
+        2600
+      );
+    });
+  }
+
+  document.addEventListener("astro:page-load", initWhisper);
+</script>

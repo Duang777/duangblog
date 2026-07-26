@@ -8,6 +8,8 @@ import Footer from "@/components/Footer.astro";
 import HomeHero from "@/components/HomeHero.astro";
 import HomeDateStamp from "@/components/HomeDateStamp.astro";
 import HomeWritingStatus from "@/components/HomeWritingStatus.astro";
+import HomeBindingThread from "@/components/HomeBindingThread.astro";
+import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
@@ -62,6 +64,8 @@ const termIdeas = [
 
 <Layout>
   <Header />
+  <HomeBindingThread />
+  <HomeBrandWhisper />
   <main
     id="main-content"
     data-layout="index"
