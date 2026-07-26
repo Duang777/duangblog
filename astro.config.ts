@@ -130,11 +130,18 @@ export default defineConfig({
       },
     },
     {
-      // Kept for terminal + code. Google Fonts often times out in restricted networks.
+      // Terminal + code. Google Fonts often times out in restricted networks.
       name: "IBM Plex Mono",
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.local(),
-      fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      fallbacks: [
+        "ui-monospace",
+        "SFMono-Regular",
+        "Menlo",
+        "PingFang SC",
+        "Microsoft YaHei",
+        "monospace",
+      ],
       options: {
         variants: [
           {

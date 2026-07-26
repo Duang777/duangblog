@@ -2,6 +2,8 @@
 import type { HTMLAttributes } from "astro/types";
 import Socials from "./Socials.astro";
 import { useTranslations } from "@/i18n";
+import { stripBase, stripLocale } from "@/utils/withBase";
+import config from "@/config";
 
 type Props = {
   noMarginTop?: boolean;
@@ -11,6 +13,12 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
 
 const t = useTranslations(Astro.currentLocale);
 const currentYear = new Date().getFullYear();
+
+// A short notebook-style path for the current page, like a page footer stamp.
+const locale = Astro.currentLocale ?? config.site.lang;
+const rawPath = stripLocale(stripBase(Astro.url.pathname), locale)
+  .replace(/\/+$/, "");
+const shortPath = rawPath === "" ? "~" : `~${rawPath}`;
 ---
 
 <footer
@@ -21,10 +29,15 @@ const currentYear = new Date().getFullYear();
     class="border-border flex flex-col items-center justify-between border-t py-6 sm:flex-row-reverse sm:py-4"
   >
     <Socials />
-    <div class="my-2 flex flex-col items-center whitespace-nowrap sm:flex-row">
-      <span>{t.footer.copyright} &#169; {currentYear}</span>
+    <div class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:gap-0">
+      <span class="font-mono text-muted-foreground text-xs tracking-wide">
+        {config.site.author} · 笔记 <span class="opacity-60">·</span>
+        <span class="text-accent/80">{shortPath}</span>
+      </span>
       <span class="hidden sm:inline">&nbsp;|&nbsp;</span>
-      <span>{t.footer.allRightsReserved}</span>
+      <span class="whitespace-nowrap">
+        {t.footer.copyright} &#169; {currentYear}
+      </span>
     </div>
   </div>
 </footer>

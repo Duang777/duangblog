@@ -18,8 +18,19 @@ description: "关于 Duang，以及这个博客会写什么。"
 
 不追求更新频率，只尽量写对自己、对读者都有用的内容。
 
+## 一条时间线
+
+<ul class="about-timeline not-prose">
+  <li><span class="about-timeline-when">更早</span><span class="about-timeline-what">做后端和全栈，把踩过的坑零散记在本地。</span></li>
+  <li><span class="about-timeline-when">最近</span><span class="about-timeline-what">花更多时间在 Agent / AI 应用上，开始认真拆项目。</span></li>
+  <li><span class="about-timeline-when">现在</span><span class="about-timeline-what">把这些整理成公开笔记，开了后端专栏和请求过境。</span></li>
+</ul>
+
 ## 联系
 
-- GitHub：[Duang777](https://github.com/Duang777)
+<p class="about-signature not-prose">
+  <span class="about-signature-name">— Duang</span>
+  <a href="https://github.com/Duang777">github.com/Duang777</a>
+</p>
 
 有共鸣或想交流，欢迎来找我。

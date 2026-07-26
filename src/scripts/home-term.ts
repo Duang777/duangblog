@@ -1133,6 +1133,14 @@ export function bindHomeHeroPageLoad() {
       e.dataTransfer.setData("text/term-slug", slug);
       e.dataTransfer.setData("text/plain", slug);
       e.dataTransfer.effectAllowed = "copy";
+      document
+        .getElementById("home-term-body")
+        ?.classList.add("is-drop-hint");
+    });
+    document.addEventListener("dragend", () => {
+      document
+        .getElementById("home-term-body")
+        ?.classList.remove("is-drop-hint");
     });
   }
 }

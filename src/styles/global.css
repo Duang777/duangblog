@@ -182,6 +182,43 @@ html[data-theme="dark"] body::before {
   display: none;
 }
 
+/* Revised echo: quiet “改过” for posts touched in the last week. */
+.post-card-revised {
+  display: inline-block;
+  margin-inline-start: 0.45rem;
+  vertical-align: 0.15em;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, var(--accent));
+  opacity: 0.75;
+}
+
+/* Title breathing: the newest post exhales once when it enters view. */
+.post-card.is-newest.is-visible .post-card-title {
+  animation: post-title-breathe 2.4s ease-in-out 0.4s 1;
+}
+
+@keyframes post-title-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  45% {
+    opacity: 0.82;
+    transform: translateY(-0.5px);
+  }
+}
+
+/* Tag scent: warm/cool underline echoing the column hairlines. */
+.tag-chip[data-tag-scent="backend"] {
+  border-bottom-color: color-mix(in oklab, var(--accent) 55%, var(--foreground));
+}
+
+.tag-chip[data-tag-scent="agent"] {
+  border-bottom-color: color-mix(in oklab, #6f8794 70%, var(--foreground));
+}
+
 /* Read echo: already opened — quieter title, tiny check. */
 .post-card.is-read .post-card-title {
   opacity: 0.72;
@@ -204,9 +241,104 @@ body {
   transition: background-color 0.55s ease;
 }
 
+/* Draggable paper corner: hints that posts can be dropped into the terminal. */
+.home-corner-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.home-corner {
+  position: relative;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius: 0.35rem 0.35rem 0.35rem 1.3rem;
+  background: color-mix(in oklab, var(--muted) 55%, var(--background));
+  cursor: grab;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-corner::before {
+  content: "";
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    color-mix(in oklab, var(--accent) 30%, var(--background)) 50%
+  );
+  border-radius: 0 0 0 0.3rem;
+}
+
+.home-corner:hover,
+.home-corner:focus-visible {
+  transform: translateY(-2px) rotate(-3deg);
+  box-shadow: 0 6px 16px -10px color-mix(in oklab, var(--foreground) 40%, transparent);
+}
+
+.home-corner:active {
+  cursor: grabbing;
+}
+
+.home-corner-hint {
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1.3rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.home-corner:hover .home-corner-hint,
+.home-corner:focus-visible .home-corner-hint {
+  opacity: 1;
+}
+
+@media (max-width: 1180px) {
+  .home-corner-wrap {
+    display: none;
+  }
+}
+
+/* Paper seam: a torn dashed line under the hero that nudges as you scroll in. */
+.home-seam {
+  position: relative;
+  height: 0;
+  margin: 0 auto;
+  max-width: 48rem;
+}
+
+.home-seam::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0.5rem;
+  top: 0;
+  border-top: 1px dashed color-mix(in oklab, var(--border) 70%, transparent);
+  transform: translateX(calc(var(--seam-shift, 0) * 1px));
+  transition: transform 0.1s linear;
+  opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .post-card {
     opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .post-card.is-newest.is-visible .post-card-title {
+    animation: none;
+  }
+
+  .home-seam::before {
     transform: none;
     transition: none;
   }
@@ -260,6 +392,203 @@ body {
     background-repeat: repeat-y;
     opacity: 0.85;
   }
+}
+
+/* End-of-article hint: fades in as the follow-ups come into view. */
+.post-read-hint {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transform: translateY(0.35rem);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.post-read-hint::before {
+  content: "· ";
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+}
+
+.post-read-hint.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+/* Code stamp: a small language mark in the corner of a code block. */
+.app-prose pre:not(.mermaid) {
+  position: relative;
+}
+
+.app-prose pre .code-stamp {
+  position: absolute;
+  inset-block-end: 0.4rem;
+  inset-inline-end: 0.6rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Expandable quote source. */
+.app-prose blockquote .quote-source {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.app-prose blockquote .quote-source summary {
+  cursor: pointer;
+  list-style: none;
+  width: fit-content;
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+}
+
+.app-prose blockquote .quote-source summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-prose blockquote .quote-source summary::before {
+  content: "+ 出处";
+}
+
+.app-prose blockquote .quote-source summary {
+  font-size: 0;
+}
+
+.app-prose blockquote .quote-source summary::before {
+  font-size: 0.75rem;
+}
+
+.app-prose blockquote .quote-source[open] summary::before {
+  content: "- 出处";
+}
+
+.app-prose blockquote .quote-source-body {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  word-break: break-word;
+}
+
+/* Marginalia: floats into the right margin on wide screens, folds inline on small. */
+.marginalia {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 1280px) {
+  .app-prose .marginalia {
+    float: inline-end;
+    clear: inline-end;
+    width: 12rem;
+    margin-inline-end: -13.5rem;
+    margin-block: 0.2rem 0.8rem;
+    padding-inline-start: 0.7rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--accent) 45%, var(--border));
+  }
+
+  .app-prose .marginalia summary {
+    display: none;
+  }
+
+  .app-prose .marginalia .marginalia-body {
+    display: block;
+  }
+}
+
+@media (max-width: 1279px) {
+  .app-prose .marginalia {
+    margin: 0.8rem 0;
+    padding-inline-start: 0.7rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--accent) 45%, var(--border));
+  }
+
+  .app-prose .marginalia summary {
+    cursor: pointer;
+    list-style: none;
+    width: fit-content;
+    color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  }
+
+  .app-prose .marginalia summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .app-prose .marginalia summary::before {
+    content: "+ 边注";
+  }
+
+  .app-prose .marginalia[open] summary::before {
+    content: "- 边注";
+  }
+
+  .app-prose .marginalia:not([open]) .marginalia-body {
+    display: none;
+  }
+}
+
+/* About page: a small timeline and a signature-style contact line. */
+.about-timeline {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  border-inline-start: 1px dashed
+    color-mix(in oklab, var(--border) 75%, transparent);
+}
+
+.about-timeline li {
+  position: relative;
+  margin: 0;
+  padding: 0.5rem 0 0.5rem 1.1rem;
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.about-timeline li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -3.5px;
+  top: 1rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 70%, transparent);
+}
+
+.about-timeline-when {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+}
+
+.about-timeline-what {
+  color: var(--foreground);
+}
+
+.about-signature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.about-signature-name {
+  font-family: var(--font-serif), serif;
+  font-size: 1.1rem;
+  color: color-mix(in oklab, var(--accent) 85%, var(--foreground));
 }
 
 /* A deep-linked heading briefly takes ink, then settles back into the page. */

@@ -30,15 +30,23 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 const homePath = getRelativeLocaleUrl(locale, "");
 
 const FRESH_MS = 48 * 60 * 60 * 1000;
+const REVISED_MS = 7 * 24 * 60 * 60 * 1000;
 const nowMs = Date.now();
 const daySeed = Math.floor(nowMs / 86_400_000);
 const todayPickId =
   sortedPosts.length > 0
     ? sortedPosts[daySeed % sortedPosts.length]!.id
     : null;
+const newestId = sortedPosts.length > 0 ? sortedPosts[0]!.id : null;
 
 function isFreshPost(pubDatetime: Date) {
   return nowMs - pubDatetime.getTime() < FRESH_MS;
+}
+
+function isRevisedPost(pubDatetime: Date, modDatetime?: Date | null) {
+  if (!modDatetime) return false;
+  if (modDatetime.getTime() <= pubDatetime.getTime()) return false;
+  return nowMs - modDatetime.getTime() < REVISED_MS;
 }
 
 const termPosts: TermPost[] = sortedPosts.map(post => {
@@ -53,6 +61,8 @@ const termPosts: TermPost[] = sortedPosts.map(post => {
     draft: post.data.draft,
   };
 });
+
+const newestSlug = termPosts.length > 0 ? termPosts[0]!.slug : null;
 
 /** Only ideas safe to show in the public terminal. */
 const termIdeas = [
@@ -73,6 +83,8 @@ const termIdeas = [
     class="w-full"
   >
     <HomeHero locale={locale} posts={termPosts} ideas={termIdeas} />
+
+    <div class="home-seam" aria-hidden="true"></div>
 
     <div class="app-layout">
       {
@@ -97,7 +109,12 @@ const termIdeas = [
                   variant="h3"
                   {...data}
                   isFresh={isFreshPost(data.data.pubDatetime)}
+                  isRevised={isRevisedPost(
+                    data.data.pubDatetime,
+                    data.data.modDatetime
+                  )}
                   isTodayPick={data.id === todayPickId}
+                  isNewest={data.id === newestId}
                 />
               ))}
             </ul>
@@ -124,7 +141,12 @@ const termIdeas = [
                   variant="h3"
                   {...data}
                   isFresh={isFreshPost(data.data.pubDatetime)}
+                  isRevised={isRevisedPost(
+                    data.data.pubDatetime,
+                    data.data.modDatetime
+                  )}
                   isTodayPick={data.id === todayPickId}
+                  isNewest={data.id === newestId}
                 />
               ))}
             </ul>
@@ -132,12 +154,28 @@ const termIdeas = [
         )
       }
 
-      <div class="my-8 text-center">
+      <div class="my-8 flex items-center justify-center gap-4">
         <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
           {t.home.allPosts}
           <IconArrowRight class="inline-block rtl:-rotate-180" />
         </LinkButton>
       </div>
+
+      {
+        newestSlug && (
+          <div class="home-corner-wrap" aria-hidden="true">
+            <button
+              type="button"
+              class="home-corner"
+              draggable="true"
+              data-term-slug={newestSlug}
+              title="拖进上方终端可打开"
+            >
+              <span class="home-corner-hint font-mono">拖进终端</span>
+            </button>
+          </div>
+        )
+      }
     </div>
   </main>
   <Footer />
@@ -152,6 +190,23 @@ const termIdeas = [
     const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
     if (indexLayout?.layout) {
       sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
+    }
+
+    const seam = document.querySelector<HTMLElement>(".home-seam");
+    const hero = document.getElementById("hero");
+    if (seam && hero) {
+      const seamReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      if (!seamReduced) {
+        const onSeamScroll = () => {
+          const rect = hero.getBoundingClientRect();
+          const near = Math.min(1, Math.max(0, 1 + rect.bottom / rect.height));
+          seam.style.setProperty("--seam-shift", String((1 - near) * 10));
+        };
+        onSeamScroll();
+        window.addEventListener("scroll", onSeamScroll, { passive: true });
+      }
     }
 
     const cards = document.querySelectorAll<HTMLElement>(".post-card");

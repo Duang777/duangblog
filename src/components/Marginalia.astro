@@ -1,0 +1,19 @@
+---
+/**
+ * A quiet engineering margin note. Floats into the right margin on wide
+ * screens; folds into a small toggle on narrow ones. Use inside MDX posts:
+ *   <Marginalia>驱动未必真的取消，注意 QueryContext。</Marginalia>
+ */
+type Props = {
+  label?: string;
+};
+
+const { label = "边注" } = Astro.props;
+---
+
+<details class="marginalia not-prose" open>
+  <summary>{label}</summary>
+  <span class="marginalia-body">
+    <slot />
+  </span>
+</details>

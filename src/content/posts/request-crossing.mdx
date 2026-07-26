@@ -18,8 +18,11 @@ revisions:
 
 import Collapsible from "@/components/Collapsible.astro";
 import TimeoutDemo from "@/components/TimeoutDemo.astro";
+import Marginalia from "@/components/Marginalia.astro";
 
 客户端报 timeout，看板只有业务耗时，access log 里却找不到对应 handler。另一种更烦人：第一次请求正常，第二次复用连接时偶发断开，日志像网络抖了一下。
+
+<Marginalia>先分清是墙钟超时还是业务慢，能省掉一半的排查时间。</Marginalia>
 
 这两种单子我以前都先翻业务函数。对过几单之后才固定成一个判断：**很多超时根本还没进到你的业务代码。** 卡在 `net/http.Server` 读 header、读 body、写响应，或者 keep-alive 空闲等下一跳的那几道墙钟上。
 

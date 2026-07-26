@@ -10,6 +10,10 @@ type Props = {
   isFresh?: boolean;
   /** Seeded “today’s read” — clay rule on the left. */
   isTodayPick?: boolean;
+  /** Revised within ~7d — show a quiet “改过” echo. */
+  isRevised?: boolean;
+  /** Newest post on the homepage — breathes once when revealed. */
+  isNewest?: boolean;
 } & CollectionEntry<"posts">;
 
 const {
@@ -19,6 +23,8 @@ const {
   filePath,
   isFresh = false,
   isTodayPick = false,
+  isRevised = false,
+  isNewest = false,
 } = Astro.props;
 
 const { title, description, ...props } = data;
@@ -39,7 +45,11 @@ if (tags.some(tag => tag.includes("后端") || tag.includes("请求过境"))) {
 <li
   class:list={[
     "post-card my-6",
-    { "is-fresh": isFresh, "is-today-pick": isTodayPick },
+    {
+      "is-fresh": isFresh,
+      "is-today-pick": isTodayPick,
+      "is-newest": isNewest,
+    },
   ]}
   data-term-slug={slug}
   data-column={column}
@@ -72,6 +82,17 @@ if (tags.some(tag => tag.includes("后端") || tag.includes("请求过境"))) {
       isFresh && (
         <span class="post-card-ink font-mono" title="近两天发布" aria-label="新">
           新
+        </span>
+      )
+    }
+    {
+      !isFresh && isRevised && (
+        <span
+          class="post-card-revised font-mono"
+          title="近一周更新过"
+          aria-label="改过"
+        >
+          改过
         </span>
       )
     }

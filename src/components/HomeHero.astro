@@ -171,7 +171,8 @@ const author = config.site.author;
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent);
   }
 
-  :global(.home-term-body.is-drop-target) {
+  :global(.home-term-body.is-drop-target),
+  :global(.home-term-body.is-drop-hint) {
     outline: 1px dashed color-mix(in oklab, var(--accent) 55%, transparent);
     outline-offset: -6px;
     background: color-mix(in oklab, var(--accent) 6%, transparent);
