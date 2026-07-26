@@ -19,6 +19,7 @@ import TermSessionBanner from "@/components/TermSessionBanner.astro";
 import PostReadingThread from "@/components/PostReadingThread.astro";
 import ContinueReading from "@/components/ContinueReading.astro";
 import RevisionNote from "@/components/RevisionNote.astro";
+import { getReadingMinutes } from "@/utils/readingTime";
 import config from "@/config";
 
 export async function getStaticPaths() {
@@ -118,6 +119,8 @@ const postSlug =
 
 const { Content } = await render(post);
 
+const readingMinutes = getReadingMinutes(post.body);
+
 let ogImageUrl: string | undefined;
 
 if (typeof initOgImage === "string") {
@@ -169,6 +172,9 @@ const ogImage = ogImageUrl
 
     <div class="my-2 flex items-center gap-2">
       <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
+      <span class="post-reading-time font-mono" aria-label={`预计阅读 ${readingMinutes} 分钟`}>
+        约 {readingMinutes} 分钟
+      </span>
       <span
         aria-hidden="true"
         class:list={[
@@ -272,7 +278,7 @@ const ogImage = ogImageUrl
   addHeadingLinks();
 
   function attachCopyButtons() {
-    const copyButtonLabel = "Copy";
+    const copyButtonLabel = "复制";
     // Skip Mermaid diagrams: a Copy button inside <pre.mermaid> pollutes
     // textContent and breaks client-side Mermaid parsing.
     const codeBlocks = Array.from(
@@ -311,7 +317,7 @@ const ogImage = ogImageUrl
 
       await navigator.clipboard.writeText(text ?? "");
 
-      button.innerText = "Copied";
+      button.innerText = "已复制";
 
       setTimeout(() => {
         button.innerText = copyButtonLabel;

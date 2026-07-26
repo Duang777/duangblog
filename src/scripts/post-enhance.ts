@@ -115,6 +115,108 @@ function initQuoteSources(article: HTMLElement) {
   }
 }
 
+function initChapterTrail(article: HTMLElement) {
+  if (article.dataset.trailBound === "1") return;
+  const headings = Array.from(
+    article.querySelectorAll<HTMLElement>("h2, h3")
+  ).filter(h => h.textContent?.trim());
+  if (headings.length === 0) return;
+  article.dataset.trailBound = "1";
+
+  const trail = document.createElement("p");
+  trail.className = "post-chapter-trail font-mono";
+  trail.setAttribute("aria-hidden", "true");
+  document.body.appendChild(trail);
+
+  let current = "";
+  const onScroll = () => {
+    const line = window.innerHeight * 0.3;
+    let active: HTMLElement | null = null;
+    for (const heading of headings) {
+      if (heading.getBoundingClientRect().top <= line) active = heading;
+      else break;
+    }
+    const articleRect = article.getBoundingClientRect();
+    const past = articleRect.bottom < line;
+    const next = past ? "" : (active?.textContent?.trim() ?? "");
+    if (next === current) return;
+    current = next;
+    trail.textContent = next;
+    trail.classList.toggle("is-shown", next !== "");
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      window.removeEventListener("scroll", onScroll);
+      trail.remove();
+    },
+    { once: true }
+  );
+}
+
+function initFootnotePreviews(article: HTMLElement) {
+  if (article.dataset.footnoteBound === "1") return;
+  const refs = Array.from(
+    article.querySelectorAll<HTMLAnchorElement>("a[data-footnote-ref]")
+  );
+  if (refs.length === 0) return;
+  article.dataset.footnoteBound = "1";
+
+  const pop = document.createElement("div");
+  pop.className = "footnote-pop";
+  pop.setAttribute("role", "tooltip");
+  document.body.appendChild(pop);
+  document.addEventListener("astro:before-swap", () => pop.remove(), {
+    once: true,
+  });
+
+  let hideTimer = 0;
+
+  const show = (ref: HTMLAnchorElement) => {
+    const id = ref.getAttribute("href")?.slice(1);
+    if (!id) return;
+    const note = document.getElementById(id);
+    if (!note) return;
+
+    const clone = note.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll("[data-footnote-backref]").forEach(el => el.remove());
+    const text = clone.textContent?.trim() ?? "";
+    if (!text) return;
+
+    pop.textContent = text;
+    const rect = ref.getBoundingClientRect();
+    pop.style.top = `${window.scrollY + rect.bottom + 8}px`;
+    pop.style.left = `${Math.max(
+      12,
+      Math.min(
+        window.scrollX + rect.left - 40,
+        window.scrollX + window.innerWidth - pop.offsetWidth - 12
+      )
+    )}px`;
+    window.clearTimeout(hideTimer);
+    pop.classList.add("is-shown");
+  };
+
+  const hide = () => {
+    hideTimer = window.setTimeout(
+      () => pop.classList.remove("is-shown"),
+      120
+    );
+  };
+
+  for (const ref of refs) {
+    ref.addEventListener("mouseenter", () => show(ref));
+    ref.addEventListener("focus", () => show(ref));
+    ref.addEventListener("mouseleave", hide);
+    ref.addEventListener("blur", hide);
+  }
+  pop.addEventListener("mouseenter", () => window.clearTimeout(hideTimer));
+  pop.addEventListener("mouseleave", hide);
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
   if (!article) return;
@@ -122,6 +224,8 @@ export function initPostEnhancements() {
   initReadCompleteHint(article);
   initCodeStamps(article);
   initQuoteSources(article);
+  initChapterTrail(article);
+  initFootnotePreviews(article);
 }
 
 export function bindPostEnhancements() {

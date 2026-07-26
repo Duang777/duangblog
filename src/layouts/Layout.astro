@@ -28,6 +28,10 @@ const rssHref = getRelativeLocaleUrl(
   Astro.currentLocale ?? config.site.lang,
   "rss.xml"
 );
+const searchHref =
+  config.features.search === "pagefind"
+    ? getRelativeLocaleUrl(Astro.currentLocale ?? config.site.lang, "search")
+    : undefined;
 ---
 
 <!doctype html>
@@ -133,10 +137,13 @@ const rssHref = getRelativeLocaleUrl(
   </head>
   <body
     class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"
+    data-search-href={searchHref}
   >
     <slot />
     <script>
       import "@/scripts/theme";
+      import { bindSearchHotkey } from "@/scripts/search-hotkey";
+      bindSearchHotkey();
     </script>
   </body>
 </html>

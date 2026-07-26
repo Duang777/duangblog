@@ -1,14 +1,27 @@
 ---
+import { getCollection } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import LinkButton from "@/components/LinkButton.astro";
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { getSortedPosts } from "@/utils/getSortedPosts";
+import { getPostUrl } from "@/utils/getPostPaths";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
+
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const recentPosts = getSortedPosts(posts)
+  .slice(0, 4)
+  .map(post => ({
+    title: post.data.title,
+    href: getPostUrl(post.id, post.filePath, locale),
+  }));
+
+const homeHref = getRelativeLocaleUrl(locale, "");
+const archivesHref = getRelativeLocaleUrl(locale, "archives");
 ---
 
 <Layout title={`${t.notFound.title} | ${config.site.title}`}>
@@ -18,18 +31,116 @@ const t = useTranslations(locale);
     id="main-content"
     class="app-layout flex flex-1 items-center justify-center"
   >
-    <div class="mb-14 flex flex-col items-center justify-center">
-      <h1 class="text-accent text-9xl font-bold">404</h1>
-      <span aria-hidden="true"> ¯\_(ツ)_/¯ </span>
-      <p class="mt-4 text-2xl sm:text-3xl">{t.notFound.message}</p>
-      <LinkButton
-        href={getRelativeLocaleUrl(locale, "")}
-        class="my-6 text-lg underline decoration-dashed underline-offset-8"
-      >
-        {t.notFound.goHome}
-      </LinkButton>
+    <div class="lost-note" role="presentation">
+      <p class="lost-note-code font-mono" aria-hidden="true">
+        404 · page not found
+      </p>
+      <h1 class="lost-note-title font-serif">这一页走失了</h1>
+      <p class="lost-note-body">
+        它可能被移动、改名，或者从来就没写过。别在这儿等，下面几条还在原处。
+      </p>
+
+      {
+        recentPosts.length > 0 && (
+          <ul class="lost-note-list">
+            {recentPosts.map(post => (
+              <li>
+                <a href={post.href}>{post.title}</a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <p class="lost-note-exits font-mono">
+        <a href={homeHref}>cd ~</a>
+        <span aria-hidden="true">·</span>
+        <a href={archivesHref}>去归档翻翻</a>
+      </p>
     </div>
   </main>
 
   <Footer />
 </Layout>
+
+<style>
+  .lost-note {
+    position: relative;
+    width: min(30rem, 100%);
+    margin-block: 3rem 4.5rem;
+    padding: 1.5rem 1.75rem 1.35rem;
+    border: 1px dashed color-mix(in oklab, var(--border) 85%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--muted) 35%, var(--background));
+    transform: rotate(-0.6deg);
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--border) 40%, transparent);
+  }
+
+  /* A bit of "tape" holding the note on the page. */
+  .lost-note::before {
+    content: "";
+    position: absolute;
+    top: -0.65rem;
+    left: 50%;
+    width: 4.5rem;
+    height: 1.25rem;
+    transform: translateX(-50%) rotate(1.5deg);
+    background: color-mix(in oklab, var(--accent) 12%, var(--background));
+    border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    border-radius: 2px;
+    opacity: 0.85;
+  }
+
+  .lost-note-code {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  }
+
+  .lost-note-title {
+    margin-top: 0.4rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .lost-note-body {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--muted-foreground);
+  }
+
+  .lost-note-list {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed color-mix(in oklab, var(--border) 70%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .lost-note-list a {
+    font-size: 0.9rem;
+    text-decoration: underline dashed;
+    text-underline-offset: 5px;
+  }
+
+  .lost-note-list a:hover {
+    color: var(--accent);
+  }
+
+  .lost-note-exits {
+    margin-top: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--muted-foreground);
+  }
+
+  .lost-note-exits a:hover {
+    color: var(--accent);
+  }
+</style>
