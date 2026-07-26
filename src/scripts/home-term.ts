@@ -143,6 +143,21 @@ export function markPostRead(slug: string) {
   localStorage.setItem(READS_KEY, JSON.stringify([...reads]));
 }
 
+/** Slugs marked read via post pages / terminal — for homepage echo. */
+export function getReadSlugs(): string[] {
+  return [...getReads()];
+}
+
+/** Dim homepage cards that were already opened. */
+export function applyReadEcho(root: ParentNode = document) {
+  const reads = getReads();
+  root.querySelectorAll<HTMLElement>(".post-card[data-term-slug]").forEach(card => {
+    const slug = card.dataset.termSlug;
+    if (slug && reads.has(slug)) card.classList.add("is-read");
+    else card.classList.remove("is-read");
+  });
+}
+
 function getCmdHistory(): string[] {
   try {
     const raw = sessionStorage.getItem(HIST_KEY);

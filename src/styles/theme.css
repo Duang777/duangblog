@@ -26,6 +26,20 @@
   --border: #cccbc8;
 }
 
+/* Quiet time-of-day paper warmth — only the page ground shifts. */
+[data-theme="light"][data-tod="morning"] {
+  --background: #f7f8f6;
+}
+[data-theme="light"][data-tod="afternoon"] {
+  --background: #faf9f5;
+}
+[data-theme="light"][data-tod="evening"] {
+  --background: #faf6f0;
+}
+[data-theme="light"][data-tod="night"] {
+  --background: #f5f3ef;
+}
+
 /* Anthropic-inspired dark theme */
 [data-theme="dark"] {
   --background: #141413;
@@ -35,4 +49,17 @@
   --muted: #3d3d3a;
   --muted-foreground: #b0aea5;
   --border: #87867f;
+}
+
+[data-theme="dark"][data-tod="morning"] {
+  --background: #121314;
+}
+[data-theme="dark"][data-tod="afternoon"] {
+  --background: #141413;
+}
+[data-theme="dark"][data-tod="evening"] {
+  --background: #161412;
+}
+[data-theme="dark"][data-tod="night"] {
+  --background: #121110;
 }

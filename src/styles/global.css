@@ -154,10 +154,36 @@ html[data-theme="dark"] body::before {
   transform: rotate(-4deg);
 }
 
+/* Read echo: already opened — quieter title, tiny check. */
+.post-card.is-read .post-card-title {
+  opacity: 0.72;
+}
+
+.post-card.is-read > a::after {
+  content: "✓";
+  display: inline-block;
+  margin-inline-start: 0.4rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, var(--accent));
+  opacity: 0.7;
+  vertical-align: 0.05em;
+}
+
+body {
+  transition: background-color 0.55s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .post-card {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+
+  body {
     transition: none;
   }
 }

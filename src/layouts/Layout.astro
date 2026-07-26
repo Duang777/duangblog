@@ -104,8 +104,8 @@ const rssHref = getRelativeLocaleUrl(
     }
 
     <!--
-      Inline FOUC-prevention script: sets data-theme on <html> before
-      the browser paints. Runs synchronously, no defer/async.
+      Inline FOUC-prevention script: sets data-theme and quiet
+      time-of-day paper warmth on <html> before paint.
     -->
     <script is:inline>
       (function () {
@@ -117,8 +117,15 @@ const rssHref = getRelativeLocaleUrl(
         const root = document.firstElementChild;
         root?.setAttribute("data-theme", theme);
         root?.classList.toggle("dark", theme === "dark");
-        // Expose value so theme.ts can skip re-detection.
         window.__theme = { value: theme };
+
+        const hour = new Date().getHours();
+        let tod = "afternoon";
+        if (hour < 6 || hour >= 22) tod = "night";
+        else if (hour < 11) tod = "morning";
+        else if (hour < 17) tod = "afternoon";
+        else tod = "evening";
+        root?.setAttribute("data-tod", tod);
       })();
     </script>
 

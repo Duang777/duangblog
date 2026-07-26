@@ -15,6 +15,14 @@ let themeValue: string =
   (window as unknown as { __theme?: { value: string } }).__theme?.value ??
   getPreferredTheme();
 
+function getTod(): string {
+  const hour = new Date().getHours();
+  if (hour < 6 || hour >= 22) return "night";
+  if (hour < 11) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
 function persist(): void {
   localStorage.setItem(THEME_KEY, themeValue);
   reflect();
@@ -23,6 +31,7 @@ function persist(): void {
 function reflect(): void {
   const root = document.firstElementChild;
   root?.setAttribute("data-theme", themeValue);
+  root?.setAttribute("data-tod", getTod());
   root?.classList.toggle("dark", themeValue === DARK);
   document.querySelector("#theme-btn")?.setAttribute("aria-label", themeValue);
 

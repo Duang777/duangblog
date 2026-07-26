@@ -1,0 +1,33 @@
+---
+import { homeWritingStatus } from "@/data/home-status";
+
+const { label, text } = homeWritingStatus;
+---
+
+<p class="home-writing-status font-mono text-muted-foreground">
+  <span class="home-writing-status-label">{label}</span>
+  <span class="home-writing-status-sep" aria-hidden="true">·</span>
+  <span class="home-writing-status-text">{text}</span>
+</p>
+
+<style>
+  .home-writing-status {
+    margin: 0 0 1.25rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .home-writing-status-label {
+    color: color-mix(in oklab, var(--accent) 72%, var(--muted-foreground));
+  }
+
+  .home-writing-status-sep {
+    margin-inline: 0.35rem;
+    opacity: 0.5;
+  }
+
+  .home-writing-status-text {
+    color: var(--muted-foreground);
+  }
+</style>
