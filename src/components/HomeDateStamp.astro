@@ -1,0 +1,48 @@
+---
+/**
+ * Quiet notebook date stamp for the homepage.
+ * Build-time date keeps SSR/CSR consistent; season follows calendar month.
+ */
+const now = new Date();
+const y = now.getFullYear();
+const m = String(now.getMonth() + 1).padStart(2, "0");
+const d = String(now.getDate()).padStart(2, "0");
+const month = now.getMonth() + 1;
+
+let season = "冬";
+if (month >= 3 && month <= 5) season = "春";
+else if (month >= 6 && month <= 8) season = "夏";
+else if (month >= 9 && month <= 11) season = "秋";
+---
+
+<p class="home-date-stamp font-mono text-muted-foreground" aria-hidden="true">
+  <span class="home-date-stamp-ring">{y}.{m}.{d}</span>
+  <span class="home-date-stamp-dot" aria-hidden="true">·</span>
+  <span>{season}</span>
+</p>
+
+<style>
+  .home-date-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: none;
+    user-select: none;
+  }
+
+  .home-date-stamp-ring {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+    border-radius: 999px;
+    color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+    transform: rotate(-3deg);
+  }
+
+  .home-date-stamp-dot {
+    opacity: 0.55;
+  }
+</style>

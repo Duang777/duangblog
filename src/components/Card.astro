@@ -6,9 +6,20 @@ import Datetime from "./Datetime.astro";
 
 type Props = {
   variant?: "h2" | "h3";
+  /** Published within ~48h — show a fading ink mark. */
+  isFresh?: boolean;
+  /** Seeded “today’s read” — clay rule on the left. */
+  isTodayPick?: boolean;
 } & CollectionEntry<"posts">;
 
-const { variant: Heading = "h2", id, data, filePath } = Astro.props;
+const {
+  variant: Heading = "h2",
+  id,
+  data,
+  filePath,
+  isFresh = false,
+  isTodayPick = false,
+} = Astro.props;
 
 const { title, description, ...props } = data;
 const transitionName = toTransitionName(title);
@@ -16,7 +27,20 @@ const path = getPostSlugPath(id, filePath);
 const slug = path.split("/").filter(Boolean).pop() ?? id;
 ---
 
-<li class="post-card my-6" data-term-slug={slug}>
+<li
+  class:list={[
+    "post-card my-6",
+    { "is-fresh": isFresh, "is-today-pick": isTodayPick },
+  ]}
+  data-term-slug={slug}
+>
+  {
+    isTodayPick && (
+      <span class="post-card-today-label font-mono" aria-hidden="true">
+        今日一篇
+      </span>
+    )
+  }
   <a
     href={getPostUrl(id, filePath, Astro.currentLocale)}
     draggable="true"
@@ -34,6 +58,13 @@ const slug = path.split("/").filter(Boolean).pop() ?? id;
     >
       {title}
     </Heading>
+    {
+      isFresh && (
+        <span class="post-card-ink font-mono" title="近两天发布" aria-label="新">
+          新
+        </span>
+      )
+    }
   </a>
   <Datetime {...props} />
   <p>{description}</p>

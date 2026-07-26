@@ -6,6 +6,7 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import HomeHero from "@/components/HomeHero.astro";
+import HomeDateStamp from "@/components/HomeDateStamp.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
@@ -24,6 +25,18 @@ const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 const homePath = getRelativeLocaleUrl(locale, "");
+
+const FRESH_MS = 48 * 60 * 60 * 1000;
+const nowMs = Date.now();
+const daySeed = Math.floor(nowMs / 86_400_000);
+const todayPickId =
+  sortedPosts.length > 0
+    ? sortedPosts[daySeed % sortedPosts.length]!.id
+    : null;
+
+function isFreshPost(pubDatetime: Date) {
+  return nowMs - pubDatetime.getTime() < FRESH_MS;
+}
 
 const termPosts: TermPost[] = sortedPosts.map(post => {
   const path = getPostSlugPath(post.id, post.filePath);
@@ -66,12 +79,20 @@ const termIdeas = [
               { "border-border border-b": recentPosts.length > 0 },
             ]}
           >
-            <h2 class="font-serif text-2xl font-semibold tracking-wide">
-              {t.home.featured}
-            </h2>
+            <div class="mb-1 flex items-end justify-between gap-4">
+              <h2 class="font-serif text-2xl font-semibold tracking-wide">
+                {t.home.featured}
+              </h2>
+              <HomeDateStamp />
+            </div>
             <ul>
               {featuredPosts.map(data => (
-                <Card variant="h3" {...data} />
+                <Card
+                  variant="h3"
+                  {...data}
+                  isFresh={isFreshPost(data.data.pubDatetime)}
+                  isTodayPick={data.id === todayPickId}
+                />
               ))}
             </ul>
           </section>
@@ -84,12 +105,20 @@ const termIdeas = [
             id={featuredPosts.length > 0 ? "recent-posts" : "posts"}
             class="scroll-mt-24 pt-14 pb-6"
           >
-            <h2 class="font-serif text-2xl font-semibold tracking-wide">
-              {t.home.recentPosts}
-            </h2>
+            <div class="mb-1 flex items-end justify-between gap-4">
+              <h2 class="font-serif text-2xl font-semibold tracking-wide">
+                {t.home.recentPosts}
+              </h2>
+              {featuredPosts.length === 0 && <HomeDateStamp />}
+            </div>
             <ul>
               {recentPosts.slice(0, postsConfig.perIndex).map(data => (
-                <Card variant="h3" {...data} />
+                <Card
+                  variant="h3"
+                  {...data}
+                  isFresh={isFreshPost(data.data.pubDatetime)}
+                  isTodayPick={data.id === todayPickId}
+                />
               ))}
             </ul>
           </section>
