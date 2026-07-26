@@ -1,0 +1,102 @@
+---
+/**
+ * Reading needle for post pages.
+ * Progress follows #article, not the whole document chrome.
+ */
+---
+
+<div class="post-thread" aria-hidden="true">
+  <span class="post-thread-line"></span>
+  <span class="post-thread-fill"></span>
+  <span class="post-thread-stitch"></span>
+</div>
+
+<style>
+  .post-thread {
+    position: fixed;
+    inset-block: 5.5rem 3.5rem;
+    inset-inline-start: max(0.75rem, calc((100vw - var(--thread-span, 48rem)) / 4));
+    z-index: 5;
+    width: 1px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+
+  .post-thread.is-ready {
+    opacity: 1;
+  }
+
+  .post-thread-line {
+    position: absolute;
+    inset: 0;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--border) 75%, transparent);
+  }
+
+  .post-thread-fill {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    width: 1px;
+    height: calc(var(--read-progress, 0) * 100%);
+    background: color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+
+  .post-thread-stitch {
+    position: absolute;
+    inset-inline-start: 50%;
+    top: calc(var(--read-progress, 0) * 100%);
+    width: 5px;
+    height: 5px;
+    margin-inline-start: -2.5px;
+    margin-top: -2.5px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--accent) 78%, transparent);
+  }
+
+  @media (max-width: 1180px) {
+    .post-thread {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-thread {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initPostThread() {
+    const thread = document.querySelector<HTMLElement>(".post-thread");
+    const article = document.getElementById("article");
+    if (!thread || !article) return;
+
+    const onScroll = () => {
+      const rect = article.getBoundingClientRect();
+      const top = window.scrollY + rect.top;
+      const height = Math.max(1, article.offsetHeight);
+      const view = window.scrollY + window.innerHeight * 0.35;
+      const progress = Math.min(1, Math.max(0, (view - top) / height));
+      thread.style.setProperty("--read-progress", String(progress));
+    };
+
+    onScroll();
+    thread.classList.add("is-ready");
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      },
+      { once: true }
+    );
+  }
+
+  document.addEventListener("astro:page-load", initPostThread);
+</script>

@@ -16,34 +16,64 @@ import BackToTopButton from "./_components/BackToTopButton.astro";
 import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
 import Giscus from "@/components/Giscus.astro";
 import TermSessionBanner from "@/components/TermSessionBanner.astro";
+import PostReadingThread from "@/components/PostReadingThread.astro";
+import ContinueReading from "@/components/ContinueReading.astro";
 import config from "@/config";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts");
   const sortedPosts = getSortedPosts(posts);
 
-  return sortedPosts.map((post, index) => ({
-    params: { slug: getPostSlug(post.id, post.filePath) },
-    props: {
-      post,
-      prevPost:
-        index > 0
-          ? {
-              id: sortedPosts[index - 1].id,
-              title: sortedPosts[index - 1].data.title,
-              filePath: sortedPosts[index - 1].filePath,
-            }
-          : null,
-      nextPost:
-        index < sortedPosts.length - 1
-          ? {
-              id: sortedPosts[index + 1].id,
-              title: sortedPosts[index + 1].data.title,
-              filePath: sortedPosts[index + 1].filePath,
-            }
-          : null,
-    },
-  }));
+  return sortedPosts.map((post, index) => {
+    const postTags = new Set(post.data.tags);
+    const prevCandidate = index > 0 ? sortedPosts[index - 1] : undefined;
+    const nextCandidate =
+      index < sortedPosts.length - 1 ? sortedPosts[index + 1] : undefined;
+    const neighborIds = new Set([
+      prevCandidate?.id,
+      nextCandidate?.id,
+    ]);
+    const relatedPosts = sortedPosts
+      .filter(
+        candidate =>
+          candidate.id !== post.id && !neighborIds.has(candidate.id)
+      )
+      .map(candidate => {
+        const sharedTags = candidate.data.tags.filter(tag => postTags.has(tag));
+        return {
+          id: candidate.id,
+          title: candidate.data.title,
+          description: candidate.data.description,
+          filePath: candidate.filePath,
+          sharedTag: sharedTags[0],
+          score: sharedTags.length,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    return {
+      params: { slug: getPostSlug(post.id, post.filePath) },
+      props: {
+        post,
+        relatedPosts,
+        prevPost: prevCandidate
+            ? {
+                id: prevCandidate.id,
+                title: prevCandidate.data.title,
+                filePath: prevCandidate.filePath,
+              }
+            : null,
+        nextPost: nextCandidate
+            ? {
+                id: nextCandidate.id,
+                title: nextCandidate.data.title,
+                filePath: nextCandidate.filePath,
+              }
+            : null,
+      },
+    };
+  });
 }
 
 type AdjacentPost = {
@@ -56,9 +86,16 @@ type Props = {
   post: CollectionEntry<"posts">;
   prevPost: AdjacentPost;
   nextPost: AdjacentPost;
+  relatedPosts: {
+    id: string;
+    title: string;
+    description: string;
+    filePath: string | undefined;
+    sharedTag: string | undefined;
+  }[];
 };
 
-const { post, prevPost, nextPost } = Astro.props;
+const { post, prevPost, nextPost, relatedPosts } = Astro.props;
 const locale = Astro.currentLocale ?? config.site.lang;
 
 const {
@@ -112,6 +149,8 @@ const ogImage = ogImageUrl
 
   <BackButton />
 
+  <PostReadingThread />
+
   <main
     id="main-content"
     class:list={["app-layout", { "mt-8": !config.features.showBackButton }]}
@@ -164,6 +203,8 @@ const ogImage = ogImageUrl
     <ShareLinks />
 
     <hr class="my-8 border-dashed" />
+
+    <ContinueReading posts={relatedPosts} {locale} />
 
     <AdjacentPostNav {prevPost} {nextPost} />
   </main>

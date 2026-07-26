@@ -12,6 +12,7 @@ import { getUniqueTags } from "@/utils/getUniqueTags";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { slugifyAll } from "@/utils/slugify";
 import { useTranslations } from "@/i18n";
+import { getTagIntro } from "@/data/tag-intros";
 import config from "@/config";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
@@ -35,6 +36,7 @@ const { page, tagName } = Astro.props;
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
+const tagIntro = getTagIntro(tagName);
 ---
 
 <Layout title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}>
@@ -44,7 +46,7 @@ const t = useTranslations(locale);
 
   <Main
     pageTitle={`${t.pages.tagTitle}: ${tagName}`}
-    pageDesc={`${t.pages.tagDesc} "${tagName}".`}
+    pageDesc={tagIntro}
   >
     <ul>
       {page.data.map(data => <Card {...data} />)}

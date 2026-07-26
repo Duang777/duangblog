@@ -235,3 +235,33 @@ body {
   }
 }
 
+/* A deep-linked heading briefly takes ink, then settles back into the page. */
+#article :target {
+  border-radius: 0.2rem;
+  animation: deep-link-ink 1.8s ease-out;
+}
+
+@keyframes deep-link-ink {
+  0% {
+    background: transparent;
+    box-shadow: none;
+  }
+  22% {
+    background: color-mix(in oklab, var(--accent) 13%, transparent);
+    box-shadow: -0.35rem 0 0
+      color-mix(in oklab, var(--accent) 52%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #article :target {
+    animation: none;
+    box-shadow: -0.2rem 0 0
+      color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+}
+
