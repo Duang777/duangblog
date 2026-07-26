@@ -1,24 +1,24 @@
 /*! Duang blog — Giscus light theme (aligned with site tokens) */
 
 main {
-  --color-prettylights-syntax-comment: #6b7280;
-  --color-prettylights-syntax-constant: #006cac;
+  --color-prettylights-syntax-comment: #87867f;
+  --color-prettylights-syntax-constant: #d97757;
   --color-prettylights-syntax-entity: #8250df;
-  --color-prettylights-syntax-storage-modifier-import: #282728;
+  --color-prettylights-syntax-storage-modifier-import: #141413;
   --color-prettylights-syntax-entity-tag: #116329;
   --color-prettylights-syntax-keyword: #cf222e;
   --color-prettylights-syntax-string: #0a3069;
   --color-prettylights-syntax-variable: #953800;
   --color-prettylights-syntax-brackethighlighter-unmatched: #82071e;
-  --color-prettylights-syntax-invalid-illegal-text: #fdfdfd;
+  --color-prettylights-syntax-invalid-illegal-text: #faf9f5;
   --color-prettylights-syntax-invalid-illegal-bg: #82071e;
-  --color-prettylights-syntax-carriage-return-text: #fdfdfd;
+  --color-prettylights-syntax-carriage-return-text: #faf9f5;
   --color-prettylights-syntax-carriage-return-bg: #cf222e;
   --color-prettylights-syntax-string-regexp: #116329;
   --color-prettylights-syntax-markup-list: #3b2300;
-  --color-prettylights-syntax-markup-heading: #006cac;
-  --color-prettylights-syntax-markup-italic: #282728;
-  --color-prettylights-syntax-markup-bold: #282728;
+  --color-prettylights-syntax-markup-heading: #d97757;
+  --color-prettylights-syntax-markup-italic: #141413;
+  --color-prettylights-syntax-markup-bold: #141413;
   --color-prettylights-syntax-markup-deleted-text: #82071e;
   --color-prettylights-syntax-markup-deleted-bg: #ffebe9;
   --color-prettylights-syntax-markup-inserted-text: #116329;
@@ -26,55 +26,55 @@ main {
   --color-prettylights-syntax-markup-changed-text: #953800;
   --color-prettylights-syntax-markup-changed-bg: #ffd8b5;
   --color-prettylights-syntax-markup-ignored-text: #eaeef2;
-  --color-prettylights-syntax-markup-ignored-bg: #006cac;
+  --color-prettylights-syntax-markup-ignored-bg: #d97757;
   --color-prettylights-syntax-meta-diff-range: #8250df;
-  --color-prettylights-syntax-brackethighlighter-angle: #6b7280;
+  --color-prettylights-syntax-brackethighlighter-angle: #87867f;
   --color-prettylights-syntax-sublimelinter-gutter-mark: #8c959f;
-  --color-prettylights-syntax-constant-other-reference-link: #006cac;
+  --color-prettylights-syntax-constant-other-reference-link: #d97757;
 
-  --color-btn-text: #282728;
-  --color-btn-bg: #f6f6f6;
-  --color-btn-border: rgb(40 39 40 / 12%);
-  --color-btn-shadow: 0 1px 0 rgb(40 39 40 / 4%);
+  --color-btn-text: #141413;
+  --color-btn-bg: #e8e6dc;
+  --color-btn-border: rgb(20 20 19 / 12%);
+  --color-btn-shadow: 0 1px 0 rgb(20 20 19 / 4%);
   --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 25%);
-  --color-btn-hover-bg: #ececec;
-  --color-btn-hover-border: rgb(40 39 40 / 15%);
-  --color-btn-active-bg: #e6e6e6;
-  --color-btn-active-border: rgb(40 39 40 / 15%);
-  --color-btn-selected-bg: #e6e6e6;
+  --color-btn-hover-bg: #e3e1d7;
+  --color-btn-hover-border: rgb(20 20 19 / 15%);
+  --color-btn-active-bg: #e8e6dc;
+  --color-btn-active-border: rgb(20 20 19 / 15%);
+  --color-btn-selected-bg: #e8e6dc;
 
   --color-btn-primary-text: #ffffff;
-  --color-btn-primary-bg: #006cac;
-  --color-btn-primary-border: rgb(40 39 40 / 10%);
-  --color-btn-primary-shadow: 0 1px 0 rgb(40 39 40 / 8%);
+  --color-btn-primary-bg: #d97757;
+  --color-btn-primary-border: rgb(20 20 19 / 10%);
+  --color-btn-primary-shadow: 0 1px 0 rgb(20 20 19 / 8%);
   --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
-  --color-btn-primary-hover-bg: #005a90;
-  --color-btn-primary-hover-border: rgb(40 39 40 / 10%);
-  --color-btn-primary-selected-bg: #004d7a;
-  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 45 80 / 15%);
+  --color-btn-primary-hover-bg: #c6613f;
+  --color-btn-primary-hover-border: rgb(20 20 19 / 10%);
+  --color-btn-primary-selected-bg: #b55736;
+  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(20 20 19 / 15%);
   --color-btn-primary-disabled-text: rgb(255 255 255 / 80%);
-  --color-btn-primary-disabled-bg: #8eb8d4;
-  --color-btn-primary-disabled-border: rgb(40 39 40 / 10%);
+  --color-btn-primary-disabled-bg: #e3b5a3;
+  --color-btn-primary-disabled-border: rgb(20 20 19 / 10%);
 
-  --color-action-list-item-default-hover-bg: rgb(230 230 230 / 70%);
-  --color-segmented-control-bg: #ece9e9;
+  --color-action-list-item-default-hover-bg: rgb(232 230 220 / 70%);
+  --color-segmented-control-bg: #cccbc8;
   --color-segmented-control-button-bg: #ffffff;
   --color-segmented-control-button-selected-border: #cfcfcf;
 
-  --color-fg-default: #282728;
-  --color-fg-muted: #6b7280;
-  --color-fg-subtle: #8b929c;
+  --color-fg-default: #141413;
+  --color-fg-muted: #87867f;
+  --color-fg-subtle: #b0aea5;
   --color-canvas-default: transparent;
   --color-canvas-overlay: #ffffff;
   --color-canvas-inset: transparent;
-  --color-canvas-subtle: rgb(246 246 246 / 80%);
-  --color-border-default: #ece9e9;
-  --color-border-muted: #f0eded;
-  --color-neutral-muted: rgb(107 114 128 / 12%);
-  --color-accent-fg: #006cac;
-  --color-accent-emphasis: #006cac;
-  --color-accent-muted: rgb(0 108 172 / 35%);
-  --color-accent-subtle: rgb(0 108 172 / 8%);
+  --color-canvas-subtle: rgb(232 230 220 / 80%);
+  --color-border-default: #cccbc8;
+  --color-border-muted: #e8e6dc;
+  --color-neutral-muted: rgb(135 134 127 / 12%);
+  --color-accent-fg: #d97757;
+  --color-accent-emphasis: #d97757;
+  --color-accent-muted: rgb(217 119 87 / 35%);
+  --color-accent-subtle: rgb(217 119 87 / 8%);
   --color-success-fg: #1a7f37;
   --color-attention-fg: #9a6700;
   --color-attention-muted: rgb(212 167 44 / 40%);
@@ -83,8 +83,8 @@ main {
   --color-danger-muted: rgb(255 129 130 / 40%);
   --color-danger-subtle: #ffebe9;
   --color-primer-shadow-inset: inset 0 1px 0 rgb(208 215 222 / 20%);
-  --color-scale-gray-1: #ece9e9;
-  --color-scale-blue-1: #cce4f3;
+  --color-scale-gray-1: #cccbc8;
+  --color-scale-blue-1: #f0e6dc;
 
   --color-social-reaction-bg-hover: var(--color-scale-gray-1);
   --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-1);
@@ -107,7 +107,7 @@ main .gsc-loading-image {
 
 .gsc-comment-box {
   border-color: var(--color-border-default) !important;
-  background: rgb(253 253 253 / 70%) !important;
+  background: rgb(250 249 245 / 70%) !important;
 }
 
 .gsc-btn-primary,

@@ -163,7 +163,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 
 - Posts: `src/content/posts/*.md`
 - 后端专栏 hub: `src/content/posts/backend-column.md`
-- 请求过境 (sub-column): `src/content/posts/request-crossing.md`
+- 请求过境 (sub-column): `src/content/posts/request-crossing.mdx`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`

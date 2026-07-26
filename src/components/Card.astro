@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getPostUrl } from "@/utils/getPostPaths";
+import { getPostSlugPath, getPostUrl } from "@/utils/getPostPaths";
 import { toTransitionName } from "@/utils/toTransitionName";
 import Datetime from "./Datetime.astro";
 
@@ -11,18 +11,27 @@ type Props = {
 const { variant: Heading = "h2", id, data, filePath } = Astro.props;
 
 const { title, description, ...props } = data;
+const transitionName = toTransitionName(title);
+const path = getPostSlugPath(id, filePath);
+const slug = path.split("/").filter(Boolean).pop() ?? id;
 ---
 
-<li class="my-6">
+<li class="post-card my-6" data-term-slug={slug}>
   <a
     href={getPostUrl(id, filePath, Astro.currentLocale)}
+    draggable="true"
+    data-term-slug={slug}
     class:list={[
-      "text-accent inline-block text-lg font-medium",
+      "text-accent font-serif inline-block text-lg font-medium",
       "decoration-dashed underline-offset-4 hover:underline",
       "focus-visible:no-underline focus-visible:underline-offset-0",
     ]}
   >
-    <Heading transition:name={toTransitionName(title)}>
+    <Heading
+      transition:name={transitionName}
+      class="post-card-title inline"
+      data-vt={transitionName}
+    >
       {title}
     </Heading>
   </a>

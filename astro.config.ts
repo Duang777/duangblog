@@ -71,7 +71,66 @@ export default defineConfig({
   },
   fonts: [
     {
-      // Local fallback: Google Fonts often times out in restricted networks.
+      name: "Source Sans 3",
+      cssVariable: "--font-source-sans",
+      provider: fontProviders.local(),
+      fallbacks: [
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Noto Sans SC",
+        "Microsoft YaHei",
+        "sans-serif",
+      ],
+      options: {
+        variants: [
+          {
+            weight: "200 900",
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2",
+            ],
+          },
+          {
+            weight: "200 900",
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-italic.woff2",
+            ],
+          },
+        ],
+      },
+    },
+    {
+      name: "Source Serif 4",
+      cssVariable: "--font-source-serif",
+      provider: fontProviders.local(),
+      fallbacks: [
+        "Songti SC",
+        "Noto Serif SC",
+        "STSong",
+        "serif",
+      ],
+      options: {
+        variants: [
+          {
+            weight: "200 900",
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2",
+            ],
+          },
+          {
+            weight: "200 900",
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-italic.woff2",
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Kept for terminal + code. Google Fonts often times out in restricted networks.
       name: "IBM Plex Mono",
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.local(),

@@ -7,28 +7,32 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --font-app: var(--font-google-sans-code);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-source-serif);
+  --font-mono: var(--font-google-sans-code);
+  /* Existing utility class font-app keeps working. */
+  --font-app: var(--font-source-sans);
 }
 
-/* Light theme values */
+/* Anthropic-inspired light theme */
 :root,
 [data-theme="light"] {
-  --background: #fdfdfd;
-  --foreground: #282728;
-  --accent: #006cac;
+  --background: #faf9f5;
+  --foreground: #141413;
+  --accent: #d97757;
   --accent-foreground: #ffffff;
-  --muted: #e6e6e6;
-  --muted-foreground: #6b7280;
-  --border: #ece9e9;
+  --muted: #e8e6dc;
+  --muted-foreground: #87867f;
+  --border: #cccbc8;
 }
 
-/* Dark theme values */
+/* Anthropic-inspired dark theme */
 [data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
-  --accent-foreground: #ffffff;
-  --muted: #343f60;
-  --muted-foreground: #afb9ca;
-  --border: #ab4b08;
+  --background: #141413;
+  --foreground: #faf9f5;
+  --accent: #d97757;
+  --accent-foreground: #141413;
+  --muted: #3d3d3a;
+  --muted-foreground: #b0aea5;
+  --border: #87867f;
 }

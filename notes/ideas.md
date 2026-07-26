@@ -23,3 +23,10 @@
 归属：后端专栏 / 请求过境
 材料：net/http.Server IdleTimeout；Nginx keepalive_timeout
 状态：念头
+
+### 2026-07-26 Context 传到 DB
+现象：客户端断开后查询还在跑
+想搞清：r.Context 取消时机；QueryContext；驱动是否真取消
+归属：后端专栏 / 请求过境
+材料：pkg.go.dev/net/http#Request.Context；go.dev/doc/database/cancel-operations
+状态：已发 → posts/context-to-db.md

@@ -1,0 +1,104 @@
+---
+/**
+ * Shows the terminal path that opened this page, if any.
+ * Also marks the post as read for `ls` checkmarks.
+ */
+type Props = {
+  slug?: string;
+};
+
+const { slug = "" } = Astro.props;
+---
+
+<div
+  id="term-session-banner"
+  class="border-border bg-muted/50 font-mono text-foreground mb-6 hidden rounded-lg border px-3 py-2 text-xs sm:text-sm"
+  hidden
+  data-term-slug={slug}
+>
+  <div class="flex items-start justify-between gap-3">
+    <p class="m-0 leading-6">
+      <span class="text-muted-foreground">来自 tty</span>
+      <br />
+      <span class="text-accent" data-term-path></span>
+      <br />
+      <span class="text-muted-foreground text-[11px]" data-term-cmd></span>
+    </p>
+    <button
+      type="button"
+      class="text-muted-foreground hover:text-accent shrink-0"
+      data-term-dismiss
+      aria-label="关闭"
+    >
+      关闭
+    </button>
+  </div>
+</div>
+
+<script>
+  import { markPostRead } from "@/scripts/home-term";
+
+  const SESSION_KEY = "term-session";
+  const TTL_MS = 10 * 60 * 1000;
+
+  function showBanner() {
+    const el = document.getElementById("term-session-banner");
+    if (!el) return;
+
+    const slug = el.dataset.termSlug ?? "";
+    if (slug) markPostRead(slug);
+
+    let raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) {
+      el.hidden = true;
+      el.classList.add("hidden");
+      return;
+    }
+
+    try {
+      const data = JSON.parse(raw) as {
+        cmd?: string;
+        href?: string;
+        at?: number;
+      };
+      if (!data.cmd || !data.at || Date.now() - data.at > TTL_MS) {
+        sessionStorage.removeItem(SESSION_KEY);
+        el.hidden = true;
+        el.classList.add("hidden");
+        return;
+      }
+
+      const here = window.location.pathname.replace(/\/+$/, "") || "/";
+      const target = (data.href ?? "").replace(/\/+$/, "") || "/";
+      if (target && here !== target) {
+        el.hidden = true;
+        el.classList.add("hidden");
+        return;
+      }
+
+      const pathEl = el.querySelector("[data-term-path]");
+      const cmdEl = el.querySelector("[data-term-cmd]");
+      const pathSlug =
+        slug ||
+        data.cmd?.replace(/^open\s+/i, "").trim() ||
+        "post";
+      if (pathEl) pathEl.textContent = `~/posts/${pathSlug}.md`;
+      if (cmdEl) cmdEl.textContent = `$ ${data.cmd}`;
+      el.hidden = false;
+      el.classList.remove("hidden");
+
+      el.querySelector("[data-term-dismiss]")?.addEventListener("click", () => {
+        sessionStorage.removeItem(SESSION_KEY);
+        el.hidden = true;
+        el.classList.add("hidden");
+      });
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+      el.hidden = true;
+      el.classList.add("hidden");
+    }
+  }
+
+  showBanner();
+  document.addEventListener("astro:page-load", showBanner);
+</script>
