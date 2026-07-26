@@ -18,6 +18,10 @@ const posts = defineCollection({
       tags: z.array(z.string()).default(["others"]),
       ogImage: image().or(z.string()).optional(),
       description: z.string(),
+      /** Short hand-written changelog, newest last. */
+      revisions: z
+        .array(z.object({ date: z.date(), note: z.string() }))
+        .optional(),
       canonicalURL: z.string().optional(),
       hideEditPost: z.boolean().optional(),
       timezone: z.string().optional(),

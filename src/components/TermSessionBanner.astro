@@ -36,7 +36,7 @@ const { slug = "" } = Astro.props;
 </div>
 
 <script>
-  import { markPostRead } from "@/scripts/home-term";
+  import { markPostRead, rememberLastPost } from "@/scripts/home-term";
 
   const SESSION_KEY = "term-session";
   const TTL_MS = 10 * 60 * 1000;
@@ -46,7 +46,10 @@ const { slug = "" } = Astro.props;
     if (!el) return;
 
     const slug = el.dataset.termSlug ?? "";
-    if (slug) markPostRead(slug);
+    if (slug) {
+      markPostRead(slug);
+      rememberLastPost(slug);
+    }
 
     let raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) {

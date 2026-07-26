@@ -1,0 +1,79 @@
+---
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezonePlugin from "dayjs/plugin/timezone";
+import config from "@/config";
+
+dayjs.extend(utc);
+dayjs.extend(timezonePlugin);
+
+type Revision = {
+  date: Date;
+  note: string;
+};
+
+type Props = {
+  revisions?: Revision[];
+  timezone?: string;
+};
+
+const { revisions = [], timezone: postTimezone } = Astro.props;
+
+const entries = [...revisions]
+  .sort((a, b) => b.date.getTime() - a.date.getTime())
+  .slice(0, 4)
+  .map((revision, index, all) => ({
+    label: dayjs(revision.date)
+      .tz(postTimezone ?? config.site.timezone)
+      .format("MM.DD"),
+    note: revision.note,
+    version: `v${all.length - index}`,
+  }));
+---
+
+{
+  entries.length > 0 && (
+    <details class="revision-note font-mono">
+      <summary class="text-muted-foreground text-xs tracking-wide">
+        改动小记 · {entries.length} 次
+      </summary>
+      <ul class="mt-2 space-y-1">
+        {entries.map(entry => (
+          <li class="text-muted-foreground grid grid-cols-[2.6rem_3.2rem_1fr] gap-2 text-xs leading-6">
+            <span class="text-accent/80">{entry.version}</span>
+            <span>{entry.label}</span>
+            <span>{entry.note}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
+<style>
+  .revision-note {
+    margin-top: 0.6rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--border) 80%, transparent);
+  }
+
+  .revision-note summary {
+    cursor: pointer;
+    list-style: none;
+    width: fit-content;
+  }
+
+  .revision-note summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .revision-note summary::before {
+    content: "+ ";
+    color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  }
+
+  .revision-note[open] summary::before {
+    content: "- ";
+  }
+</style>

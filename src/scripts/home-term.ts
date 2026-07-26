@@ -21,6 +21,7 @@ const SESSION_KEY = "term-session";
 const RESUME_KEY = "term-resume";
 const READS_KEY = "term-reads";
 const HIST_KEY = "term-cmd-history";
+const LAST_POST_KEY = "term-last-post";
 
 const HELP =
   "help · whoami · ls · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
@@ -141,6 +142,33 @@ export function markPostRead(slug: string) {
   const reads = getReads();
   reads.add(slug);
   localStorage.setItem(READS_KEY, JSON.stringify([...reads]));
+}
+
+/** Remember where a reader just was, so the homepage can greet them back. */
+export function rememberLastPost(slug: string) {
+  if (!slug) return;
+  sessionStorage.setItem(
+    LAST_POST_KEY,
+    JSON.stringify({ slug, at: Date.now() })
+  );
+}
+
+/** One-shot: returns the line to print on the homepage, then forgets it. */
+function takeReturnNote(posts: TermPost[]): string | null {
+  const raw = sessionStorage.getItem(LAST_POST_KEY);
+  if (!raw) return null;
+  sessionStorage.removeItem(LAST_POST_KEY);
+  try {
+    const data = JSON.parse(raw) as { slug?: string; at?: number };
+    if (!data.slug || !data.at || Date.now() - data.at > 30 * 60 * 1000) {
+      return null;
+    }
+    const hit = posts.find(p => p.slug === data.slug);
+    if (!hit) return null;
+    return `从 ~/posts/${hit.slug}.md 回来`;
+  } catch {
+    return null;
+  }
 }
 
 /** Slugs marked read via post pages / terminal — for homepage echo. */
@@ -847,7 +875,8 @@ async function runBoot(
 async function startTerminal(
   body: HTMLElement,
   ctx: TermCtx,
-  still: () => boolean
+  still: () => boolean,
+  returnNote?: string | null
 ) {
   const brand = body.querySelector("#home-brand");
   body.replaceChildren();
@@ -887,6 +916,7 @@ async function startTerminal(
       } else appendLine(body, line.text);
     }
     if (!still()) return;
+    if (returnNote) appendLine(body, returnNote);
     mountPrompt(body, ctx, still);
     return;
   }
@@ -928,18 +958,21 @@ async function startTerminal(
   }
   if (!still()) return;
   cursor.remove();
+  if (returnNote) appendLine(body, returnNote);
   mountPrompt(body, ctx, still);
 }
 
 async function resumeTerminal(
   body: HTMLElement,
   ctx: TermCtx,
-  still: () => boolean
+  still: () => boolean,
+  returnNote?: string | null
 ) {
   const brand = body.querySelector("#home-brand");
   body.replaceChildren();
   if (brand) body.appendChild(brand);
   appendLine(body, "session resumed — boot skipped");
+  if (returnNote) appendLine(body, returnNote);
   appendLine(
     body,
     ctx.guest
@@ -1047,6 +1080,7 @@ export async function initHomeHero() {
   };
 
   bindDropTarget(body, ctx, still);
+  const returnNote = takeReturnNote(posts);
 
   if (resume) {
     clearResume();
@@ -1054,7 +1088,7 @@ export async function initHomeHero() {
     boot.classList.add("is-done");
     stage.classList.add("is-ready");
     scrollCue?.classList.add("is-ready");
-    await resumeTerminal(body, ctx, still);
+    await resumeTerminal(body, ctx, still, returnNote);
     if (!still()) return;
     watchHeader(hero);
     watchScrollFade(hero, stage);
@@ -1070,7 +1104,7 @@ export async function initHomeHero() {
   await sleep(200);
   if (!still()) return;
 
-  await startTerminal(body, ctx, still);
+  await startTerminal(body, ctx, still, returnNote);
   if (!still()) return;
 
   watchHeader(hero);

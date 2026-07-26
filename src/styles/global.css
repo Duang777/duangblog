@@ -235,6 +235,33 @@ body {
   }
 }
 
+/* Archive months read as punched notebook pages. */
+.archive-month {
+  position: relative;
+}
+
+.archive-month + .archive-month {
+  border-top: 1px dashed color-mix(in oklab, var(--border) 70%, transparent);
+}
+
+@media (min-width: 640px) {
+  .archive-month::before {
+    content: "";
+    position: absolute;
+    inset-block: 2.25rem 1.5rem;
+    inset-inline-start: -1.15rem;
+    width: 5px;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--border) 90%, transparent) 0 2.5px,
+      transparent 2.5px
+    );
+    background-size: 5px 2.4rem;
+    background-repeat: repeat-y;
+    opacity: 0.85;
+  }
+}
+
 /* A deep-linked heading briefly takes ink, then settles back into the page. */
 #article :target {
   border-radius: 0.2rem;
