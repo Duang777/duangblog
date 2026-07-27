@@ -8,7 +8,6 @@ import Footer from "@/components/Footer.astro";
 import HomeHero from "@/components/HomeHero.astro";
 import HomeDateStamp from "@/components/HomeDateStamp.astro";
 import HomeWritingStatus from "@/components/HomeWritingStatus.astro";
-import HomeBindingThread from "@/components/HomeBindingThread.astro";
 import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
 import HomePhenology from "@/components/HomePhenology.astro";
 import Card from "@/components/Card.astro";
@@ -18,6 +17,7 @@ import { getPostSlugPath, getPostUrl } from "@/utils/getPostPaths";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 import type { TermPost } from "@/scripts/home-term";
+import { getReadingMinutes } from "@/utils/readingTime";
 
 const { posts: postsConfig } = config;
 
@@ -59,6 +59,7 @@ const termPosts: TermPost[] = sortedPosts.map(post => {
     String(d.getMonth() + 1).padStart(2, "0"),
     String(d.getDate()).padStart(2, "0"),
   ].join("-");
+  const body = post.body ?? "";
   return {
     slug,
     title: post.data.title,
@@ -67,6 +68,12 @@ const termPosts: TermPost[] = sortedPosts.map(post => {
     tags: post.data.tags ?? [],
     draft: post.data.draft,
     pubDate,
+    minutes: getReadingMinutes(body),
+    chars: body.replace(/\s+/g, "").length,
+    revisions: (post.data.revisions ?? []).map(rev => ({
+      date: rev.date.toISOString().slice(0, 10),
+      note: rev.note,
+    })),
   };
 });
 
@@ -82,7 +89,6 @@ const termIdeas = [
 
 <Layout>
   <Header />
-  <HomeBindingThread />
   <HomeBrandWhisper />
   <main
     id="main-content"
@@ -223,6 +229,19 @@ const termIdeas = [
     if (cards.length === 0) return;
 
     applyReadEcho();
+
+    // Returning from today's pick leaves a quiet fold on that card.
+    try {
+      const last = sessionStorage.getItem("term-last-post");
+      if (last) {
+        const card = document.querySelector<HTMLElement>(
+          `.post-card.is-today-pick[data-term-slug="${CSS.escape(last)}"]`
+        );
+        card?.classList.add("is-returned-fold");
+      }
+    } catch {
+      // ignore
+    }
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"

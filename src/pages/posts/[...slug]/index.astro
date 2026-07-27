@@ -203,8 +203,6 @@ const ogImage = ogImageUrl
 
   <BackButton />
 
-  <PostReadingThread />
-
   <main
     id="main-content"
     class:list={["app-layout", { "mt-8": !config.features.showBackButton }]}
@@ -238,16 +236,19 @@ const ogImage = ogImageUrl
 
     <RevisionNote {revisions} {timezone} />
 
-    <article
-      id="article"
-      class:list={[
-        "mt-8 w-full",
-        "app-prose max-w-app",
-        "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
-      ]}
-    >
-      <Content />
-    </article>
+    <div class="post-body-wrap">
+      <PostReadingThread />
+      <article
+        id="article"
+        class:list={[
+          "mt-8 w-full",
+          "app-prose max-w-app",
+          "prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)",
+        ]}
+      >
+        <Content />
+      </article>
+    </div>
 
     <WrittenStamp text={writtenStamp} />
 
@@ -313,6 +314,7 @@ const ogImage = ogImageUrl
       document.querySelectorAll("h2, h3, h4, h5, h6")
     );
     for (const heading of headings) {
+      if (heading.querySelector(".heading-link")) continue;
       heading.classList.add("group");
       const link = document.createElement("a");
       link.className =
@@ -324,6 +326,20 @@ const ogImage = ogImageUrl
       span.innerText = "#";
       link.appendChild(span);
       heading.appendChild(link);
+
+      link.addEventListener("click", async () => {
+        // Keep the hash navigation; also copy the deep link.
+        const url = `${window.location.href.split("#")[0]}#${heading.id}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          span.innerText = "已抄";
+          window.setTimeout(() => {
+            span.innerText = "#";
+          }, 900);
+        } catch {
+          // ignore clipboard failures
+        }
+      });
     }
   }
   addHeadingLinks();

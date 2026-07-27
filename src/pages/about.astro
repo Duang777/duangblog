@@ -36,3 +36,20 @@ const { Content } = await render(about);
 
   <Footer />
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const signature = document.querySelector<HTMLElement>(".about-signature");
+    if (!signature) return;
+    try {
+      if (sessionStorage.getItem("about-signed") === "1") {
+        signature.classList.add("is-settled");
+        return;
+      }
+      sessionStorage.setItem("about-signed", "1");
+    } catch {
+      // ignore
+    }
+    requestAnimationFrame(() => signature.classList.add("is-inked"));
+  });
+</script>

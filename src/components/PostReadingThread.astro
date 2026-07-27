@@ -1,7 +1,7 @@
 ---
 /**
- * Reading needle for post pages.
- * Progress follows #article, not the whole document chrome.
+ * Reading needle for post pages — sits inside the article column,
+ * not on the far left of the viewport.
  */
 ---
 
@@ -12,11 +12,15 @@
 </div>
 
 <style>
+  .post-body-wrap {
+    position: relative;
+  }
+
   .post-thread {
-    position: fixed;
-    inset-block: 5.5rem 3.5rem;
-    inset-inline-start: max(0.75rem, calc((100vw - var(--thread-span, 48rem)) / 4));
-    z-index: 5;
+    position: absolute;
+    inset-block: 0.25rem 0.25rem;
+    inset-inline-start: -0.85rem;
+    z-index: 2;
     width: 1px;
     pointer-events: none;
     opacity: 0;
@@ -55,7 +59,7 @@
     background: color-mix(in oklab, var(--accent) 78%, transparent);
   }
 
-  @media (max-width: 1180px) {
+  @media (max-width: 720px) {
     .post-thread {
       display: none;
     }

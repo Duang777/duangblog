@@ -618,6 +618,20 @@ body {
   margin: 1rem 0;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.85rem;
+  opacity: 0;
+  transform: translateY(0.35rem);
+}
+
+.about-signature.is-inked,
+.about-signature.is-settled {
+  opacity: 1;
+  transform: none;
+}
+
+.about-signature.is-inked {
+  transition:
+    opacity 0.9s ease,
+    transform 0.9s ease;
 }
 
 .about-signature-name {
@@ -656,16 +670,14 @@ body {
   }
 }
 
-/* Chapter trail: current section title pinned next to the reading thread. */
+/* Chapter trail: pinned near the article column, not the viewport edge. */
+.post-body-wrap {
+  position: relative;
+}
+
 .post-chapter-trail {
-  position: fixed;
-  top: 30vh;
-  inset-inline-start: max(
-    1.5rem,
-    calc((100vw - var(--thread-span, 48rem)) / 4 + 0.8rem)
-  );
   z-index: 5;
-  width: min(9.5rem, calc((100vw - var(--thread-span, 48rem)) / 2 - 3.5rem));
+  width: min(8.5rem, 22vw);
   margin: 0;
   font-size: 0.68rem;
   line-height: 1.6;
@@ -693,7 +705,7 @@ body {
   transform: none;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   .post-chapter-trail {
     display: none;
   }
@@ -894,12 +906,6 @@ body {
 
 /* Chapter page number under the trail. */
 .post-chapter-page {
-  position: fixed;
-  top: calc(30vh + 2.6rem);
-  inset-inline-start: max(
-    1.5rem,
-    calc((100vw - var(--thread-span, 48rem)) / 4 + 0.8rem)
-  );
   z-index: 5;
   margin: 0;
   font-size: 0.62rem;
@@ -914,7 +920,7 @@ body {
   opacity: 0.8;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   .post-chapter-page {
     display: none;
   }
@@ -1083,5 +1089,124 @@ body {
     font-size: 0.75em;
     color: #555;
   }
+}
+
+/* Footer path copy + RSS note. */
+.footer-path {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.footer-path:hover .footer-path-value {
+  color: var(--accent);
+}
+
+.footer-rss-note {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  text-decoration: none;
+}
+
+.footer-rss-note:hover {
+  color: var(--accent);
+}
+
+/* Archive month soft dots. */
+.archive-month-dots {
+  margin-inline-start: 0.35rem;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  color: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+}
+
+/* Today-pick fold after returning from the article. */
+.post-card.is-returned-fold {
+  position: relative;
+}
+
+.post-card.is-returned-fold::before {
+  content: "";
+  position: absolute;
+  top: -0.15rem;
+  inset-inline-end: 0.2rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  background: linear-gradient(
+    225deg,
+    color-mix(in oklab, var(--accent) 16%, var(--background)) 50%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Code line rail: visible on hover only. */
+.app-prose pre.has-line-rail {
+  padding-inline-start: 2.6rem;
+}
+
+.app-prose pre .code-line-rail {
+  position: absolute;
+  inset-block: 0.85rem 0.85rem;
+  inset-inline-start: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.58rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  text-align: end;
+  width: 1.6rem;
+}
+
+.app-prose pre.has-line-rail:hover .code-line-rail {
+  opacity: 0.55;
+}
+
+/* Quote ink dries as you scroll away. */
+.app-prose blockquote {
+  border-inline-start-color: color-mix(
+    in oklab,
+    var(--accent) calc(var(--quote-ink, 1) * 80%),
+    transparent
+  );
+  transition: border-inline-start-color 0.35s ease;
+}
+
+/* Image alt as a quiet note on hover. */
+.img-alt-wrap {
+  position: relative;
+  display: block;
+}
+
+.img-alt-note {
+  position: absolute;
+  inset-inline-end: 0.4rem;
+  inset-block-end: 0.4rem;
+  max-width: min(16rem, 70%);
+  padding: 0.2rem 0.45rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 0.25rem;
+  background: color-mix(in oklab, var(--background) 88%, transparent);
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.img-alt-wrap:hover .img-alt-note {
+  opacity: 0.9;
+}
+
+.home-term-idle-hint {
+  opacity: 0.45;
+  font-size: 0.85em;
 }
 

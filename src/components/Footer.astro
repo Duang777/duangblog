@@ -1,5 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import Socials from "./Socials.astro";
 import { useTranslations } from "@/i18n";
 import { stripBase, stripLocale } from "@/utils/withBase";
@@ -20,6 +21,7 @@ const rawPath = stripLocale(stripBase(Astro.url.pathname), locale)
   .replace(/\/+$/, "");
 const shortPath = rawPath === "" ? "~" : `~${rawPath}`;
 const generatedAt = new Date().toISOString().slice(0, 16).replace("T", " ");
+const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
 ---
 
 <!-- generated-at: {generatedAt} UTC -->
@@ -31,12 +33,20 @@ const generatedAt = new Date().toISOString().slice(0, 16).replace("T", " ");
   <div
     class="border-border flex flex-col items-center justify-between border-t py-6 sm:flex-row-reverse sm:py-4"
   >
-    <Socials />
+    <div class="flex flex-col items-center gap-1 sm:items-end">
+      <Socials />
+      <a href={rssHref} class="footer-rss-note font-mono">可订阅 · 不吵</a>
+    </div>
     <div class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:gap-0">
-      <span class="font-mono text-muted-foreground text-xs tracking-wide">
+      <button
+        type="button"
+        class="footer-path font-mono text-muted-foreground text-xs tracking-wide"
+        data-path={shortPath}
+        title="点击复制路径"
+      >
         {config.site.author} · 笔记 <span class="opacity-60">·</span>
-        <span class="text-accent/80">{shortPath}</span>
-      </span>
+        <span class="text-accent/80 footer-path-value">{shortPath}</span>
+      </button>
       <span class="hidden sm:inline">&nbsp;|&nbsp;</span>
       <span class="whitespace-nowrap">
         {t.footer.copyright} &#169; {currentYear}
@@ -44,3 +54,29 @@ const generatedAt = new Date().toISOString().slice(0, 16).replace("T", " ");
     </div>
   </div>
 </footer>
+
+<script>
+  function bindFooterPathCopy() {
+    const btn = document.querySelector<HTMLButtonElement>(".footer-path");
+    if (!btn || btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+    const value = btn.querySelector(".footer-path-value");
+    btn.addEventListener("click", async () => {
+      const path = btn.dataset.path ?? "~";
+      try {
+        await navigator.clipboard.writeText(path);
+        if (value) {
+          const prev = value.textContent;
+          value.textContent = "已复制";
+          window.setTimeout(() => {
+            value.textContent = prev;
+          }, 800);
+        }
+      } catch {
+        // ignore
+      }
+    });
+  }
+  document.addEventListener("astro:page-load", bindFooterPathCopy);
+  bindFooterPathCopy();
+</script>

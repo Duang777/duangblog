@@ -62,6 +62,12 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
                     <sup class="text-muted-foreground text-xs">
                       {monthGroup.length}
                     </sup>
+                    <span
+                      class="archive-month-dots font-mono"
+                      aria-hidden="true"
+                    >
+                      {"·".repeat(Math.min(5, Math.max(1, monthGroup.length)))}
+                    </span>
                   </div>
                   <ul>
                     {monthGroup

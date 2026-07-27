@@ -7,6 +7,11 @@ export type TermPost = {
   draft?: boolean;
   /** YYYY-MM-DD for cal dots */
   pubDate?: string;
+  /** Estimated reading minutes */
+  minutes?: number;
+  /** Approx body length for wc */
+  chars?: number;
+  revisions?: { date: string; note: string }[];
 };
 
 export type TermCtx = {
@@ -28,7 +33,7 @@ const HIST_KEY = "term-cmd-history";
 const LAST_POST_KEY = "term-last-post";
 
 const HELP =
-  "help · whoami · ls · cal · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
+  "help · whoami · ls · cal · tree · wc <slug> · diff <slug> · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
 
 const KNOWN_CMDS = [
   "help",
@@ -37,6 +42,9 @@ const KNOWN_CMDS = [
   "ls posts",
   "ls posts/",
   "cal",
+  "tree",
+  "wc",
+  "diff",
   "grep",
   "cat",
   "open",
@@ -500,6 +508,78 @@ async function runCommand(
     }
     return;
   }
+  if (lower === "tree") {
+    const buckets = new Map<string, TermPost[]>();
+    for (const post of ctx.posts) {
+      const tag = post.tags[0] ?? "其他";
+      const list = buckets.get(tag) ?? [];
+      list.push(post);
+      buckets.set(tag, list);
+    }
+    appendLine(body, ".");
+    const tags = Array.from(buckets.keys()).sort((a, b) => a.localeCompare(b));
+    tags.forEach((tag, ti) => {
+      const list = buckets.get(tag)!;
+      const lastTag = ti === tags.length - 1;
+      appendLine(body, `${lastTag ? "└──" : "├──"} ${tag}/`);
+      list.slice(0, 4).forEach((post, pi) => {
+        const lastPost = pi === Math.min(3, list.length - 1);
+        const branch = lastTag ? "    " : "│   ";
+        appendLine(
+          body,
+          `${branch}${lastPost && list.length <= 4 ? "└──" : "├──"} ${post.slug}.md`
+        );
+      });
+      if (list.length > 4) {
+        const branch = lastTag ? "    " : "│   ";
+        appendLine(body, `${branch}└── … +${list.length - 4}`);
+      }
+    });
+    return;
+  }
+  if (lower.startsWith("wc ") || lower === "wc") {
+    const target = input.slice(2).trim().replace(/\.md$/i, "");
+    if (!target || lower === "wc") {
+      appendLine(body, "usage: wc <slug>", "err");
+      return;
+    }
+    const hit = findPost(ctx.posts, target);
+    if (!hit) {
+      appendLine(body, `wc: ${target}: No such file`, "err");
+      beep("err");
+      return;
+    }
+    const chars = hit.chars ?? hit.description.length;
+    const minutes = hit.minutes ?? 1;
+    appendLine(
+      body,
+      `${String(chars).padStart(6)}  chars  ~${minutes} min  ${hit.slug}.md`
+    );
+    return;
+  }
+  if (lower.startsWith("diff ") || lower === "diff") {
+    const target = input.slice(4).trim().replace(/\.md$/i, "");
+    if (!target || lower === "diff") {
+      appendLine(body, "usage: diff <slug>", "err");
+      return;
+    }
+    const hit = findPost(ctx.posts, target);
+    if (!hit) {
+      appendLine(body, `diff: ${target}: No such file`, "err");
+      beep("err");
+      return;
+    }
+    const revs = hit.revisions ?? [];
+    if (revs.length === 0) {
+      appendLine(body, `(no revisions for ${hit.slug})`);
+      return;
+    }
+    appendLine(body, `--- ${hit.slug}.md`);
+    for (const rev of revs) {
+      appendLine(body, `+ ${rev.date}  ${rev.note}`);
+    }
+    return;
+  }
   if (lower.startsWith("grep ")) {
     const q = input.slice(5).trim().toLowerCase();
     if (!q) {
@@ -772,6 +852,16 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
   body.appendChild(row);
   body.scrollTop = body.scrollHeight;
 
+  // Quiet idle tip if the shell sits unused for a bit.
+  let idleHint: HTMLElement | null = null;
+  const idleTimer = window.setTimeout(() => {
+    if (!body.contains(row) || input.value.trim()) return;
+    idleHint = document.createElement("div");
+    idleHint.className = "home-term-line home-term-idle-hint";
+    idleHint.textContent = "try cal · tree · wc <slug>";
+    row.before(idleHint);
+  }, 14000);
+
   const syncWidth = () => {
     if (CSS.supports?.("field-sizing", "content")) return;
     input.style.width = `${Math.max(1, input.value.length + 1)}ch`;
@@ -779,6 +869,9 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
   syncWidth();
   input.addEventListener("input", () => {
     syncWidth();
+    window.clearTimeout(idleTimer);
+    idleHint?.remove();
+    idleHint = null;
     beep("key");
     if (Math.random() < 0.08) flickerTerm();
     if (Math.random() < 0.04) paperWrinkle();
@@ -796,6 +889,7 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     "ls",
     "ls posts",
     "cal",
+    "tree",
     "grep ",
     "cat about.txt",
     "fortune",
@@ -812,6 +906,8 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     "open about",
     ...ctx.posts.map(p => `open ${p.slug}`),
     ...ctx.posts.map(p => `cat ${p.slug}`),
+    ...ctx.posts.map(p => `wc ${p.slug}`),
+    ...ctx.posts.map(p => `diff ${p.slug}`),
     "theme light",
     "theme dark",
     "sound on",
@@ -826,6 +922,8 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
       if (busy) return;
       const value = input.value;
       histIdx = -1;
+      window.clearTimeout(idleTimer);
+      idleHint?.remove();
       row.remove();
       busy = true;
       try {

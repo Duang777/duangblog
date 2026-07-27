@@ -135,11 +135,30 @@ function initChapterTrail(article: HTMLElement) {
   page.className = "post-chapter-page font-mono";
   page.setAttribute("aria-hidden", "true");
 
-  document.body.append(trail, page);
+  const host =
+    article.closest<HTMLElement>(".post-body-wrap") ?? document.body;
+  host.append(trail, page);
 
   let current = "";
   let currentPage = "";
+
+  const placeChrome = () => {
+    const rect = article.getBoundingClientRect();
+    const left = Math.max(8, rect.left - 10);
+    trail.style.position = "fixed";
+    trail.style.top = "30vh";
+    trail.style.left = `${left}px`;
+    trail.style.right = "auto";
+    trail.style.insetInlineStart = "auto";
+    page.style.position = "fixed";
+    page.style.top = "calc(30vh + 2.6rem)";
+    page.style.left = `${left}px`;
+    page.style.right = "auto";
+    page.style.insetInlineStart = "auto";
+  };
+
   const onScroll = () => {
+    placeChrome();
     const line = window.innerHeight * 0.3;
     let active: HTMLElement | null = null;
     for (const heading of headings) {
@@ -174,10 +193,12 @@ function initChapterTrail(article: HTMLElement) {
 
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", placeChrome, { passive: true });
   document.addEventListener(
     "astro:before-swap",
     () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", placeChrome);
       trail.remove();
       page.remove();
     },
@@ -372,6 +393,78 @@ function initExternalLinkHints(article: HTMLElement) {
   }
 }
 
+function initCodeLineNumbers(article: HTMLElement) {
+  const blocks = Array.from(
+    article.querySelectorAll<HTMLElement>("pre:not(.mermaid)")
+  );
+  for (const pre of blocks) {
+    if (pre.dataset.linesBound === "1") continue;
+    const code = pre.querySelector("code");
+    if (!code) continue;
+    const text = code.textContent ?? "";
+    const lineCount = Math.max(1, text.replace(/\n$/, "").split("\n").length);
+    if (lineCount < 6) continue;
+    pre.dataset.linesBound = "1";
+    pre.classList.add("has-line-rail");
+    const rail = document.createElement("span");
+    rail.className = "code-line-rail font-mono";
+    rail.setAttribute("aria-hidden", "true");
+    for (let i = 1; i <= lineCount; i++) {
+      const n = document.createElement("span");
+      n.textContent = String(i);
+      rail.appendChild(n);
+    }
+    pre.appendChild(rail);
+  }
+}
+
+function initQuoteInkFade(article: HTMLElement) {
+  if (article.dataset.quoteInkBound === "1") return;
+  const quotes = Array.from(article.querySelectorAll("blockquote"));
+  if (quotes.length === 0) return;
+  article.dataset.quoteInkBound = "1";
+
+  const onScroll = () => {
+    const mid = window.innerHeight * 0.45;
+    for (const quote of quotes) {
+      const rect = quote.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      const dist = Math.abs(center - mid) / window.innerHeight;
+      const dry = Math.min(1, Math.max(0, dist * 1.6));
+      (quote as HTMLElement).style.setProperty("--quote-ink", String(1 - dry * 0.55));
+    }
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => window.removeEventListener("scroll", onScroll),
+    { once: true }
+  );
+}
+
+function initImageAltNotes(article: HTMLElement) {
+  if (article.dataset.altNoteBound === "1") return;
+  article.dataset.altNoteBound = "1";
+
+  const images = Array.from(article.querySelectorAll("img")).filter(
+    img => (img.getAttribute("alt") ?? "").trim().length > 0 && !img.closest("a")
+  );
+  for (const image of images) {
+    const alt = image.getAttribute("alt")!.trim();
+    const wrap = document.createElement("span");
+    wrap.className = "img-alt-wrap";
+    image.parentNode?.insertBefore(wrap, image);
+    wrap.appendChild(image);
+    const note = document.createElement("span");
+    note.className = "img-alt-note font-mono";
+    note.textContent = alt;
+    note.setAttribute("aria-hidden", "true");
+    wrap.appendChild(note);
+  }
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
   if (!article) return;
@@ -384,6 +477,9 @@ export function initPostEnhancements() {
   initMidCrease(article);
   initExcerptPick(article);
   initExternalLinkHints(article);
+  initCodeLineNumbers(article);
+  initQuoteInkFade(article);
+  initImageAltNotes(article);
 }
 
 export function bindPostEnhancements() {
