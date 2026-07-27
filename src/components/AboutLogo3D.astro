@@ -1,0 +1,83 @@
+---
+/** Site brand mark beside Duang. Three.js loads when visible. */
+---
+
+<div
+  class="brand-logo-badge"
+  data-brand-logo-3d
+  role="img"
+  aria-label="品牌标识，拖拽旋转，双击复原"
+  title="拖拽旋转 · 双击复原"
+>
+</div>
+
+<style>
+  .brand-logo-badge {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    touch-action: none;
+    opacity: 0.92;
+    transform: translateY(0.06em);
+  }
+
+  .brand-logo-badge :global(canvas) {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  @media (min-width: 640px) {
+    .brand-logo-badge {
+      width: 3.25rem;
+      height: 3.25rem;
+      transform: translateY(0.04em);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-logo-badge {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  let dispose: (() => void) | null = null;
+  let observer: IntersectionObserver | null = null;
+
+  function teardown() {
+    observer?.disconnect();
+    observer = null;
+    dispose?.();
+    dispose = null;
+  }
+
+  async function boot() {
+    teardown();
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const stage = document.querySelector<HTMLElement>("[data-brand-logo-3d]");
+    if (!stage) return;
+
+    observer = new IntersectionObserver(
+      async (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting || dispose) return;
+        observer?.disconnect();
+        observer = null;
+
+        const { mountAboutLogo } = await import(
+          "@/components/about-logo-3d/load-about-logo.ts"
+        );
+        dispose = mountAboutLogo(stage, { compact: true });
+      },
+      { rootMargin: "0px", threshold: 0 }
+    );
+    observer.observe(stage);
+  }
+
+  document.addEventListener("astro:page-load", boot);
+  document.addEventListener("astro:before-swap", teardown);
+</script>

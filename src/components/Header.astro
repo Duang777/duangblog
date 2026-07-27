@@ -8,6 +8,7 @@ import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconX from "@/assets/icons/IconX.svg";
 import LinkButton from "./LinkButton.astro";
+import AboutLogo3D from "./AboutLogo3D.astro";
 import { stripBase, stripLocale } from "@/utils/withBase";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
@@ -32,6 +33,7 @@ const isActive = (path: string) => {
   const pathArray = path.split("/").filter(p => p.trim());
   return currentPath === path || currentPathArray[0] === pathArray[0];
 };
+
 ---
 
 <a
@@ -48,12 +50,17 @@ const isActive = (path: string) => {
   <div
     class="border-border bg-background relative flex w-full items-baseline justify-between border-b py-4 sm:items-center sm:py-6"
   >
-    <a
-      href={getRelativeLocaleUrl(locale, "")}
-      class="absolute py-1 font-serif text-xl leading-8 font-semibold whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none"
+    <div
+      class="brand-lockup absolute flex items-center gap-2 py-1 sm:static sm:my-auto sm:gap-2.5"
     >
-      {site.title}
-    </a>
+      <a
+        href={getRelativeLocaleUrl(locale, "")}
+        class="font-serif text-xl leading-none font-semibold whitespace-nowrap sm:text-2xl"
+      >
+        {site.title}
+      </a>
+      <AboutLogo3D />
+    </div>
     <nav
       id="nav-menu"
       class="flex w-full flex-col items-center sm:ms-2 sm:flex-row sm:justify-end sm:space-x-4 sm:py-0"
