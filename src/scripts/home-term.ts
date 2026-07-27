@@ -3,10 +3,14 @@ import {
   markPostRead as markPostReadShared,
   getReadSlugs as getReadSlugsShared,
   getLastRead,
+  getScrollBookmark,
+  getJarSnapshot,
+  getLatestScrollBookmark,
   touchLastRead,
   touchVisitDay,
   weekVisitDays,
 } from "@/scripts/read-state";
+import { playJarOpenSound } from "@/scripts/idea-jar";
 
 export type TermPost = {
   slug: string;
@@ -42,7 +46,7 @@ const HIST_KEY = "term-cmd-history";
 const LAST_POST_KEY = "term-last-post";
 
 const HELP =
-  "help · whoami · ls · cal · tree · wc <slug> · diff <slug> · grep <词> · last · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
+  "help · whoami · ls · cal · tree · wc <slug> · diff <slug> · grep <词> · tags <词> · last · bookmark · jar · env · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
 
 const KNOWN_CMDS = [
   "help",
@@ -55,6 +59,10 @@ const KNOWN_CMDS = [
   "wc",
   "diff",
   "grep",
+  "tags",
+  "env",
+  "jar",
+  "bookmark",
   "last",
   "cat",
   "open",
@@ -100,6 +108,19 @@ function escapeHtml(s: string) {
 
 function reducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function uniqueTags(posts: TermPost[]): string[] {
+  const set = new Set<string>();
+  for (const post of posts) {
+    for (const tag of post.tags) set.add(tag);
+  }
+  return [...set].sort((a, b) => a.localeCompare(b, "zh-CN"));
+}
+
+function tagCompletions(posts: TermPost[]): string[] {
+  const tags = uniqueTags(posts);
+  return ["tags", ...tags.map(tag => `tags ${tag}`)];
 }
 
 function greetingLine(author: string) {
@@ -204,10 +225,17 @@ function takeReturnNote(posts: TermPost[]): string | null {
 /** Dim homepage cards that were already opened. */
 export function applyReadEcho(root: ParentNode = document) {
   const reads = getReads();
+  const hasHistory = reads.size > 0;
   root.querySelectorAll<HTMLElement>(".post-card[data-term-slug]").forEach(card => {
     const slug = card.dataset.termSlug;
-    if (slug && reads.has(slug)) card.classList.add("is-read");
-    else card.classList.remove("is-read");
+    if (slug && reads.has(slug)) {
+      card.classList.add("is-read");
+      card.classList.remove("is-unread");
+    } else {
+      card.classList.remove("is-read");
+      if (slug && hasHistory) card.classList.add("is-unread");
+      else card.classList.remove("is-unread");
+    }
   });
 }
 
@@ -615,6 +643,103 @@ async function runCommand(
     appendLine(body, `open <slug> 打开，例如 open ${hits[0]!.slug}`);
     return;
   }
+  if (lower === "tags") {
+    const tags = uniqueTags(ctx.posts);
+    if (tags.length === 0) {
+      appendLine(body, "(empty)");
+      return;
+    }
+    for (const tag of tags) {
+      const count = ctx.posts.filter(p => p.tags.includes(tag)).length;
+      appendLine(body, `  ${tag.padEnd(18)} ${count} 篇`);
+    }
+    appendLine(body, "tags <词> 按标签筛");
+    return;
+  }
+  if (lower.startsWith("tags ")) {
+    const q = input.slice(5).trim().toLowerCase();
+    if (!q) {
+      appendLine(body, "usage: tags <词>", "err");
+      beep("err");
+      return;
+    }
+    const hits = ctx.posts.filter(p =>
+      p.tags.some(t => t.toLowerCase().includes(q))
+    );
+    if (hits.length === 0) {
+      appendLine(body, `no posts tagged "${q}"`);
+      return;
+    }
+    const reads = getReads();
+    for (const post of hits) {
+      const mark = reads.has(post.slug) ? "✓" : " ";
+      const tagLine = post.tags.filter(t => t.toLowerCase().includes(q)).join(", ");
+      appendLine(body, `${mark} ${post.slug.padEnd(22)} ${tagLine}`);
+    }
+    appendLine(body, `open <slug> 打开，例如 open ${hits[0]!.slug}`);
+    return;
+  }
+  if (lower === "env") {
+    const theme =
+      document.documentElement.getAttribute("data-theme") ??
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light");
+    const sound = soundEnabled() ? "on" : "off";
+    const motion = reducedMotion() ? "reduce" : "normal";
+    appendLine(body, `theme=${theme}  sound=${sound}  motion=${motion}`);
+    return;
+  }
+  if (lower === "jar") {
+    const snap = getJarSnapshot(ctx.posts.length);
+    appendLine(
+      body,
+      `念头瓶 · 液位 ${Math.round(snap.level * 100)}% · 读过 ${snap.readCount}/${ctx.posts.length}`
+    );
+    appendLine(
+      body,
+      `暂停 ${snap.bookmarkCount} · 这周 ${snap.weekVisits} 天${snap.dusty ? " · 落灰" : ""}`
+    );
+    const scrollBm = getLatestScrollBookmark();
+    if (scrollBm) {
+      const hit = findPost(ctx.posts, scrollBm.slug);
+      appendLine(
+        body,
+        `纸条 · ${hit?.slug ?? scrollBm.slug} · 约 ${Math.round(scrollBm.progress * 100)}%`
+      );
+    }
+    const last = getLastRead();
+    if (last) {
+      const hit = findPost(ctx.posts, last.slug);
+      appendLine(
+        body,
+        `上次 · ${hit?.slug ?? last.slug} · 约 ${Math.round(last.progress * 100)}%`
+      );
+    }
+    return;
+  }
+  if (lower === "bookmark" || lower.startsWith("bookmark ")) {
+    const target = input.slice(8).trim().replace(/\.md$/i, "");
+    const slug = target || getLastRead()?.slug;
+    if (!slug) {
+      appendLine(body, "(no bookmark)");
+      return;
+    }
+    const bm = getScrollBookmark(slug);
+    const hit = findPost(ctx.posts, slug);
+    const reads = getReads();
+    if (!bm) {
+      appendLine(body, `${hit?.title ?? slug}`);
+      appendLine(body, reads.has(slug) ? "读过，无暂停书签" : "未读过");
+      if (hit) appendLine(body, `open ${hit.slug}`);
+      return;
+    }
+    const pct = Math.round(bm.progress * 100);
+    appendLine(body, hit?.title ?? slug);
+    appendLine(body, `停在约 ${pct}% · y=${bm.y}`);
+    if (hit) appendLine(body, `open ${hit.slug}`);
+    return;
+  }
   if (lower === "last") {
     const bookmark = getLastRead();
     if (!bookmark) {
@@ -682,7 +807,7 @@ async function runCommand(
     appendLine(body, `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`);
     appendLine(body, "");
     appendLine(body, "SYNOPSIS");
-    appendLine(body, "       open <slug> | grep <词> | last | cat <slug> | today");
+    appendLine(body, "       open <slug> | grep <词> | tags <词> | jar | last | bookmark | env | cat <slug> | today");
     appendLine(body, "");
     appendLine(body, "DESCRIPTION");
     appendLine(body, "       拆 Agent、记服务端机制，偶尔写路上的想法。");
@@ -920,6 +1045,11 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     "cal",
     "tree",
     "grep ",
+    "tags",
+    ...tagCompletions(ctx.posts),
+    "env",
+    "jar",
+    "bookmark",
     "last",
     "cat about.txt",
     "fortune",
@@ -1012,11 +1142,16 @@ function bindDropTarget(body: HTMLElement, ctx: TermCtx, still?: () => boolean) 
       e.dataTransfer?.getData("text/term-slug") ||
       e.dataTransfer?.getData("text/plain")?.trim();
     if (!slug) return;
+    const fromJar = e.dataTransfer?.getData("text/jar-drop") === "1";
     const hit = findPost(ctx.posts, slug.replace(/^open\s+/i, ""));
     if (!hit) {
       appendLine(body, `drop ignored: ${slug}`, "err");
       beep("err");
       return;
+    }
+    if (fromJar) {
+      playJarOpenSound();
+      appendLine(body, `从念头瓶倒出 · open ${hit.slug}`);
     }
     busy = true;
     try {

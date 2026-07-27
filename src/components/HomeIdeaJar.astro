@@ -1,0 +1,169 @@
+---
+/**
+ * Homepage「念头瓶」— a small glass jar whose liquid level reflects
+ * how much of the public notebook the reader has opened locally.
+ */
+type Props = {
+  totalPosts: number;
+  todayPickSlug?: string | null;
+  todayPickHref?: string | null;
+  fallbackSlug?: string | null;
+};
+
+const { totalPosts, todayPickSlug, todayPickHref, fallbackSlug } = Astro.props;
+const canInteract = Boolean(todayPickSlug || fallbackSlug);
+---
+
+<div
+  class="home-idea-jar"
+  data-total-posts={totalPosts}
+  data-today-slug={todayPickSlug ?? undefined}
+  data-today-href={todayPickHref ?? undefined}
+  data-fallback-slug={fallbackSlug ?? undefined}
+  data-pagefind-ignore
+>
+  <button
+    type="button"
+    class="home-idea-jar-btn"
+    aria-label="念头瓶"
+    aria-describedby="home-idea-bottle-tip"
+    title={canInteract ? "单击今日一篇 · 双击上次 · 可拖进终端" : undefined}
+  >
+    <span class="home-idea-jar-figure">
+      <span class="jar-dust" aria-hidden="true"></span>
+      <svg
+        class="home-idea-jar-svg"
+        viewBox="0 0 72 108"
+        width="72"
+        height="108"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="jar-lid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="jar-stop-lid-top" />
+            <stop offset="55%" class="jar-stop-lid-mid" />
+            <stop offset="100%" class="jar-stop-lid-bottom" />
+          </linearGradient>
+          <linearGradient id="jar-glass" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" class="jar-stop-glass-edge" />
+            <stop offset="22%" class="jar-stop-glass-mid" />
+            <stop offset="50%" class="jar-stop-glass-clear" />
+            <stop offset="78%" class="jar-stop-glass-mid" />
+            <stop offset="100%" class="jar-stop-glass-edge" />
+          </linearGradient>
+          <linearGradient id="jar-liquid" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" class="jar-stop-liquid-deep" />
+            <stop offset="45%" class="jar-stop-liquid-mid" />
+            <stop offset="100%" class="jar-stop-liquid-surface" />
+          </linearGradient>
+          <radialGradient id="jar-glow" cx="38%" cy="28%" r="55%">
+            <stop offset="0%" class="jar-stop-highlight" />
+            <stop offset="100%" class="jar-stop-highlight-fade" />
+          </radialGradient>
+          <clipPath id="jar-inner-clip">
+            <path
+              d="M 20 38 C 18 38 17 39.5 17 41.5 V 78 C 17 86.5 23.5 91 36 91 C 48.5 91 55 86.5 55 78 V 41.5 C 55 39.5 54 38 52 38 Z"
+            />
+          </clipPath>
+          <filter id="jar-drop-shadow" x="-30%" y="-20%" width="160%" height="160%">
+            <feDropShadow
+              dx="0"
+              dy="3"
+              stdDeviation="3"
+              flood-color="#141413"
+              flood-opacity="0.14"
+            />
+          </filter>
+        </defs>
+
+        <ellipse
+          class="jar-ground"
+          cx="36"
+          cy="100"
+          rx="22"
+          ry="4"
+          opacity="0.35"
+        />
+
+        <g filter="url(#jar-drop-shadow)">
+          <rect x="22" y="10" width="28" height="7" rx="1.5" fill="url(#jar-lid)" />
+          <rect x="20" y="16" width="32" height="5" rx="1" fill="url(#jar-lid)" />
+          <ellipse cx="36" cy="21" rx="16" ry="2.2" class="jar-lid-rim" />
+          <g class="jar-lid-notches" aria-hidden="true"></g>
+
+          <path
+            class="jar-glass-body"
+            d="M 20 38 C 18 38 17 39.5 17 41.5 V 78 C 17 86.5 23.5 91 36 91 C 48.5 91 55 86.5 55 78 V 41.5 C 55 39.5 54 38 52 38 C 50 33 46 30 36 30 C 26 30 22 33 20 38 Z"
+            fill="url(#jar-glass)"
+          />
+
+          <g clip-path="url(#jar-inner-clip)">
+            <g class="jar-liquid-fill" transform="translate(36 88) scale(1 0.08)">
+              <rect x="-19" y="-52" width="38" height="52" fill="url(#jar-liquid)" />
+              <ellipse
+                class="jar-liquid-meniscus"
+                cx="0"
+                cy="-52"
+                rx="17"
+                ry="3.2"
+              />
+            </g>
+            <g class="jar-bubbles" aria-hidden="true">
+              <circle class="jar-bubble jar-bubble-1" cx="30" cy="78" r="1.6" />
+              <circle class="jar-bubble jar-bubble-2" cx="34" cy="80" r="1.2" />
+              <circle class="jar-bubble jar-bubble-3" cx="38" cy="77" r="1.4" />
+            </g>
+          </g>
+
+          <path
+            class="jar-shine-left"
+            d="M 22 42 C 21 44 20.5 52 20.5 62 C 20.5 72 21 80 22 84"
+            fill="none"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          />
+          <ellipse
+            class="jar-shine-spot"
+            cx="27"
+            cy="48"
+            rx="3.5"
+            ry="7"
+            fill="url(#jar-glow)"
+            opacity="0.85"
+          />
+          <path
+            class="jar-shine-right"
+            d="M 50 46 C 51.5 54 51.5 68 50 76"
+            fill="none"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            opacity="0.45"
+          />
+
+          <rect class="jar-label" x="24" y="56" width="24" height="14" rx="1" />
+          <text
+            class="jar-label-text"
+            x="36"
+            y="66"
+            text-anchor="middle"
+            font-size="5.5"
+            font-family="ui-monospace, monospace"
+            letter-spacing="0.08em"
+          >
+            念头
+          </text>
+        </g>
+      </svg>
+    </span>
+    <span class="home-idea-jar-caption font-mono">念头瓶</span>
+  </button>
+
+  <p id="home-idea-bottle-tip" class="home-idea-jar-tip font-mono" role="status">
+  </p>
+</div>
+
+<script>
+  import { initIdeaJars } from "@/scripts/bind-idea-jar";
+  document.addEventListener("astro:page-load", initIdeaJars);
+</script>

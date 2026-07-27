@@ -11,6 +11,7 @@ import {
   clearScrollBookmark,
   getReadSlugs,
   touchVisitDay,
+  markJarPourPending,
 } from "@/scripts/read-state";
 
 const SITE_NAME = "duangblog";
@@ -235,6 +236,211 @@ function initChapterTrail(article: HTMLElement) {
   );
 }
 
+function mermaidStampLabel(source: string): string {
+  const head = source.trim().split("\n")[0]?.trim().toLowerCase() ?? "";
+  if (head.startsWith("sequencediagram")) return "图 · 时序";
+  if (head.startsWith("statediagram")) return "图 · 状态";
+  if (head.startsWith("classdiagram")) return "图 · 类图";
+  if (head.startsWith("erdiagram")) return "图 · ER";
+  if (head.startsWith("gantt")) return "图 · 甘特";
+  if (head.startsWith("pie")) return "图 · 占比";
+  if (head.startsWith("journey")) return "图 · 旅程";
+  if (head.startsWith("gitgraph")) return "图 · 分支";
+  if (head.startsWith("mindmap")) return "图 · 脑图";
+  if (head.startsWith("timeline")) return "图 · 时间线";
+  if (/^(flowchart|graph)\b/.test(head)) return "图 · 拓扑";
+  if (head.startsWith("c4")) return "图 · C4";
+  return "图 · 示意";
+}
+
+function stampMermaidWrap(wrap: HTMLElement, pre: HTMLElement) {
+  wrap.style.setProperty(
+    "--mermaid-stamp",
+    `"${mermaidStampLabel(pre.textContent ?? "")}"`
+  );
+}
+
+function initChapterOutline(article: HTMLElement) {
+  if (article.dataset.outlineBound === "1") return;
+  if (window.matchMedia("(max-width: 1100px)").matches) return;
+  const mount = article.closest<HTMLElement>(".post-body-wrap");
+  if (!mount) return;
+  const h2s = Array.from(
+    article.querySelectorAll<HTMLElement>("h2")
+  ).filter(h => headingLabel(h));
+  if (h2s.length < 2) return;
+  article.dataset.outlineBound = "1";
+
+  const nav = document.createElement("nav");
+  nav.className = "post-chapter-outline font-mono";
+  nav.setAttribute("aria-label", "章节");
+
+  const list = document.createElement("ol");
+  for (const h2 of h2s) {
+    if (!h2.id) {
+      const label = headingLabel(h2)
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\u4e00-\u9fff-]/g, "");
+      if (label) h2.id = label;
+    }
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = h2.id ? `#${h2.id}` : "#";
+    a.textContent = headingLabel(h2);
+    li.appendChild(a);
+    list.appendChild(li);
+  }
+  nav.appendChild(list);
+  mount.appendChild(nav);
+
+  const firstH2 = h2s[0]!;
+  const onScroll = () => {
+    const past = firstH2.getBoundingClientRect().top < window.innerHeight * 0.22;
+    nav.classList.toggle("is-shown", past);
+
+    const line = window.innerHeight * 0.3;
+    let activeIdx = -1;
+    h2s.forEach((h, i) => {
+      if (h.getBoundingClientRect().top <= line) activeIdx = i;
+    });
+    list.querySelectorAll("li").forEach((li, i) => {
+      li.classList.toggle("is-active", i === activeIdx);
+    });
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => window.removeEventListener("scroll", onScroll),
+    { once: true }
+  );
+}
+
+function initMermaidStamps(article: HTMLElement) {
+  for (const pre of article.querySelectorAll<HTMLElement>("pre.mermaid")) {
+    pre.querySelector(".mermaid-stamp")?.remove();
+
+    const parent = pre.parentElement;
+    if (parent?.classList.contains("mermaid-wrap")) {
+      stampMermaidWrap(parent, pre);
+      continue;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "mermaid-wrap";
+    pre.parentNode?.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    stampMermaidWrap(wrap, pre);
+  }
+}
+
+function initHashFlash(article: HTMLElement) {
+  const flash = (el: HTMLElement) => {
+    el.classList.add("is-hash-flash");
+    window.setTimeout(() => el.classList.remove("is-hash-flash"), 1400);
+  };
+
+  const targetFromHash = () => {
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el && article.contains(el)) {
+      requestAnimationFrame(() => flash(el));
+    }
+  };
+
+  targetFromHash();
+  const onHash = () => targetFromHash();
+  window.addEventListener("hashchange", onHash);
+  document.addEventListener(
+    "astro:before-swap",
+    () => window.removeEventListener("hashchange", onHash),
+    { once: true }
+  );
+}
+
+function initPrintFootnotes(article: HTMLElement) {
+  const refs = Array.from(
+    article.querySelectorAll<HTMLAnchorElement>("a[data-footnote-ref]")
+  );
+  if (refs.length === 0) return;
+
+  const expand = () => {
+    for (const ref of refs) {
+      if (ref.dataset.printExpanded === "1") continue;
+      const id = ref.getAttribute("href")?.slice(1);
+      const note = id ? document.getElementById(id) : null;
+      if (!note) continue;
+      const clone = note.cloneNode(true) as HTMLElement;
+      clone
+        .querySelectorAll("[data-footnote-backref]")
+        .forEach(el => el.remove());
+      const text = clone.textContent?.trim();
+      if (!text) continue;
+      const span = document.createElement("span");
+      span.className = "print-footnote-inline";
+      span.textContent = `（${text}）`;
+      ref.after(span);
+      ref.dataset.printExpanded = "1";
+    }
+  };
+
+  const collapse = () => {
+    article.querySelectorAll(".print-footnote-inline").forEach(el => el.remove());
+    refs.forEach(ref => {
+      delete ref.dataset.printExpanded;
+    });
+  };
+
+  window.addEventListener("beforeprint", expand);
+  window.addEventListener("afterprint", collapse);
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      window.removeEventListener("beforeprint", expand);
+      window.removeEventListener("afterprint", collapse);
+      collapse();
+    },
+    { once: true }
+  );
+}
+
+function initJarPourHint(article: HTMLElement) {
+  if (article.dataset.jarPourBound === "1") return;
+  article.dataset.jarPourBound = "1";
+
+  const hint = document.createElement("p");
+  hint.className = "post-jar-pour font-mono";
+  hint.textContent = "已倒进念头瓶";
+  hint.hidden = true;
+  const stamp = document.querySelector(".post-written-stamp");
+  if (stamp) stamp.insertAdjacentElement("beforebegin", hint);
+  else article.appendChild(hint);
+
+  let poured = false;
+  const onScroll = () => {
+    if (poured) return;
+    const rect = article.getBoundingClientRect();
+    const seen = (window.innerHeight - rect.top) / Math.max(1, rect.height);
+    if (seen < 0.88) return;
+    poured = true;
+    markJarPourPending();
+    hint.hidden = false;
+    hint.classList.add("is-shown");
+    window.removeEventListener("scroll", onScroll);
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => window.removeEventListener("scroll", onScroll),
+    { once: true }
+  );
+}
+
 function initMidCrease(article: HTMLElement) {
   if (article.dataset.creaseBound === "1") return;
   if (article.scrollHeight < window.innerHeight * 1.6) return;
@@ -383,7 +589,7 @@ function initResumeBookmark(article: HTMLElement) {
   tip.type = "button";
   tip.className = "post-resume-tip font-mono";
   const pct = Math.round(bookmark.progress * 100);
-  tip.textContent = `接着上次 · 约 ${pct}%`;
+  tip.textContent = `塞回念头瓶 · 约 ${pct}%`;
   tip.setAttribute("aria-label", `跳到上次阅读位置，约 ${pct}%`);
 
   const title = document.querySelector("main h1");
@@ -832,11 +1038,16 @@ export function initPostEnhancements() {
     initColumnProgressDots();
     return;
   }
+  initMermaidStamps(article);
   initCopyWithSource(article);
   initReadCompleteHint(article);
   initCodeStamps(article);
   initQuoteSources(article);
   initChapterTrail(article);
+  initChapterOutline(article);
+  initHashFlash(article);
+  initPrintFootnotes(article);
+  initJarPourHint(article);
   initFootnotePreviews(article);
   initMidCrease(article);
   initScrollInk(article);
@@ -857,6 +1068,14 @@ export function bindPostEnhancements() {
   const w = window as unknown as { __postEnhanceBound?: boolean };
   if (!w.__postEnhanceBound) {
     w.__postEnhanceBound = true;
+    document.addEventListener(
+      "astro:page-load",
+      () => {
+        const article = document.getElementById("article");
+        if (article) initMermaidStamps(article);
+      },
+      { capture: true }
+    );
     document.addEventListener("astro:page-load", initPostEnhancements);
     document.addEventListener("astro:page-load", initColumnProgressDots);
   }

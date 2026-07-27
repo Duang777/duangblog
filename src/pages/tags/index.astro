@@ -32,7 +32,7 @@ const t = useTranslations(locale);
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc}>
+  <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc} backLabel="标签">
     <ul class="flex flex-wrap gap-6">
       {tags.map(({ tag, tagName }) => (
         <Tag {tag} {tagName} count={tagCounts.get(tag) ?? 0} />

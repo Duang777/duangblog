@@ -51,12 +51,8 @@
   --border: #6f6e6a;
 }
 
-html[data-theme="dark"] .app-prose {
-  color: color-mix(in oklab, var(--foreground) 90%, var(--background));
-}
-
-html[data-theme="dark"] .app-prose :where(h1, h2, h3, h4) {
-  color: color-mix(in oklab, var(--foreground) 96%, var(--background));
+html[data-theme="dark"] .app-prose :where(pre, pre code) {
+  opacity: 0.9;
 }
 
 [data-theme="dark"][data-tod="morning"] {

@@ -143,8 +143,10 @@ const searchHref =
     <script>
       import "@/scripts/theme";
       import { bindSearchHotkey } from "@/scripts/search-hotkey";
+      import { bindPostHotkeys } from "@/scripts/post-hotkeys";
       import { bindPostEnhancements } from "@/scripts/post-enhance";
       bindSearchHotkey();
+      bindPostHotkeys();
       bindPostEnhancements();
     </script>
   </body>

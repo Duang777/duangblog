@@ -10,6 +10,7 @@ import HomeDateStamp from "@/components/HomeDateStamp.astro";
 import HomeWritingStatus from "@/components/HomeWritingStatus.astro";
 import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
 import HomePhenology from "@/components/HomePhenology.astro";
+import HomeIdeaJar from "@/components/HomeIdeaJar.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
@@ -78,6 +79,13 @@ const termPosts: TermPost[] = sortedPosts.map(post => {
 });
 
 const newestSlug = termPosts.length > 0 ? termPosts[0]!.slug : null;
+const todayPickIndex = todayPickId
+  ? sortedPosts.findIndex(p => p.id === todayPickId)
+  : -1;
+const todayPickSlug =
+  todayPickIndex >= 0 ? termPosts[todayPickIndex]!.slug : null;
+const todayPickHref =
+  todayPickIndex >= 0 ? termPosts[todayPickIndex]!.href : null;
 
 /** Only ideas safe to show in the public terminal. */
 const termIdeas = [
@@ -99,6 +107,18 @@ const termIdeas = [
     <HomeHero locale={locale} posts={termPosts} ideas={termIdeas} />
 
     <div class="home-seam" aria-hidden="true"></div>
+
+    <div class="app-layout home-aside-notes-wrap">
+      <div class="home-aside-notes">
+        <HomeIdeaJar
+          totalPosts={sortedPosts.length}
+          todayPickSlug={todayPickSlug}
+          todayPickHref={todayPickHref}
+          fallbackSlug={newestSlug}
+        />
+        <HomePhenology />
+      </div>
+    </div>
 
     <div class="app-layout">
       {
@@ -175,23 +195,6 @@ const termIdeas = [
         </LinkButton>
       </div>
 
-      {
-        newestSlug && (
-          <div class="home-corner-wrap" aria-hidden="true">
-            <button
-              type="button"
-              class="home-corner"
-              draggable="true"
-              data-term-slug={newestSlug}
-              title="拖进上方终端可打开"
-            >
-              <span class="home-corner-hint font-mono">拖进终端</span>
-            </button>
-          </div>
-        )
-      }
-
-      <HomePhenology />
     </div>
   </main>
   <Footer />
@@ -206,6 +209,7 @@ const termIdeas = [
     const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
     if (indexLayout?.layout) {
       sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
+      sessionStorage.removeItem("backLabel");
     }
 
     const seam = document.querySelector<HTMLElement>(".home-seam");

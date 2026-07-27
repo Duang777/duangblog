@@ -7,6 +7,8 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Card from "@/components/Card.astro";
+import HomeIdeaJarMini from "@/components/HomeIdeaJarMini.astro";
+import { getPostSlugPath } from "@/utils/getPostPaths";
 import { postFilter } from "@/utils/postFilter";
 import { getPostsByGroupCondition } from "./_utils/getPostsByGroupCondition";
 import { useTranslations } from "@/i18n";
@@ -32,7 +34,10 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc}>
+  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc} backLabel="归档">
+    <div class="list-jar-aside">
+      <HomeIdeaJarMini totalPosts={filteredPosts.length} />
+    </div>
     {
       Object.entries(
         getPostsByGroupCondition(filteredPosts, post =>
@@ -52,8 +57,19 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
             )
               .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
               .map(([month, monthGroup]) => (
-                <div class="archive-month flex flex-col sm:flex-row">
-                  <div class="mt-6 min-w-36 text-lg sm:my-6">
+                <div
+                  class="archive-month flex flex-col sm:flex-row"
+                  data-month-slugs={JSON.stringify(
+                    monthGroup.map(p => {
+                      const path = getPostSlugPath(p.id, p.filePath);
+                      return path.split("/").filter(Boolean).pop() ?? p.id;
+                    })
+                  )}
+                  data-month-label={`${year}年${monthFormatter.format(
+                    new Date(2000, Number(month) - 1, 1)
+                  )}`}
+                >
+                  <div class="archive-month-head mt-6 min-w-36 text-lg sm:my-6">
                     <span class="font-bold">
                       {monthFormatter.format(
                         new Date(2000, Number(month) - 1, 1)
@@ -68,6 +84,7 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
                     >
                       {"·".repeat(Math.min(5, Math.max(1, monthGroup.length)))}
                     </span>
+                    <span class="archive-month-stat font-mono" aria-hidden="true" />
                   </div>
                   <ul>
                     {monthGroup
@@ -95,24 +112,109 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 </Layout>
 
 <script>
+  import { getReads } from "@/scripts/read-state";
+
   document.addEventListener("astro:page-load", () => {
     const years = Array.from(
       document.querySelectorAll<HTMLElement>(".archive-year")
     );
-    if (years.length < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      years.length >= 2 &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      const observer = new IntersectionObserver(
+        entries => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const el = entry.target as HTMLElement;
+            years.forEach(y => y.classList.remove("is-year-focus"));
+            el.classList.add("is-year-focus");
+          }
+        },
+        { rootMargin: "-35% 0px -45% 0px", threshold: 0.01 }
+      );
+      years.forEach(y => observer.observe(y));
+    }
 
-    const observer = new IntersectionObserver(
-      entries => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const el = entry.target as HTMLElement;
-          years.forEach(y => y.classList.remove("is-year-focus"));
-          el.classList.add("is-year-focus");
-        }
+    let tip = document.querySelector<HTMLElement>(".archive-month-tip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.className = "archive-month-tip font-mono";
+      tip.setAttribute("role", "tooltip");
+      document.body.appendChild(tip);
+    }
+
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    let openMonth: HTMLElement | null = null;
+
+    const hideTip = () => {
+      tip?.classList.remove("is-shown");
+      openMonth = null;
+    };
+
+    const monthStatText = (slugs: string[]) => {
+      const reads = getReads();
+      const unread = slugs.filter(s => !reads.has(s)).length;
+      return `${slugs.length} 篇 · 未读 ${unread}`;
+    };
+
+    const showTip = (month: HTMLElement, label: string, slugs: string[]) => {
+      tip!.textContent = `${label} · ${monthStatText(slugs)}`;
+      const head =
+        month.querySelector<HTMLElement>(".archive-month-head") ?? month;
+      const rect = head.getBoundingClientRect();
+      tip!.style.top = `${window.scrollY + rect.top - 8}px`;
+      tip!.style.left = `${rect.left}px`;
+      tip!.classList.add("is-shown");
+      openMonth = month;
+    };
+
+    document.querySelectorAll<HTMLElement>(".archive-month").forEach(month => {
+      const label = month.dataset.monthLabel ?? "";
+      let slugs: string[] = [];
+      try {
+        slugs = JSON.parse(month.dataset.monthSlugs ?? "[]") as string[];
+      } catch {
+        slugs = [];
+      }
+      if (!slugs.length) return;
+
+      const stat = month.querySelector<HTMLElement>(".archive-month-stat");
+      if (stat) stat.textContent = monthStatText(slugs);
+
+      if (coarse) {
+        month.addEventListener("click", e => {
+          if ((e.target as HTMLElement).closest("a, button")) return;
+          if (openMonth === month) {
+            hideTip();
+            return;
+          }
+          showTip(month, label, slugs);
+        });
+        return;
+      }
+
+      const onEnter = () => showTip(month, label, slugs);
+      month.addEventListener("mouseenter", onEnter);
+      month.addEventListener("mouseleave", hideTip);
+      month.addEventListener("focusin", onEnter);
+      month.addEventListener("focusout", hideTip);
+    });
+
+    if (coarse) {
+      document.addEventListener("click", e => {
+        if (!openMonth) return;
+        if ((e.target as HTMLElement).closest(".archive-month")) return;
+        hideTip();
+      });
+    }
+
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        tip?.remove();
       },
-      { rootMargin: "-35% 0px -45% 0px", threshold: 0.01 }
+      { once: true }
     );
-    years.forEach(y => observer.observe(y));
   });
 </script>

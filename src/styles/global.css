@@ -237,75 +237,19 @@ html[data-theme="dark"] body::before {
   vertical-align: 0.05em;
 }
 
+.post-card.is-unread .post-card-title::before {
+  content: "";
+  display: inline-block;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-inline-end: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 55%, transparent);
+  vertical-align: 0.2em;
+}
+
 body {
   transition: background-color 0.55s ease;
-}
-
-/* Draggable paper corner: hints that posts can be dropped into the terminal. */
-.home-corner-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.home-corner {
-  position: relative;
-  width: 3.25rem;
-  height: 3.25rem;
-  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
-  border-radius: 0.35rem 0.35rem 0.35rem 1.3rem;
-  background: color-mix(in oklab, var(--muted) 55%, var(--background));
-  cursor: grab;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.home-corner::before {
-  content: "";
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline-start: 0;
-  width: 1.1rem;
-  height: 1.1rem;
-  background: linear-gradient(
-    135deg,
-    transparent 50%,
-    color-mix(in oklab, var(--accent) 30%, var(--background)) 50%
-  );
-  border-radius: 0 0 0 0.3rem;
-}
-
-.home-corner:hover,
-.home-corner:focus-visible {
-  transform: translateY(-2px) rotate(-3deg);
-  box-shadow: 0 6px 16px -10px color-mix(in oklab, var(--foreground) 40%, transparent);
-}
-
-.home-corner:active {
-  cursor: grabbing;
-}
-
-.home-corner-hint {
-  position: absolute;
-  inset-inline: 0;
-  bottom: -1.3rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  color: var(--muted-foreground);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.home-corner:hover .home-corner-hint,
-.home-corner:focus-visible .home-corner-hint {
-  opacity: 1;
-}
-
-@media (max-width: 1180px) {
-  .home-corner-wrap {
-    display: none;
-  }
 }
 
 /* Paper seam: a torn dashed line under the hero that nudges as you scroll in. */
@@ -429,6 +373,28 @@ body {
   font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: lowercase;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.app-prose pre.mermaid .mermaid-stamp {
+  display: none;
+}
+
+.mermaid-wrap {
+  position: relative;
+}
+
+.mermaid-wrap::after {
+  content: var(--mermaid-stamp, "图 · 拓扑");
+  position: absolute;
+  inset-block-start: 0.45rem;
+  inset-inline-end: 0.55rem;
+  z-index: 2;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
   color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
   opacity: 0.7;
   pointer-events: none;
@@ -934,13 +900,378 @@ body {
   transform: none;
 }
 
-/* Homepage phenology corner. */
+/* Homepage phenology + idea bottle — top of content, after hero. */
+.home-aside-notes-wrap {
+  padding-top: 1.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.home-aside-notes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
 .home-phenology {
-  margin: 0 0 2.5rem;
+  margin: 0;
   text-align: end;
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   color: color-mix(in oklab, var(--muted-foreground) 75%, transparent);
+}
+
+/* Homepage「念头瓶」+ mini variant on list/archive pages. */
+.home-idea-jar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.home-idea-jar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  color: inherit;
+  transition: transform 0.25s ease;
+}
+
+.home-idea-jar-btn:active {
+  cursor: grabbing;
+}
+
+.home-idea-jar-btn:hover,
+.home-idea-jar-btn:focus-visible {
+  transform: translateY(-2px);
+}
+
+.home-idea-jar-btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 55%, transparent);
+  outline-offset: 4px;
+  border-radius: 0.35rem;
+}
+
+.home-idea-jar-figure {
+  position: relative;
+  display: block;
+}
+
+.home-idea-jar-svg,
+.idea-jar-mini-svg {
+  display: block;
+  width: 3.35rem;
+  height: auto;
+  overflow: visible;
+}
+
+.idea-jar-mini-svg {
+  width: 2.35rem;
+}
+
+.home-idea-jar-caption {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+}
+
+.home-idea-jar-tip {
+  margin: 0;
+  max-width: 16rem;
+  text-align: end;
+  font-size: 0.62rem;
+  line-height: 1.55;
+  letter-spacing: 0.03em;
+  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  pointer-events: none;
+}
+
+.home-idea-jar.is-tip-shown .home-idea-jar-tip {
+  opacity: 1;
+  transform: none;
+}
+
+.jar-dust {
+  position: absolute;
+  inset: 0.35rem 0.2rem 1.2rem;
+  border-radius: 40% 45% 50% 48%;
+  background: radial-gradient(
+    ellipse at 40% 35%,
+    color-mix(in oklab, var(--muted-foreground) 22%, transparent) 0%,
+    transparent 68%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.home-idea-jar.is-dusty .jar-dust {
+  opacity: 0.55;
+}
+
+.jar-notch {
+  stroke: color-mix(in oklab, var(--foreground) 28%, #8f8a7f);
+  stroke-width: 0.55;
+  stroke-linecap: round;
+}
+
+.jar-bubbles {
+  opacity: 0;
+}
+
+.home-idea-jar.is-bubbling .jar-bubbles {
+  opacity: 1;
+}
+
+.jar-bubble {
+  fill: color-mix(in oklab, var(--accent) 25%, #ffffff);
+  opacity: 0;
+}
+
+.home-idea-jar.is-bubbling .jar-bubble-1 {
+  animation: jar-bubble-rise 1.4s ease-out 0.05s forwards;
+}
+
+.home-idea-jar.is-bubbling .jar-bubble-2 {
+  animation: jar-bubble-rise 1.55s ease-out 0.35s forwards;
+}
+
+.home-idea-jar.is-bubbling .jar-bubble-3 {
+  animation: jar-bubble-rise 1.3s ease-out 0.65s forwards;
+}
+
+@keyframes jar-bubble-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  15% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.home-idea-jar.is-wobble .home-idea-jar-svg {
+  animation: jar-wobble 0.42s ease-out;
+}
+
+@keyframes jar-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1.8deg);
+  }
+  75% {
+    transform: rotate(1.8deg);
+  }
+}
+
+.home-idea-jar.is-pour-flash .jar-liquid-meniscus {
+  animation: jar-pour-flash 1.2s ease-out;
+}
+
+@keyframes jar-pour-flash {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  35% {
+    opacity: 1;
+    filter: brightness(1.15);
+  }
+}
+
+/* Jar palette — light */
+.jar-stop-lid-top {
+  stop-color: #c9c4b8;
+}
+.jar-stop-lid-mid {
+  stop-color: #a8a296;
+}
+.jar-stop-lid-bottom {
+  stop-color: #8f8a7f;
+}
+.jar-stop-glass-edge {
+  stop-color: color-mix(in oklab, var(--foreground) 22%, #f5f0e6);
+  stop-opacity: 0.55;
+}
+.jar-stop-glass-mid {
+  stop-color: color-mix(in oklab, var(--foreground) 8%, #faf8f2);
+  stop-opacity: 0.35;
+}
+.jar-stop-glass-clear {
+  stop-color: #faf8f2;
+  stop-opacity: 0.12;
+}
+.jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, var(--accent) 35%, #6b4f12);
+}
+.jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 55%, #c9a24a);
+}
+.jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, var(--accent) 40%, #e8d4a0);
+  stop-opacity: 0.92;
+}
+.jar-stop-highlight {
+  stop-color: #ffffff;
+  stop-opacity: 0.55;
+}
+.jar-stop-highlight-fade {
+  stop-color: #ffffff;
+  stop-opacity: 0;
+}
+
+.jar-ground {
+  fill: #141413;
+}
+.jar-lid-rim {
+  fill: color-mix(in oklab, var(--foreground) 18%, #d8d2c6);
+}
+.jar-glass-body {
+  stroke: color-mix(in oklab, var(--foreground) 12%, transparent);
+  stroke-width: 0.6;
+}
+.jar-mini-glass {
+  fill: color-mix(in oklab, var(--foreground) 6%, #faf8f2);
+  fill-opacity: 0.22;
+  stroke: color-mix(in oklab, var(--foreground) 12%, transparent);
+  stroke-width: 0.5;
+}
+.jar-mini-lid {
+  fill: #a8a296;
+}
+.jar-shine-left {
+  stroke: #ffffff;
+  opacity: 0.42;
+}
+.jar-shine-right {
+  stroke: #ffffff;
+}
+.jar-liquid-meniscus {
+  fill: color-mix(in oklab, var(--accent) 35%, #e8d4a0);
+  opacity: 0.88;
+}
+.jar-label {
+  fill: color-mix(in oklab, var(--background) 88%, #f3ead8);
+  stroke: color-mix(in oklab, var(--border) 65%, transparent);
+  stroke-width: 0.35;
+}
+.jar-label-text {
+  fill: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
+}
+
+html[data-theme="dark"] .jar-stop-lid-top {
+  stop-color: #6f6d68;
+}
+html[data-theme="dark"] .jar-stop-lid-mid {
+  stop-color: #5a5854;
+}
+html[data-theme="dark"] .jar-stop-lid-bottom {
+  stop-color: #454340;
+}
+html[data-theme="dark"] .jar-stop-glass-edge {
+  stop-color: color-mix(in oklab, var(--foreground) 35%, #2a2926);
+  stop-opacity: 0.5;
+}
+html[data-theme="dark"] .jar-stop-glass-mid {
+  stop-color: color-mix(in oklab, var(--foreground) 15%, #353330);
+  stop-opacity: 0.35;
+}
+html[data-theme="dark"] .jar-stop-glass-clear {
+  stop-color: #2e2c28;
+  stop-opacity: 0.15;
+}
+html[data-theme="dark"] .jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, var(--accent) 45%, #3d2e0a);
+}
+html[data-theme="dark"] .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 60%, #8a6b28);
+}
+html[data-theme="dark"] .jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, var(--accent) 35%, #c4a85a);
+  stop-opacity: 0.9;
+}
+html[data-theme="dark"] .jar-lid-rim {
+  fill: color-mix(in oklab, var(--foreground) 25%, #5a5854);
+}
+html[data-theme="dark"] .jar-label {
+  fill: color-mix(in oklab, var(--background) 75%, #3a362e);
+}
+html[data-theme="dark"] .jar-mini-lid {
+  fill: #5a5854;
+}
+
+/* Seasonal liquid tint */
+.home-idea-jar[data-season="spring"] .jar-stop-liquid-mid,
+.idea-jar-mini[data-season="spring"] .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 40%, #7cb87a);
+}
+.home-idea-jar[data-season="summer"] .jar-stop-liquid-mid,
+.idea-jar-mini[data-season="summer"] .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 50%, #d4a84a);
+}
+.home-idea-jar[data-season="autumn"] .jar-stop-liquid-mid,
+.idea-jar-mini[data-season="autumn"] .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 45%, #c46a3a);
+}
+.home-idea-jar[data-season="winter"] .jar-stop-liquid-mid,
+.idea-jar-mini[data-season="winter"] .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 35%, #6a8ab0);
+}
+
+.idea-jar-mini {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.75rem;
+  opacity: 0.88;
+}
+
+.list-jar-aside {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.25rem 0 0.5rem;
+}
+
+.post-jar-pour {
+  margin: 0.75rem 0 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  opacity: 0;
+  transform: translateY(-0.15rem);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.post-jar-pour.is-shown {
+  opacity: 0.85;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-idea-jar.is-wobble .home-idea-jar-svg,
+  .home-idea-jar.is-bubbling .jar-bubble,
+  .home-idea-jar.is-pour-flash .jar-liquid-meniscus {
+    animation: none;
+  }
 }
 
 /* Catalog finger-press on the current list row. */
@@ -994,6 +1325,176 @@ body {
   text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
 }
 
+/* Chapter outline — lives in .post-body-wrap, follows page swap. */
+.post-body-wrap {
+  position: relative;
+}
+
+.post-chapter-outline {
+  position: fixed;
+  top: 28vh;
+  inset-inline-end: max(1rem, calc((100vw - 48rem) / 2 - 9rem));
+  z-index: 5;
+  max-width: 7rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.post-chapter-outline.is-shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.post-chapter-outline ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.58rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+}
+
+.post-chapter-outline a {
+  display: block;
+  padding: 0.12rem 0;
+  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-chapter-outline li.is-active a {
+  color: color-mix(in oklab, var(--accent) 70%, var(--foreground));
+}
+
+.post-chapter-outline li.is-active a::before {
+  content: "· ";
+  color: color-mix(in oklab, var(--accent) 65%, transparent);
+}
+
+/* Deep-link heading flash. */
+.is-hash-flash {
+  animation: hash-flash 1.2s ease;
+}
+
+@keyframes hash-flash {
+  0%,
+  100% {
+    background: transparent;
+  }
+  18%,
+  42% {
+    background: color-mix(in oklab, var(--accent) 14%, transparent);
+    border-radius: 0.2rem;
+  }
+}
+
+/* Shortcut cheat sheet (?). */
+.site-hotkey-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.site-hotkey-sheet.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.site-hotkey-sheet-panel {
+  min-width: 12rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 0.35rem;
+  background: color-mix(in oklab, var(--background) 92%, var(--muted));
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.site-hotkey-sheet-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--foreground));
+}
+
+.site-hotkey-sheet ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-hotkey-sheet kbd {
+  display: inline-block;
+  min-width: 1.1rem;
+  margin-inline-end: 0.35rem;
+  padding: 0 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  border-radius: 0.2rem;
+  font-size: 0.65rem;
+  text-align: center;
+  color: var(--foreground);
+}
+
+.site-hotkey-sheet-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.62rem;
+  opacity: 0.75;
+}
+
+/* Archive month hover stat. */
+.archive-month-tip {
+  position: absolute;
+  z-index: 20;
+  padding: 0.2rem 0.45rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 0.25rem;
+  background: color-mix(in oklab, var(--background) 90%, var(--muted));
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  color: var(--muted-foreground);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.archive-month-tip.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+.back-button-context {
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 1100px) {
+  .post-chapter-outline {
+    display: none !important;
+  }
+}
+
+.print-footnote-inline {
+  display: none;
+}
+
 /* Print: keep the note, drop chrome. */
 .print-sheet-head {
   display: none;
@@ -1017,13 +1518,18 @@ body {
   .post-thread,
   .post-chapter-trail,
   .post-chapter-page,
+  .post-chapter-outline,
+  .site-hotkey-sheet,
+  .archive-month-tip,
   .paper-corner-top,
   .excerpt-pick,
   .footnote-pop,
   .home-binding,
   .home-brand-whisper,
   .home-phenology,
-  .home-corner-wrap,
+  .home-idea-jar,
+  .idea-jar-mini,
+  .list-jar-aside,
   .home-seam,
   .progress-container,
   .giscus,
@@ -1036,11 +1542,13 @@ body {
   .post-read-hint,
   .code-stamp,
   .code-snippet-note,
+  .mermaid-wrap::after,
   .copy-code,
   .ext-again-mark,
   .quote-host-note,
   .quote-copy,
-  .post-resume-tip {
+  .post-resume-tip,
+  .post-jar-pour {
     display: none !important;
   }
 
@@ -1058,6 +1566,22 @@ body {
     content: " (" attr(href) ")";
     font-size: 0.75em;
     color: #555;
+  }
+
+  .print-footnote-inline {
+    display: inline;
+    font-size: 0.82em;
+    color: #444;
+  }
+
+  section[data-footnotes],
+  .footnotes {
+    display: block !important;
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #ccc;
+    font-size: 0.82em;
+    color: #444;
   }
 }
 
@@ -1090,6 +1614,24 @@ body {
   letter-spacing: 0.12em;
   font-size: 0.7rem;
   color: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+}
+
+.archive-month-stat {
+  display: none;
+  margin-inline-start: 0.35rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+}
+
+@media (pointer: coarse) {
+  .archive-month-stat {
+    display: inline;
+  }
+
+  .archive-month-head {
+    cursor: pointer;
+  }
 }
 
 /* Today-pick fold after returning from the article. */

@@ -7,6 +7,8 @@ const READS_KEY = "term-reads";
 const LAST_READ_KEY = "term-last-read";
 const SCROLL_KEY = "post-scroll-bookmarks";
 const VISITS_KEY = "site-visit-days";
+const JAR_LEVEL_KEY = "jar-last-level";
+const JAR_POUR_KEY = "jar-pour-pending";
 
 export function getReadSlugs(): string[] {
   try {
@@ -131,6 +133,137 @@ export function clearScrollBookmark(slug: string) {
   } catch {
     // ignore
   }
+}
+
+const BOOKMARK_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+
+/** Scroll bookmarks still within the 14-day window. */
+export function countActiveScrollBookmarks(): number {
+  const cutoff = Date.now() - BOOKMARK_TTL_MS;
+  return Object.values(readScrollMap()).filter(b => b.at >= cutoff).length;
+}
+
+export function getLatestScrollBookmark(): {
+  slug: string;
+  progress: number;
+  y: number;
+} | null {
+  const cutoff = Date.now() - BOOKMARK_TTL_MS;
+  const entries = Object.entries(readScrollMap())
+    .filter(([, b]) => b.at >= cutoff)
+    .sort((a, b) => b[1].at - a[1].at);
+  if (entries.length === 0) return null;
+  const [slug, hit] = entries[0]!;
+  return { slug, progress: hit.progress, y: hit.y };
+}
+
+function visitedToday(): boolean {
+  try {
+    const raw = localStorage.getItem(VISITS_KEY);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return Array.isArray(arr) && arr.includes(dayKey());
+  } catch {
+    return false;
+  }
+}
+
+/** No visit in the last 7 days — bottle looks dusty until today. */
+export function isJarDusty(): boolean {
+  if (visitedToday()) return false;
+  try {
+    const raw = localStorage.getItem(VISITS_KEY);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setDate(cutoff.getDate() - 6);
+    const cut = dayKey(cutoff);
+    return !arr.some(d => typeof d === "string" && d >= cut);
+  } catch {
+    return false;
+  }
+}
+
+function readStoredJarLevel(): number {
+  try {
+    const raw = localStorage.getItem(JAR_LEVEL_KEY);
+    const n = raw ? Number(raw) : 0;
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function rememberJarLevel(level: number) {
+  try {
+    localStorage.setItem(JAR_LEVEL_KEY, String(level));
+  } catch {
+    // ignore
+  }
+}
+
+/** True when liquid level rose since the last homepage sync. */
+export function jarLevelRose(current: number): boolean {
+  const prev = readStoredJarLevel();
+  rememberJarLevel(current);
+  return current > prev + 0.008;
+}
+
+export function markJarPourPending() {
+  try {
+    sessionStorage.setItem(JAR_POUR_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function takeJarPourPending(): boolean {
+  try {
+    if (sessionStorage.getItem(JAR_POUR_KEY) !== "1") return false;
+    sessionStorage.removeItem(JAR_POUR_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function resolveJarDragSlug(opts: {
+  lastSlug?: string | null;
+  todayPickSlug?: string | null;
+  fallbackSlug?: string | null;
+}): string | null {
+  return opts.lastSlug ?? opts.todayPickSlug ?? opts.fallbackSlug ?? null;
+}
+
+export type JarSnapshot = {
+  readCount: number;
+  bookmarkCount: number;
+  weekVisits: number;
+  level: number;
+  dusty: boolean;
+  visitedToday: boolean;
+  latestBookmark: { slug: string; progress: number } | null;
+};
+
+export function getJarSnapshot(totalPosts: number): JarSnapshot {
+  const readCount = getReads().size;
+  const bookmarkCount = countActiveScrollBookmarks();
+  const weekVisits = weekVisitDays();
+  const ratio = totalPosts > 0 ? readCount / totalPosts : 0;
+  const level =
+    readCount > 0 ? Math.max(0.1, Math.min(1, ratio)) : 0.05;
+  const latest = getLatestScrollBookmark();
+  return {
+    readCount,
+    bookmarkCount,
+    weekVisits,
+    level,
+    dusty: isJarDusty(),
+    visitedToday: visitedToday(),
+    latestBookmark: latest
+      ? { slug: latest.slug, progress: latest.progress }
+      : null,
+  };
 }
 
 function dayKey(d: Date = new Date()): string {

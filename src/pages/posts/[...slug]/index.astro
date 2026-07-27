@@ -224,6 +224,12 @@ const ogImage = ogImageUrl
     id="main-content"
     class:list={["app-layout", { "mt-8": !config.features.showBackButton }]}
     data-pagefind-body
+    data-series-prev={prevPost
+      ? getPostUrl(prevPost.id, prevPost.filePath, locale)
+      : undefined}
+    data-series-next={nextPost
+      ? getPostUrl(nextPost.id, nextPost.filePath, locale)
+      : undefined}
   >
     <TermSessionBanner slug={postSlug} />
 

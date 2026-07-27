@@ -49,6 +49,7 @@ const notebookStat = `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
   <Main
     pageTitle={`${t.pages.tagTitle}: ${tagName}`}
     pageDesc={tagIntro}
+    backLabel={`标签 · ${tagName}`}
   >
     <p class="tag-notebook-stat font-mono" data-tag-name={tagName}>
       {notebookStat}

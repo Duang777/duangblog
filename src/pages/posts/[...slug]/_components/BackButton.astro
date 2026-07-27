@@ -19,6 +19,10 @@ const t = useTranslations(locale);
       >
         <IconChevronLeft class="inline-block size-6 rtl:rotate-180" />
         <span>{t.post.goBack}</span>
+        <span
+          id="back-button-context"
+          class="back-button-context font-mono text-muted-foreground ms-1 text-xs"
+        />
       </LinkButton>
     </div>
   )
@@ -30,9 +34,14 @@ const t = useTranslations(locale);
       document.querySelector("#back-button");
 
     const backUrl = sessionStorage.getItem("backUrl");
+    const backLabel = sessionStorage.getItem("backLabel");
+    const context = document.getElementById("back-button-context");
 
     if (backUrl && backButton) {
       backButton.href = backUrl;
+    }
+    if (context) {
+      context.textContent = backLabel ? `· ${backLabel}` : "";
     }
   }
 
