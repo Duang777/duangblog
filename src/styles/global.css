@@ -670,52 +670,7 @@ body {
   }
 }
 
-/* Chapter trail: pinned near the article column, not the viewport edge. */
-.post-body-wrap {
-  position: relative;
-}
-
-.post-chapter-trail {
-  z-index: 5;
-  width: min(8.5rem, 22vw);
-  margin: 0;
-  font-size: 0.68rem;
-  line-height: 1.6;
-  letter-spacing: 0.04em;
-  color: var(--muted-foreground);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(0.25rem);
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
-}
-
-.post-chapter-trail::before {
-  content: "¶ ";
-  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
-}
-
-.post-chapter-trail.is-shown {
-  opacity: 0.85;
-  transform: none;
-}
-
-@media (max-width: 900px) {
-  .post-chapter-trail {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .post-chapter-trail {
-    transition: none;
-  }
-}
+/* Chapter trail / reading rail styles live in PostReadingThread.astro. */
 
 /* Footnote hover preview. */
 .footnote-pop {
@@ -901,28 +856,6 @@ body {
   .paper-corner-top {
     transition: none;
     transform: none;
-  }
-}
-
-/* Chapter page number under the trail. */
-.post-chapter-page {
-  z-index: 5;
-  margin: 0;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  color: color-mix(in oklab, var(--accent) 65%, var(--muted-foreground));
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.post-chapter-page.is-shown {
-  opacity: 0.8;
-}
-
-@media (max-width: 900px) {
-  .post-chapter-page {
-    display: none;
   }
 }
 

@@ -1,41 +1,107 @@
 ---
 /**
- * Reading needle for post pages — sits inside the article column,
- * not on the far left of the viewport.
+ * In-article reading rail: chapter label on the left, progress
+ * needle on the right — one column, not two overlapping lines.
  */
 ---
 
-<div class="post-thread" aria-hidden="true">
-  <span class="post-thread-line"></span>
-  <span class="post-thread-fill"></span>
-  <span class="post-thread-stitch"></span>
-</div>
+<aside class="post-rail" aria-hidden="true">
+  <div class="post-rail-copy">
+    <p class="post-chapter-trail font-mono" data-rail="trail"></p>
+    <p class="post-chapter-page font-mono" data-rail="page"></p>
+  </div>
+  <div class="post-thread">
+    <span class="post-thread-line"></span>
+    <span class="post-thread-fill"></span>
+    <span class="post-thread-stitch"></span>
+  </div>
+</aside>
 
 <style>
-  .post-body-wrap {
+  :global(.post-body-wrap) {
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 7.25rem) minmax(0, 1fr);
+    column-gap: 1.1rem;
+    align-items: start;
   }
 
-  .post-thread {
-    position: absolute;
-    inset-block: 0.25rem 0.25rem;
-    inset-inline-start: -0.85rem;
-    z-index: 2;
-    width: 1px;
+  .post-rail {
+    position: sticky;
+    top: 28vh;
+    display: grid;
+    grid-template-columns: 1fr 1px;
+    column-gap: 0.7rem;
+    align-items: start;
+    min-height: 42vh;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.45s ease;
   }
 
-  .post-thread.is-ready {
+  .post-rail.is-ready {
     opacity: 1;
+  }
+
+  .post-rail-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    padding-block-start: 0.15rem;
+    text-align: end;
+  }
+
+  .post-chapter-trail,
+  .post-chapter-page {
+    position: static;
+    inset: auto;
+    width: auto;
+    max-width: 6.5rem;
+    margin: 0;
+    opacity: 0;
+    transform: none;
+  }
+
+  .post-chapter-trail {
+    font-size: 0.68rem;
+    line-height: 1.55;
+    letter-spacing: 0.03em;
+    color: var(--muted-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-chapter-trail::before {
+    content: "¶ ";
+    color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  }
+
+  .post-chapter-trail.is-shown,
+  .post-chapter-page.is-shown {
+    opacity: 0.88;
+  }
+
+  .post-chapter-page {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: color-mix(in oklab, var(--accent) 65%, var(--muted-foreground));
+  }
+
+  .post-thread {
+    position: relative;
+    width: 1px;
+    height: 42vh;
+    min-height: 12rem;
   }
 
   .post-thread-line {
     position: absolute;
     inset: 0;
     border-inline-start: 1px dashed
-      color-mix(in oklab, var(--border) 75%, transparent);
+      color-mix(in oklab, var(--border) 70%, transparent);
   }
 
   .post-thread-fill {
@@ -59,14 +125,18 @@
     background: color-mix(in oklab, var(--accent) 78%, transparent);
   }
 
-  @media (max-width: 720px) {
-    .post-thread {
+  @media (max-width: 900px) {
+    :global(.post-body-wrap) {
+      display: block;
+    }
+
+    .post-rail {
       display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .post-thread {
+    .post-rail {
       transition: none;
     }
   }
@@ -74,9 +144,10 @@
 
 <script>
   function initPostThread() {
+    const rail = document.querySelector<HTMLElement>(".post-rail");
     const thread = document.querySelector<HTMLElement>(".post-thread");
     const article = document.getElementById("article");
-    if (!thread || !article) return;
+    if (!rail || !thread || !article) return;
 
     const onScroll = () => {
       const rect = article.getBoundingClientRect();
@@ -88,7 +159,7 @@
     };
 
     onScroll();
-    thread.classList.add("is-ready");
+    rail.classList.add("is-ready");
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
 

@@ -115,50 +115,31 @@ function initQuoteSources(article: HTMLElement) {
   }
 }
 
+function headingLabel(heading: HTMLElement): string {
+  const clone = heading.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(".heading-link").forEach(el => el.remove());
+  return clone.textContent?.trim() ?? "";
+}
+
 function initChapterTrail(article: HTMLElement) {
   if (article.dataset.trailBound === "1") return;
-  // Page-number feel uses h2 only; trail title still tracks h2/h3.
   const sections = Array.from(
     article.querySelectorAll<HTMLElement>("h2")
-  ).filter(h => h.textContent?.trim());
+  ).filter(h => headingLabel(h));
   const headings = Array.from(
     article.querySelectorAll<HTMLElement>("h2, h3")
-  ).filter(h => h.textContent?.trim());
+  ).filter(h => headingLabel(h));
   if (headings.length === 0) return;
   article.dataset.trailBound = "1";
 
-  const trail = document.createElement("p");
-  trail.className = "post-chapter-trail font-mono";
-  trail.setAttribute("aria-hidden", "true");
-
-  const page = document.createElement("p");
-  page.className = "post-chapter-page font-mono";
-  page.setAttribute("aria-hidden", "true");
-
-  const host =
-    article.closest<HTMLElement>(".post-body-wrap") ?? document.body;
-  host.append(trail, page);
+  const trail = document.querySelector<HTMLElement>("[data-rail='trail']");
+  const page = document.querySelector<HTMLElement>("[data-rail='page']");
+  if (!trail || !page) return;
 
   let current = "";
   let currentPage = "";
 
-  const placeChrome = () => {
-    const rect = article.getBoundingClientRect();
-    const left = Math.max(8, rect.left - 10);
-    trail.style.position = "fixed";
-    trail.style.top = "30vh";
-    trail.style.left = `${left}px`;
-    trail.style.right = "auto";
-    trail.style.insetInlineStart = "auto";
-    page.style.position = "fixed";
-    page.style.top = "calc(30vh + 2.6rem)";
-    page.style.left = `${left}px`;
-    page.style.right = "auto";
-    page.style.insetInlineStart = "auto";
-  };
-
   const onScroll = () => {
-    placeChrome();
     const line = window.innerHeight * 0.3;
     let active: HTMLElement | null = null;
     for (const heading of headings) {
@@ -167,7 +148,7 @@ function initChapterTrail(article: HTMLElement) {
     }
     const articleRect = article.getBoundingClientRect();
     const past = articleRect.bottom < line;
-    const next = past ? "" : (active?.textContent?.trim() ?? "");
+    const next = past || !active ? "" : headingLabel(active);
     if (next !== current) {
       current = next;
       trail.textContent = next;
@@ -193,15 +174,9 @@ function initChapterTrail(article: HTMLElement) {
 
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", placeChrome, { passive: true });
   document.addEventListener(
     "astro:before-swap",
-    () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", placeChrome);
-      trail.remove();
-      page.remove();
-    },
+    () => window.removeEventListener("scroll", onScroll),
     { once: true }
   );
 }
