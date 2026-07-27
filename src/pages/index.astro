@@ -10,6 +10,7 @@ import HomeDateStamp from "@/components/HomeDateStamp.astro";
 import HomeWritingStatus from "@/components/HomeWritingStatus.astro";
 import HomeBindingThread from "@/components/HomeBindingThread.astro";
 import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
+import HomePhenology from "@/components/HomePhenology.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
@@ -52,6 +53,12 @@ function isRevisedPost(pubDatetime: Date, modDatetime?: Date | null) {
 const termPosts: TermPost[] = sortedPosts.map(post => {
   const path = getPostSlugPath(post.id, post.filePath);
   const slug = path.split("/").filter(Boolean).pop() ?? post.id;
+  const d = post.data.pubDatetime;
+  const pubDate = [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
   return {
     slug,
     title: post.data.title,
@@ -59,6 +66,7 @@ const termPosts: TermPost[] = sortedPosts.map(post => {
     description: post.data.description,
     tags: post.data.tags ?? [],
     draft: post.data.draft,
+    pubDate,
   };
 });
 
@@ -176,6 +184,8 @@ const termIdeas = [
           </div>
         )
       }
+
+      <HomePhenology />
     </div>
   </main>
   <Footer />
@@ -239,5 +249,23 @@ const termIdeas = [
       card.dataset.revealDelay = String(Math.min(i * 70, 280));
       observer.observe(card);
     });
+
+    // Finger-on-catalog: deepen the title currently in the reading band.
+    let activeCard: HTMLElement | null = null;
+    const onCatalogScroll = () => {
+      const band = window.innerHeight * 0.38;
+      let next: HTMLElement | null = null;
+      for (const card of cards) {
+        const top = card.getBoundingClientRect().top;
+        if (top <= band) next = card;
+        else break;
+      }
+      if (next === activeCard) return;
+      activeCard?.classList.remove("is-catalog-focus");
+      activeCard = next;
+      activeCard?.classList.add("is-catalog-focus");
+    };
+    onCatalogScroll();
+    window.addEventListener("scroll", onCatalogScroll, { passive: true });
   });
 </script>

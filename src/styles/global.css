@@ -769,3 +769,319 @@ body {
   color: color-mix(in oklab, var(--accent) 60%, var(--muted-foreground));
 }
 
+/* Relative time echo next to the calendar date. */
+.post-relative-time {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+}
+
+.post-relative-time::before {
+  content: "· ";
+  color: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+}
+
+/* Written / revised stamp under the article body. */
+.post-written-stamp {
+  margin: 1.1rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  opacity: 0.8;
+}
+
+/* Notebook-style adjacent posts. */
+.adjacent-notes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1.75rem 0;
+}
+
+@media (min-width: 640px) {
+  .adjacent-notes {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adjacent-notes-item.is-next {
+    grid-column: 2;
+    text-align: end;
+  }
+}
+
+.adjacent-notes-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-decoration: none;
+}
+
+.adjacent-notes-mark {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: color-mix(in oklab, var(--accent) 75%, var(--muted-foreground));
+}
+
+.adjacent-notes-title {
+  font-size: 0.9rem;
+  color: var(--foreground);
+  text-decoration: underline dashed;
+  text-underline-offset: 5px;
+}
+
+.adjacent-notes-item:hover .adjacent-notes-title {
+  color: var(--accent);
+}
+
+/* Paper-corner back-to-top. */
+.paper-corner-top {
+  position: fixed;
+  inset-inline-end: 1rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 0.2rem 0.55rem 0.2rem 0.2rem;
+  background: color-mix(in oklab, var(--muted) 35%, var(--background));
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.6rem) rotate(2deg);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.paper-corner-top.is-shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: rotate(1deg);
+}
+
+.paper-corner-top-fold {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  background: linear-gradient(
+    225deg,
+    color-mix(in oklab, var(--accent) 18%, var(--background)) 50%,
+    transparent 50%
+  );
+  border-inline-start: 1px dashed
+    color-mix(in oklab, var(--border) 70%, transparent);
+  border-block-end: 1px dashed
+    color-mix(in oklab, var(--border) 70%, transparent);
+}
+
+.paper-corner-top-label {
+  position: absolute;
+  inset: auto 0.2rem 0.25rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper-corner-top {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* Chapter page number under the trail. */
+.post-chapter-page {
+  position: fixed;
+  top: calc(30vh + 2.6rem);
+  inset-inline-start: max(
+    1.5rem,
+    calc((100vw - var(--thread-span, 48rem)) / 4 + 0.8rem)
+  );
+  z-index: 5;
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--accent) 65%, var(--muted-foreground));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.post-chapter-page.is-shown {
+  opacity: 0.8;
+}
+
+@media (max-width: 1180px) {
+  .post-chapter-page {
+    display: none;
+  }
+}
+
+/* Mid-article paper crease. */
+.post-mid-crease {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  height: 1px;
+  margin-top: -0.5px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--border) 70%, transparent) 20%,
+    color-mix(in oklab, var(--border) 70%, transparent) 80%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+#article {
+  position: relative;
+}
+
+.post-mid-crease.is-shown {
+  opacity: 0.55;
+}
+
+/* Selection excerpt button. */
+.excerpt-pick {
+  position: absolute;
+  z-index: 45;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 1px dashed color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius: 0.25rem;
+  background: color-mix(in oklab, var(--muted) 40%, var(--background));
+  color: color-mix(in oklab, var(--accent) 80%, var(--foreground));
+  font-size: 0.68rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.15rem);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
+}
+
+.excerpt-pick.is-shown {
+  opacity: 0.92;
+  visibility: visible;
+  transform: none;
+}
+
+/* Homepage phenology corner. */
+.home-phenology {
+  margin: 0 0 2.5rem;
+  text-align: end;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: color-mix(in oklab, var(--muted-foreground) 75%, transparent);
+}
+
+/* Catalog finger-press on the current list row. */
+.post-card .post-card-title {
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.post-card.is-catalog-focus .post-card-title {
+  color: color-mix(in oklab, var(--accent) 90%, var(--foreground));
+}
+
+.app-layout:has(.post-card.is-catalog-focus)
+  .post-card:not(.is-catalog-focus)
+  .post-card-title {
+  opacity: 0.82;
+}
+
+/* Archive year paper shift. */
+.archive-year {
+  transition: transform 0.45s ease;
+}
+
+.archive-year.is-year-focus {
+  transform: translateX(0.35rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-year {
+    transition: none;
+  }
+}
+
+/* Tag notebook stats + one-pass word underline. */
+.tag-notebook-stat {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+}
+
+.tag-word-mark {
+  text-decoration: underline dashed;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.8s ease;
+}
+
+.tag-post-list.is-marked .tag-word-mark {
+  text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
+}
+
+/* Print: keep the note, drop chrome. */
+@media print {
+  header,
+  footer,
+  .home-hero,
+  .home-term,
+  .post-thread,
+  .post-chapter-trail,
+  .post-chapter-page,
+  .paper-corner-top,
+  .excerpt-pick,
+  .footnote-pop,
+  .home-binding,
+  .home-brand-whisper,
+  .home-phenology,
+  .home-corner-wrap,
+  .home-seam,
+  .progress-container,
+  .giscus,
+  .share-links,
+  nav,
+  .breadcrumb,
+  [data-button="back-to-top"],
+  .adjacent-notes,
+  .continue-reading,
+  .post-read-hint,
+  .code-stamp,
+  .copy-code {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  #article,
+  main h1 {
+    max-width: none !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #555;
+  }
+}
+

@@ -1,0 +1,10 @@
+---
+/**
+ * Seasonal phenology whisper for the homepage corner.
+ */
+import { getPhenologyLine } from "@/utils/phenology";
+
+const line = getPhenologyLine();
+---
+
+<p class="home-phenology font-mono" aria-hidden="true">{line}</p>

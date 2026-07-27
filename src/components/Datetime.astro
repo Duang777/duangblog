@@ -5,6 +5,7 @@ import timezone from "dayjs/plugin/timezone";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import config from "@/config";
 import { useTranslations } from "@/i18n";
+import { formatRelativeTime } from "@/utils/relativeTime";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -15,6 +16,8 @@ type Props = {
   pubDatetime: string | Date;
   timezone?: string;
   modDatetime?: string | Date | null;
+  /** Show a quiet relative echo like "3 天前改过". Default true for lg. */
+  showRelative?: boolean;
 };
 
 const {
@@ -23,6 +26,7 @@ const {
   size = "sm",
   class: className = "",
   timezone: postTimezone,
+  showRelative,
 } = Astro.props;
 
 const t = useTranslations(Astro.currentLocale);
@@ -34,6 +38,15 @@ const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
 );
 
 const date = datetime.format("D MMM, YYYY");
+const relativeOn = showRelative ?? size === "lg";
+const relative = relativeOn
+  ? formatRelativeTime(datetime.toDate())
+  : "";
+const relativeLabel = relative
+  ? isModified
+    ? `${relative}改过`
+    : relative
+  : "";
 ---
 
 <div
@@ -58,4 +71,11 @@ const date = datetime.format("D MMM, YYYY");
   >
     {date}
   </time>
+  {
+    relativeLabel && (
+      <span class="post-relative-time font-mono" aria-hidden="true">
+        {relativeLabel}
+      </span>
+    )
+  }
 </div>

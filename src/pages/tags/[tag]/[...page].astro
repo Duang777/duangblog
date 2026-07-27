@@ -37,6 +37,8 @@ const { page, tagName } = Astro.props;
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 const tagIntro = getTagIntro(tagName);
+const totalInTag = page.total;
+const notebookStat = `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
 ---
 
 <Layout title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}>
@@ -48,7 +50,10 @@ const tagIntro = getTagIntro(tagName);
     pageTitle={`${t.pages.tagTitle}: ${tagName}`}
     pageDesc={tagIntro}
   >
-    <ul>
+    <p class="tag-notebook-stat font-mono" data-tag-name={tagName}>
+      {notebookStat}
+    </p>
+    <ul class="tag-post-list" data-tag-name={tagName}>
       {page.data.map(data => <Card {...data} />)}
     </ul>
   </Main>
@@ -57,3 +62,42 @@ const tagIntro = getTagIntro(tagName);
 
   <Footer noMarginTop={page.lastPage > 1} />
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const list = document.querySelector<HTMLElement>(".tag-post-list");
+    const tag = list?.dataset.tagName?.trim();
+    if (!list || !tag || tag.length < 2) return;
+
+    // One soft underline pass over matching words in titles/descriptions.
+    const walker = document.createTreeWalker(list, NodeFilter.SHOW_TEXT);
+    const nodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      if (node.textContent?.includes(tag)) nodes.push(node as Text);
+    }
+
+    for (const textNode of nodes) {
+      const parent = textNode.parentElement;
+      if (!parent || parent.closest("a.tag-chip")) continue;
+      const parts = textNode.textContent?.split(tag);
+      if (!parts || parts.length < 2) continue;
+
+      const frag = document.createDocumentFragment();
+      parts.forEach((part, i) => {
+        if (part) frag.appendChild(document.createTextNode(part));
+        if (i < parts.length - 1) {
+          const mark = document.createElement("span");
+          mark.className = "tag-word-mark";
+          mark.textContent = tag;
+          frag.appendChild(mark);
+        }
+      });
+      textNode.replaceWith(frag);
+    }
+
+    requestAnimationFrame(() => {
+      list.classList.add("is-marked");
+    });
+  });
+</script>

@@ -1,0 +1,18 @@
+---
+/**
+ * Quiet end-of-article stamp: "写于周四夜里 · 改于周末"
+ */
+type Props = {
+  text: string;
+};
+
+const { text } = Astro.props;
+---
+
+{
+  text && (
+    <p class="post-written-stamp font-mono" aria-hidden="true">
+      {text}
+    </p>
+  )
+}

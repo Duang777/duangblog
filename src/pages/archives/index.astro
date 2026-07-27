@@ -41,7 +41,7 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
       )
         .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
         .map(([year, yearGroup]) => (
-          <div>
+          <div class="archive-year" data-year={year}>
             <span class="text-2xl font-bold">{year}</span>
             <sup class="text-muted-foreground text-sm">{yearGroup.length}</sup>
             {Object.entries(
@@ -87,3 +87,26 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 
   <Footer />
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const years = Array.from(
+      document.querySelectorAll<HTMLElement>(".archive-year")
+    );
+    if (years.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const el = entry.target as HTMLElement;
+          years.forEach(y => y.classList.remove("is-year-focus"));
+          el.classList.add("is-year-focus");
+        }
+      },
+      { rootMargin: "-35% 0px -45% 0px", threshold: 0.01 }
+    );
+    years.forEach(y => observer.observe(y));
+  });
+</script>

@@ -19,7 +19,10 @@ import TermSessionBanner from "@/components/TermSessionBanner.astro";
 import PostReadingThread from "@/components/PostReadingThread.astro";
 import ContinueReading from "@/components/ContinueReading.astro";
 import RevisionNote from "@/components/RevisionNote.astro";
+import WrittenStamp from "@/components/WrittenStamp.astro";
 import { getReadingMinutes } from "@/utils/readingTime";
+import { formatWrittenStamp } from "@/utils/writtenStamp";
+import { pickColumnTag } from "@/utils/columnTag";
 import config from "@/config";
 
 export async function getStaticPaths() {
@@ -28,9 +31,49 @@ export async function getStaticPaths() {
 
   return sortedPosts.map((post, index) => {
     const postTags = new Set(post.data.tags);
-    const prevCandidate = index > 0 ? sortedPosts[index - 1] : undefined;
-    const nextCandidate =
+    const columnTag = pickColumnTag(post.data.tags);
+
+    // Prefer adjacent posts inside the same column; fall back to chronology.
+    let prevCandidate =
+      index > 0 ? sortedPosts[index - 1] : undefined;
+    let nextCandidate =
       index < sortedPosts.length - 1 ? sortedPosts[index + 1] : undefined;
+    let prevMeta: { label?: string; index?: number; total?: number } = {};
+    let nextMeta: { label?: string; index?: number; total?: number } = {};
+
+    if (columnTag) {
+      const series = sortedPosts.filter(candidate =>
+        candidate.data.tags.includes(columnTag)
+      );
+      const seriesIndex = series.findIndex(candidate => candidate.id === post.id);
+      if (seriesIndex >= 0) {
+        const total = series.length;
+        const seriesPrev = seriesIndex > 0 ? series[seriesIndex - 1] : undefined;
+        const seriesNext =
+          seriesIndex < total - 1 ? series[seriesIndex + 1] : undefined;
+        if (seriesPrev) {
+          prevCandidate = seriesPrev;
+          prevMeta = {
+            label: columnTag,
+            index: seriesIndex, // 1-based of the prev item
+            total,
+          };
+        } else {
+          prevCandidate = undefined;
+        }
+        if (seriesNext) {
+          nextCandidate = seriesNext;
+          nextMeta = {
+            label: columnTag,
+            index: seriesIndex + 2,
+            total,
+          };
+        } else {
+          nextCandidate = undefined;
+        }
+      }
+    }
+
     const neighborIds = new Set([
       prevCandidate?.id,
       nextCandidate?.id,
@@ -64,6 +107,7 @@ export async function getStaticPaths() {
                 id: prevCandidate.id,
                 title: prevCandidate.data.title,
                 filePath: prevCandidate.filePath,
+                ...prevMeta,
               }
             : null,
         nextPost: nextCandidate
@@ -71,6 +115,7 @@ export async function getStaticPaths() {
                 id: nextCandidate.id,
                 title: nextCandidate.data.title,
                 filePath: nextCandidate.filePath,
+                ...nextMeta,
               }
             : null,
       },
@@ -82,6 +127,9 @@ type AdjacentPost = {
   id: string;
   title: string;
   filePath: string | undefined;
+  label?: string;
+  index?: number;
+  total?: number;
 } | null;
 
 type Props = {
@@ -120,6 +168,7 @@ const postSlug =
 const { Content } = await render(post);
 
 const readingMinutes = getReadingMinutes(post.body);
+const writtenStamp = formatWrittenStamp(pubDatetime, modDatetime);
 
 let ogImageUrl: string | undefined;
 
@@ -199,6 +248,8 @@ const ogImage = ogImageUrl
     >
       <Content />
     </article>
+
+    <WrittenStamp text={writtenStamp} />
 
     <hr class="my-8 border-dashed" />
 

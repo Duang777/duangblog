@@ -5,6 +5,8 @@ export type TermPost = {
   description: string;
   tags: string[];
   draft?: boolean;
+  /** YYYY-MM-DD for cal dots */
+  pubDate?: string;
 };
 
 export type TermCtx = {
@@ -14,6 +16,8 @@ export type TermCtx = {
   posts: TermPost[];
   ideas: string[];
   guest: boolean;
+  /** Quiet "正在写" line from home-status */
+  writing?: string;
 };
 
 const SOUND_KEY = "term-sound";
@@ -24,7 +28,7 @@ const HIST_KEY = "term-cmd-history";
 const LAST_POST_KEY = "term-last-post";
 
 const HELP =
-  "help · whoami · ls · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
+  "help · whoami · ls · cal · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
 
 const KNOWN_CMDS = [
   "help",
@@ -32,6 +36,7 @@ const KNOWN_CMDS = [
   "ls",
   "ls posts",
   "ls posts/",
+  "cal",
   "grep",
   "cat",
   "open",
@@ -117,7 +122,10 @@ function fortuneLines(author: string): string[] {
 }
 
 function promptFor(ctx: TermCtx) {
-  return ctx.guest ? "guest@duang:~$" : "duang@blog:~$";
+  const base = ctx.guest ? "guest@duang:~$" : "duang@blog:~$";
+  // A trailing dot means this shell session is still warm.
+  const warm = Boolean(shouldResume() || sessionStorage.getItem(SESSION_KEY));
+  return warm ? base.replace(/\$$/, ".$") : base;
 }
 
 function syncChromePrompt(ctx: TermCtx) {
@@ -428,23 +436,67 @@ async function runCommand(
     return;
   }
   if (lower === "whoami") {
-    appendLine(
-      body,
-      ctx.guest
-        ? "guest — 只读访客。试试 ls、grep、open。"
-        : greetingLine(ctx.author)
-    );
+    if (ctx.guest) {
+      appendLine(body, "guest — 只读访客。试试 ls、grep、open。");
+      return;
+    }
+    appendLine(body, greetingLine(ctx.author));
+    // Occasionally echo the public writing status.
+    if (ctx.writing && Math.random() < 0.55) {
+      appendLine(body, `正在写 · ${ctx.writing}`);
+    }
     return;
   }
   if (lower === "ls" || lower === "ls posts" || lower === "ls posts/") {
-    if (ctx.posts.length === 0) {
+    if (ctx.posts.length === 0 && ctx.ideas.length === 0) {
       appendLine(body, "(empty)");
       return;
     }
     const reads = getReads();
     for (const post of ctx.posts) {
+      if (post.draft) {
+        appendLine(body, `  ${"····".padEnd(26)} 还在写`);
+        continue;
+      }
       const mark = reads.has(post.slug) ? "✓" : " ";
       appendLine(body, `${mark} ${post.slug.padEnd(26)} ${post.title}`);
+    }
+    // Mask unpublished ideas so ls feels like a real notebook drawer.
+    const ideaCount = Math.min(2, ctx.ideas.length);
+    for (let i = 0; i < ideaCount; i++) {
+      appendLine(body, `  ${"····.md".padEnd(26)} 还在写`);
+    }
+    return;
+  }
+  if (lower === "cal") {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-based
+    const first = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startPad = first.getDay(); // 0 Sun
+    const postDays = new Set(
+      ctx.posts
+        .map(p => p.pubDate)
+        .filter((d): d is string => Boolean(d))
+        .filter(d => d.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`))
+        .map(d => Number(d.slice(8, 10)))
+    );
+    const title = `${year}-${String(month + 1).padStart(2, "0")}`;
+    appendLine(body, `      ${title}`);
+    appendLine(body, "Su Mo Tu We Th Fr Sa");
+    const cells: string[] = [];
+    for (let i = 0; i < startPad; i++) cells.push("  ");
+    for (let day = 1; day <= daysInMonth; day++) {
+      const marked = postDays.has(day);
+      const raw = String(day).padStart(2, " ");
+      cells.push(marked ? raw.replace(" ", ".") : raw);
+    }
+    for (let i = 0; i < cells.length; i += 7) {
+      appendLine(body, cells.slice(i, i + 7).join(" "));
+    }
+    if (postDays.size > 0) {
+      appendLine(body, `(.) 有文的日子 · ${postDays.size} 天`);
     }
     return;
   }
@@ -743,6 +795,7 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     "whoami",
     "ls",
     "ls posts",
+    "cal",
     "grep ",
     "cat about.txt",
     "fortune",
@@ -1077,6 +1130,7 @@ export async function initHomeHero() {
     posts,
     ideas,
     guest: resume?.guest ?? false,
+    writing: hero.dataset.writing || undefined,
   };
 
   bindDropTarget(body, ctx, still);

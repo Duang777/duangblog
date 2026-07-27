@@ -117,6 +117,10 @@ function initQuoteSources(article: HTMLElement) {
 
 function initChapterTrail(article: HTMLElement) {
   if (article.dataset.trailBound === "1") return;
+  // Page-number feel uses h2 only; trail title still tracks h2/h3.
+  const sections = Array.from(
+    article.querySelectorAll<HTMLElement>("h2")
+  ).filter(h => h.textContent?.trim());
   const headings = Array.from(
     article.querySelectorAll<HTMLElement>("h2, h3")
   ).filter(h => h.textContent?.trim());
@@ -126,9 +130,15 @@ function initChapterTrail(article: HTMLElement) {
   const trail = document.createElement("p");
   trail.className = "post-chapter-trail font-mono";
   trail.setAttribute("aria-hidden", "true");
-  document.body.appendChild(trail);
+
+  const page = document.createElement("p");
+  page.className = "post-chapter-page font-mono";
+  page.setAttribute("aria-hidden", "true");
+
+  document.body.append(trail, page);
 
   let current = "";
+  let currentPage = "";
   const onScroll = () => {
     const line = window.innerHeight * 0.3;
     let active: HTMLElement | null = null;
@@ -139,10 +149,27 @@ function initChapterTrail(article: HTMLElement) {
     const articleRect = article.getBoundingClientRect();
     const past = articleRect.bottom < line;
     const next = past ? "" : (active?.textContent?.trim() ?? "");
-    if (next === current) return;
-    current = next;
-    trail.textContent = next;
-    trail.classList.toggle("is-shown", next !== "");
+    if (next !== current) {
+      current = next;
+      trail.textContent = next;
+      trail.classList.toggle("is-shown", next !== "");
+    }
+
+    if (sections.length > 0) {
+      let sectionIndex = 0;
+      for (let i = 0; i < sections.length; i++) {
+        if (sections[i]!.getBoundingClientRect().top <= line) {
+          sectionIndex = i + 1;
+        } else break;
+      }
+      const label =
+        past || sectionIndex === 0 ? "" : `${sectionIndex} / ${sections.length}`;
+      if (label !== currentPage) {
+        currentPage = label;
+        page.textContent = label;
+        page.classList.toggle("is-shown", label !== "");
+      }
+    }
   };
 
   onScroll();
@@ -152,7 +179,36 @@ function initChapterTrail(article: HTMLElement) {
     () => {
       window.removeEventListener("scroll", onScroll);
       trail.remove();
+      page.remove();
     },
+    { once: true }
+  );
+}
+
+function initMidCrease(article: HTMLElement) {
+  if (article.dataset.creaseBound === "1") return;
+  if (article.scrollHeight < window.innerHeight * 1.6) return;
+  article.dataset.creaseBound = "1";
+
+  const crease = document.createElement("div");
+  crease.className = "post-mid-crease";
+  crease.setAttribute("aria-hidden", "true");
+  article.appendChild(crease);
+
+  const onScroll = () => {
+    const rect = article.getBoundingClientRect();
+    const top = window.scrollY + rect.top;
+    const height = Math.max(1, article.offsetHeight);
+    const view = window.scrollY + window.innerHeight * 0.45;
+    const progress = (view - top) / height;
+    crease.classList.toggle("is-shown", progress >= 0.45 && progress <= 0.62);
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => window.removeEventListener("scroll", onScroll),
     { once: true }
   );
 }
@@ -217,6 +273,105 @@ function initFootnotePreviews(article: HTMLElement) {
   pop.addEventListener("mouseleave", hide);
 }
 
+function initExcerptPick(article: HTMLElement) {
+  if (article.dataset.excerptBound === "1") return;
+  article.dataset.excerptBound = "1";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "excerpt-pick font-mono";
+  btn.textContent = "摘";
+  btn.setAttribute("aria-label", "摘录并复制出处");
+  document.body.appendChild(btn);
+
+  let hideTimer = 0;
+  const hide = () => {
+    hideTimer = window.setTimeout(() => btn.classList.remove("is-shown"), 180);
+  };
+
+  const place = () => {
+    const selection = window.getSelection?.();
+    const text = selection?.toString().trim() ?? "";
+    if (!selection || selection.isCollapsed || text.length < 8) {
+      btn.classList.remove("is-shown");
+      return;
+    }
+    if (!article.contains(selection.anchorNode)) {
+      btn.classList.remove("is-shown");
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      btn.classList.remove("is-shown");
+      return;
+    }
+
+    window.clearTimeout(hideTimer);
+    btn.style.top = `${window.scrollY + rect.top - 28}px`;
+    btn.style.left = `${Math.min(
+      window.scrollX + rect.right - 8,
+      window.scrollX + window.innerWidth - 48
+    )}px`;
+    btn.classList.add("is-shown");
+  };
+
+  document.addEventListener("selectionchange", place);
+  btn.addEventListener("mousedown", event => event.preventDefault());
+  btn.addEventListener("click", async () => {
+    const selection = window.getSelection?.();
+    const text = selection?.toString().trim() ?? "";
+    if (!text) return;
+    const url = window.location.href.split("#")[0];
+    const payload = `${text}\n\n— ${SITE_NAME} · ${currentSlug()}\n${url}`;
+    try {
+      await navigator.clipboard.writeText(payload);
+      btn.textContent = "已摘";
+      window.setTimeout(() => {
+        btn.textContent = "摘";
+        btn.classList.remove("is-shown");
+      }, 700);
+    } catch {
+      btn.classList.remove("is-shown");
+    }
+  });
+  document.addEventListener("scroll", hide, { passive: true });
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      document.removeEventListener("selectionchange", place);
+      document.removeEventListener("scroll", hide);
+      btn.remove();
+    },
+    { once: true }
+  );
+}
+
+function initExternalLinkHints(article: HTMLElement) {
+  if (article.dataset.extHintBound === "1") return;
+  article.dataset.extHintBound = "1";
+
+  const origin = window.location.origin;
+  const links = Array.from(
+    article.querySelectorAll<HTMLAnchorElement>("a[href^='http']")
+  );
+  for (const link of links) {
+    try {
+      const url = new URL(link.href);
+      if (url.origin === origin) continue;
+      const host = url.hostname.replace(/^www\./, "");
+      const existing = link.getAttribute("title")?.trim();
+      if (!existing) link.setAttribute("title", host);
+      else if (!existing.includes(host)) {
+        link.setAttribute("title", `${existing} · ${host}`);
+      }
+    } catch {
+      // ignore bad hrefs
+    }
+  }
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
   if (!article) return;
@@ -226,6 +381,9 @@ export function initPostEnhancements() {
   initQuoteSources(article);
   initChapterTrail(article);
   initFootnotePreviews(article);
+  initMidCrease(article);
+  initExcerptPick(article);
+  initExternalLinkHints(article);
 }
 
 export function bindPostEnhancements() {

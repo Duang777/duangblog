@@ -19,10 +19,13 @@ const locale = Astro.currentLocale ?? config.site.lang;
 const rawPath = stripLocale(stripBase(Astro.url.pathname), locale)
   .replace(/\/+$/, "");
 const shortPath = rawPath === "" ? "~" : `~${rawPath}`;
+const generatedAt = new Date().toISOString().slice(0, 16).replace("T", " ");
 ---
 
+<!-- generated-at: {generatedAt} UTC -->
 <footer
   class:list={["app-layout", { "mt-auto": !noMarginTop }, className]}
+  data-generated-at={generatedAt}
   {...attrs}
 >
   <div
