@@ -1,7 +1,7 @@
 ---
 author: Duang
 pubDatetime: 2026-07-24T02:30:00+08:00
-modDatetime: 2026-07-24T03:20:00+08:00
+modDatetime: 2026-07-27T11:30:00+08:00
 title: 拆 Orloj：Agent 运行时、控制面和嵌入式控制台
 featured: true
 draft: false
@@ -11,6 +11,11 @@ tags:
   - Orloj
   - 全栈
 description: 细拆 Orloj 的单 Agent 循环、多 Agent 图路由、工具与治理，以及 Go 控制面、Postgres 租约和 React 控制台怎么接上同一套资源。带核心代码与结构图。
+revisions:
+  - date: 2026-07-24
+    note: 首发，按 main 代码拆 Agent / 控制面 / 控制台。
+  - date: 2026-07-27
+    note: 对照仓库重写叙述；代码片段与前端依赖跟当前 main 对齐。
 ---
 
 仓库：[OrlojHQ/orloj](https://github.com/OrlojHQ/orloj)。README 第一句是 Agents are infrastructure。我按 main 上的代码、`docs/pages/concepts/architecture.md` 和 `execution-model.md` 读完后，拆三块：Agent 技术本身怎么跑，后端控制面和 Worker 怎么托管这套运行时，前端控制台怎么订阅同一份状态。关键路径会配图，并把仓库里的核心片段贴出来。
@@ -83,7 +88,7 @@ flowchart TD
   decide -->|否| done["完成或触达上限"]
 ```
 
-`run` 里最能说明问题的几行（已删掉 contract / checkpoint 细节）：
+`run` 里最能说明问题的几行（已删掉 contract / checkpoint 细节）。当前实现里每步还会先塞一条 user content，模型错误有连续失败熔断：
 
 ```go
 // runtime/agent_worker.go
@@ -95,12 +100,6 @@ func (w *AgentWorker) run(ctx context.Context, streamSink ModelStreamEventSink) 
 	toolCalled := make(map[string]bool)
 	const maxConsecutiveModelErrors = 3
 	// ...
-
-	if len(w.history) == 0 {
-		if prompt := strings.TrimSpace(w.agent.Spec.Prompt); prompt != "" {
-			w.history = append(w.history, ChatMessage{Role: "system", Content: prompt})
-		}
-	}
 
 	for step := startStep; step <= maxSteps; step++ {
 		availableTools := w.agent.Spec.Tools
@@ -114,19 +113,21 @@ func (w *AgentWorker) run(ctx context.Context, streamSink ModelStreamEventSink) 
 			availableTools = filtered
 		}
 
-		modelResp, modelErr := w.modelGateway.Complete(ctx, ModelRequest{
+		modelReq := ModelRequest{
+			Model:             w.agent.Spec.Model,
 			ModelRef:          w.agent.Spec.ModelRef,
 			FallbackModelRefs: w.agent.Spec.FallbackModelRefs,
 			Tools:             append([]string(nil), availableTools...),
 			Messages:          append([]ChatMessage(nil), w.history...),
 			// ...
-		})
+		}
+		modelResp, modelErr := w.modelGateway.Complete(ctx, modelReq)
 		if modelErr != nil {
 			// 连续失败封顶后停止，避免空转吃满 max_steps
 			continue
 		}
 		if len(modelResp.ToolCalls) > 0 {
-			// Authorize → Tool Runtime → 回灌 history
+			// Authorize，再进 Tool Runtime，结果回灌 history
 			continue
 		}
 		return persistCheckpoint(step+1, true)
@@ -139,7 +140,7 @@ func (w *AgentWorker) run(ctx context.Context, streamSink ModelStreamEventSink) 
 
 ## Agent 技术：多 Agent 图怎么走
 
-单 Agent 循环解决“一个角色怎么想和怎么调工具”。协作拓扑在 `AgentSystem.spec.graph`。
+单 Agent 循环解决一个角色怎么想和怎么调工具。协作拓扑在 `AgentSystem.spec.graph`。
 
 边有两种写法：旧的 `next` 单边，以及现在更推荐的 `edges[]`。条件路由挂在 `condition` 上，对着刚完成 Agent 的 output 求值（`output_contains` / `output_matches` / `output_json_path` 等）。没有条件的边无条件开火；都中不了时走 `default: true`。条件路由要求 message-driven 模式。
 
@@ -253,7 +254,7 @@ stateDiagram-v2
   deadletter --> [*]
 ```
 
-执行模式两种，资源定义可共用：`sequential` 整图在进程内推；`message-driven` 每个 agent step 进队列。条件路由绑在后者上。
+执行模式两种，资源定义可共用：`sequential` 整图在进程内推；`message-driven` 每个 agent step 进队列。条件路由绑在后者上。文档说两种模式共用同一套图和资源定义，trace / history / output 形态也对齐；本地用 sequential，生产切 message-driven，不必改 YAML。
 
 工具层重点是统一外壳：`runtime/tool_runtime_*.go`、`tool_runtime_governed.go`、`tool_authorizer.go`。授权结果可以是 allow / deny / approval_required：
 
@@ -368,7 +369,7 @@ flowchart LR
 
 ## 前端：技术栈和打包方式
 
-控制台在 `frontend/`：React 19 + TypeScript + Vite 8 + Bun；`react-query`、`zustand`、`@xyflow/react`、Monaco。样式是手写 CSS。
+控制台在 `frontend/`：React 19 + TypeScript + Vite 8；状态用 `@tanstack/react-query` 和 `zustand`，图画 `@xyflow/react`，编辑器用 Monaco。样式是手写 CSS。
 
 生产形态用 `go:embed` 打进 `orlojd`：
 
@@ -384,7 +385,7 @@ func Handler(basePath string) http.Handler {
 }
 ```
 
-本地仍可 `bun run dev`，Vite 代理 `/v1` 到 `127.0.0.1:8080`。
+本地仍可起 Vite，开发服务把 `/v1` 代理到 `127.0.0.1:8080`。
 
 ## 前端：页面和实时订阅怎么对上 Agent 状态
 
@@ -431,4 +432,4 @@ function createReconnectingSource(/* ... */) {
 
 ## 收尾
 
-读 Orloj，我会先盯 `AgentWorker.run` 和 `AgentSystem` 图，再看 claim SQL 与两路总线，最后对照 `watch.ts` 看控制台如何订阅同一份 Task 状态。它想做的是：多智能体离开 demo 之后，有声明、有调度、有边界、有痕迹，并且 Agent 运行时、控制面、控制台共用同一套资源合同。
+读 Orloj，我会先盯 `AgentWorker.run` 和 `AgentSystem` 图，再看 claim SQL 与两路总线，最后对照 `watch.ts` 看控制台如何订阅同一份 Task 状态。它想解决的是：多智能体离开 demo 之后，声明、调度、边界和痕迹还在，而且 Agent 运行时、控制面、控制台说的是同一套资源。
