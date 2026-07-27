@@ -1,7 +1,7 @@
 ---
 /**
- * In-article reading rail: chapter label on the left, progress
- * needle on the right — one column, not two overlapping lines.
+ * Reading rail sits in the left margin — it must not push the article
+ * body away from the title alignment.
  */
 ---
 
@@ -18,26 +18,27 @@
 </aside>
 
 <style>
+  /* Keep the wrap as a normal block so #article stays under the title. */
   :global(.post-body-wrap) {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 7.25rem) minmax(0, 1fr);
-    column-gap: 2rem;
-    align-items: start;
+    display: block;
   }
 
   .post-rail {
-    position: sticky;
-    top: 28vh;
+    position: absolute;
+    inset-block-start: 0.5rem;
+    inset-block-end: 0.5rem;
+    /* Park in the page margin, clear of the prose column. */
+    inset-inline-start: -4.75rem;
+    width: 3.75rem;
     display: grid;
     grid-template-columns: 1fr 1px;
-    column-gap: 0.7rem;
+    column-gap: 0.55rem;
     align-items: start;
-    min-height: 42vh;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.45s ease;
-    margin-inline-end: 0.35rem;
+    z-index: 2;
   }
 
   .post-rail.is-ready {
@@ -45,32 +46,30 @@
   }
 
   .post-rail-copy {
+    position: sticky;
+    top: 30vh;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 0.35rem;
-    padding-block-start: 0.15rem;
+    gap: 0.3rem;
     text-align: end;
   }
 
   .post-chapter-trail,
   .post-chapter-page {
     position: static;
-    inset: auto;
-    width: auto;
-    max-width: 6.5rem;
     margin: 0;
+    max-width: 3.2rem;
     opacity: 0;
-    transform: none;
   }
 
   .post-chapter-trail {
-    font-size: 0.68rem;
-    line-height: 1.55;
-    letter-spacing: 0.03em;
+    font-size: 0.62rem;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
     color: var(--muted-foreground);
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -82,17 +81,18 @@
 
   .post-chapter-trail.is-shown,
   .post-chapter-page.is-shown {
-    opacity: 0.88;
+    opacity: 0.85;
   }
 
   .post-chapter-page {
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
     color: color-mix(in oklab, var(--accent) 65%, var(--muted-foreground));
   }
 
   .post-thread {
-    position: relative;
+    position: sticky;
+    top: 28vh;
     width: 1px;
     height: 42vh;
     min-height: 12rem;
@@ -126,11 +126,8 @@
     background: color-mix(in oklab, var(--accent) 78%, transparent);
   }
 
-  @media (max-width: 900px) {
-    :global(.post-body-wrap) {
-      display: block;
-    }
-
+  /* Not enough margin: hide rather than crowd the prose. */
+  @media (max-width: 1100px) {
     .post-rail {
       display: none;
     }
