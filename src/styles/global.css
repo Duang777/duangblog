@@ -434,6 +434,41 @@ body {
   pointer-events: none;
 }
 
+/* Copy button sits on the wrap (outside <pre>) so overflow never clips it. */
+.code-block-wrap {
+  position: relative;
+  margin-block: 1.714em; /* match typography pre spacing; keep it on the wrap */
+}
+
+.code-block-wrap > pre {
+  margin-block: 0;
+}
+
+.code-block-wrap > .copy-code {
+  position: absolute;
+  top: 0.55rem;
+  inset-inline-end: 0.55rem;
+  z-index: 10;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--muted) 85%, var(--background));
+  color: var(--foreground);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.code-block-wrap.has-file > .copy-code {
+  top: 2.1rem;
+}
+
+.code-block-wrap > .copy-code:hover {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+  color: var(--accent);
+}
+
 /* Expandable quote source. */
 .app-prose blockquote .quote-source {
   margin-top: 0.5rem;

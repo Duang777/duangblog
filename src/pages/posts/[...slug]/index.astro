@@ -290,27 +290,29 @@ const ogImage = ogImageUrl
       if (codeBlock.dataset.copyBound === "1") continue;
       codeBlock.dataset.copyBound = "1";
 
-      const wrapper = document.createElement("div");
-      wrapper.className = "code-block-wrap relative";
+      // Filename badge is a direct absolute <span> from the Shiki transformer.
+      // Don't use --file-name-offset: the transformer sets that on every block.
+      const hasFileName = Array.from(codeBlock.children).some(
+        el =>
+          el.tagName === "SPAN" &&
+          el.classList.contains("absolute") &&
+          !el.classList.contains("code-stamp")
+      );
 
-      // Sit fully inside the block so the top border does not clip the label.
-      // When a filename badge is present, drop a bit lower to clear it.
-      const computedStyle = getComputedStyle(codeBlock);
-      const hasFileNameOffset =
-        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
-      const topClass = hasFileNameOffset ? "top-8" : "top-2";
+      const wrapper = document.createElement("div");
+      wrapper.className = hasFileName
+        ? "code-block-wrap has-file"
+        : "code-block-wrap";
 
       const copyButton = document.createElement("button");
       copyButton.type = "button";
-      copyButton.className = `copy-code absolute end-2 ${topClass} z-10 rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
+      copyButton.className = "copy-code";
       copyButton.textContent = copyButtonLabel;
       codeBlock.setAttribute("tabindex", "0");
 
       codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
-      wrapper.appendChild(codeBlock);
-      // Mount on the wrapper (not inside <pre>) so overflow on the code
-      // block never crops the button.
-      wrapper.appendChild(copyButton);
+      // Button first so it paints above the scrolling <pre>.
+      wrapper.append(copyButton, codeBlock);
 
       copyButton.addEventListener("click", async () => {
         await copyCode(codeBlock, copyButton);
