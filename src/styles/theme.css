@@ -40,15 +40,23 @@
   --background: #f5f3ef;
 }
 
-/* Anthropic-inspired dark theme */
+/* Anthropic-inspired dark theme — softer ink, lamp-on-paper. */
 [data-theme="dark"] {
   --background: #141413;
-  --foreground: #faf9f5;
+  --foreground: #e4e1d8;
   --accent: #d97757;
   --accent-foreground: #141413;
   --muted: #3d3d3a;
-  --muted-foreground: #b0aea5;
-  --border: #87867f;
+  --muted-foreground: #9e9c94;
+  --border: #6f6e6a;
+}
+
+html[data-theme="dark"] .app-prose {
+  color: color-mix(in oklab, var(--foreground) 90%, var(--background));
+}
+
+html[data-theme="dark"] .app-prose :where(h1, h2, h3, h4) {
+  color: color-mix(in oklab, var(--foreground) 96%, var(--background));
 }
 
 [data-theme="dark"][data-tod="morning"] {

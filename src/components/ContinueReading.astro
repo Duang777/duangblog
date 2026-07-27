@@ -7,6 +7,8 @@ type RelatedPost = {
   description: string;
   filePath: string | undefined;
   sharedTag: string | undefined;
+  seriesIndex?: number;
+  seriesTotal?: number;
 };
 
 type Props = {
@@ -48,7 +50,9 @@ const { posts, locale } = Astro.props;
                 </span>
                 {post.sharedTag && (
                   <span class="font-mono text-muted-foreground/80 mt-1.5 block text-[0.65rem] tracking-wide">
-                    同属 {post.sharedTag}
+                    {post.seriesIndex && post.seriesTotal
+                      ? `同属 ${post.sharedTag} · 同系列第 ${post.seriesIndex} / ${post.seriesTotal} 篇`
+                      : `同属 ${post.sharedTag}`}
                   </span>
                 )}
               </span>

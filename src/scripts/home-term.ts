@@ -1,3 +1,13 @@
+import {
+  getReads as getReadsShared,
+  markPostRead as markPostReadShared,
+  getReadSlugs as getReadSlugsShared,
+  getLastRead,
+  touchLastRead,
+  touchVisitDay,
+  weekVisitDays,
+} from "@/scripts/read-state";
+
 export type TermPost = {
   slug: string;
   title: string;
@@ -28,12 +38,11 @@ export type TermCtx = {
 const SOUND_KEY = "term-sound";
 const SESSION_KEY = "term-session";
 const RESUME_KEY = "term-resume";
-const READS_KEY = "term-reads";
 const HIST_KEY = "term-cmd-history";
 const LAST_POST_KEY = "term-last-post";
 
 const HELP =
-  "help · whoami · ls · cal · tree · wc <slug> · diff <slug> · grep <词> · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
+  "help · whoami · ls · cal · tree · wc <slug> · diff <slug> · grep <词> · last · cat <slug> · open <slug|latest|posts|about> · fortune · today · history · !! · man duang · ssh guest@duang · ps · df -h · tail -f ideas · theme light|dark · sound on|off · clear · exit";
 
 const KNOWN_CMDS = [
   "help",
@@ -46,6 +55,7 @@ const KNOWN_CMDS = [
   "wc",
   "diff",
   "grep",
+  "last",
   "cat",
   "open",
   "fortune",
@@ -114,6 +124,12 @@ function greetingLine(author: string) {
   return `${author}，后端 / 全栈。${season}的${part}，还在写拆解和笔记。`;
 }
 
+function streakLine(): string | null {
+  const days = weekVisitDays();
+  if (days < 2) return null;
+  return `这周来过 ${days} 天`;
+}
+
 function fortuneLines(author: string): string[] {
   const hour = new Date().getHours();
   return [
@@ -144,20 +160,12 @@ function syncChromePrompt(ctx: TermCtx) {
 }
 
 function getReads(): Set<string> {
-  try {
-    const raw = localStorage.getItem(READS_KEY);
-    const arr = raw ? (JSON.parse(raw) as string[]) : [];
-    return new Set(Array.isArray(arr) ? arr : []);
-  } catch {
-    return new Set();
-  }
+  return getReadsShared();
 }
 
 export function markPostRead(slug: string) {
-  if (!slug) return;
-  const reads = getReads();
-  reads.add(slug);
-  localStorage.setItem(READS_KEY, JSON.stringify([...reads]));
+  markPostReadShared(slug);
+  touchLastRead(slug);
 }
 
 /** Remember where a reader just was, so the homepage can greet them back. */
@@ -167,6 +175,12 @@ export function rememberLastPost(slug: string) {
     LAST_POST_KEY,
     JSON.stringify({ slug, at: Date.now() })
   );
+  touchLastRead(slug);
+}
+
+/** Slugs marked read via post pages / terminal — for homepage echo. */
+export function getReadSlugs(): string[] {
+  return getReadSlugsShared();
 }
 
 /** One-shot: returns the line to print on the homepage, then forgets it. */
@@ -185,11 +199,6 @@ function takeReturnNote(posts: TermPost[]): string | null {
   } catch {
     return null;
   }
-}
-
-/** Slugs marked read via post pages / terminal — for homepage echo. */
-export function getReadSlugs(): string[] {
-  return [...getReads()];
 }
 
 /** Dim homepage cards that were already opened. */
@@ -449,6 +458,8 @@ async function runCommand(
       return;
     }
     appendLine(body, greetingLine(ctx.author));
+    const streak = streakLine();
+    if (streak) appendLine(body, streak);
     // Occasionally echo the public writing status.
     if (ctx.writing && Math.random() < 0.55) {
       appendLine(body, `正在写 · ${ctx.writing}`);
@@ -601,7 +612,25 @@ async function runCommand(
     for (const post of hits) {
       appendLine(body, `${post.slug.padEnd(26)} ${post.title}`);
     }
-    appendLine(body, `→ open <slug> 打开，例如 open ${hits[0]!.slug}`);
+    appendLine(body, `open <slug> 打开，例如 open ${hits[0]!.slug}`);
+    return;
+  }
+  if (lower === "last") {
+    const bookmark = getLastRead();
+    if (!bookmark) {
+      appendLine(body, "(no last post)");
+      return;
+    }
+    const hit = ctx.posts.find(p => p.slug === bookmark.slug);
+    const pct = Math.round(bookmark.progress * 100);
+    if (!hit) {
+      appendLine(body, `${bookmark.slug}  ~${pct}%`);
+      return;
+    }
+    appendLine(body, `${hit.slug}.md`);
+    appendLine(body, hit.title);
+    appendLine(body, `读到大约 ${pct}%`);
+    appendLine(body, `open ${hit.slug}`);
     return;
   }
   if (lower === "cat about.txt") {
@@ -618,7 +647,7 @@ async function runCommand(
     }
     appendLine(body, `# ${hit.title}`);
     appendLine(body, hit.description || "(no description)");
-    appendLine(body, `→ open ${hit.slug} 打开全文`);
+    appendLine(body, `open ${hit.slug} 打开全文`);
     return;
   }
   if (lower === "fortune" || lower === "today") {
@@ -627,7 +656,7 @@ async function runCommand(
       const pick = ctx.posts[day % ctx.posts.length]!;
       appendLine(body, `今日一篇：${pick.slug}`);
       appendLine(body, pick.title);
-      appendLine(body, `→ open ${pick.slug}`);
+      appendLine(body, `open ${pick.slug}`);
       return;
     }
     const lines = fortuneLines(ctx.author);
@@ -653,7 +682,7 @@ async function runCommand(
     appendLine(body, `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`);
     appendLine(body, "");
     appendLine(body, "SYNOPSIS");
-    appendLine(body, "       open <slug> | grep <词> | cat <slug> | today");
+    appendLine(body, "       open <slug> | grep <词> | last | cat <slug> | today");
     appendLine(body, "");
     appendLine(body, "DESCRIPTION");
     appendLine(body, "       拆 Agent、记服务端机制，偶尔写路上的想法。");
@@ -858,7 +887,7 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     if (!body.contains(row) || input.value.trim()) return;
     idleHint = document.createElement("div");
     idleHint.className = "home-term-line home-term-idle-hint";
-    idleHint.textContent = "try cal · tree · wc <slug>";
+    idleHint.textContent = "try cal · tree · grep · last";
     row.before(idleHint);
   }, 14000);
 
@@ -891,6 +920,7 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
     "cal",
     "tree",
     "grep ",
+    "last",
     "cat about.txt",
     "fortune",
     "today",
@@ -1003,10 +1033,27 @@ async function runBoot(
   postCount: number,
   still: () => boolean
 ) {
+  const month = new Date().getMonth() + 1;
+  const phenology: Record<number, string> = {
+    1: "小寒前后",
+    2: "立春将近",
+    3: "春分将至",
+    4: "谷雨前后",
+    5: "小满将近",
+    6: "夏至将至",
+    7: "大暑前后",
+    8: "立秋将近",
+    9: "白露将至",
+    10: "霜降前后",
+    11: "立冬将近",
+    12: "冬至将至",
+  };
+  const season = phenology[month] ?? "时令平常";
   const lines = [
     "duangboot 0.4",
     "checking fonts .............. ok",
     `loading posts ............... ${postCount}`,
+    `season ...................... ${season}`,
     "mounting tty ................ ok",
     "ready.",
   ];
@@ -1034,12 +1081,16 @@ async function startTerminal(
   if (brand) body.appendChild(brand);
 
   const prompt = promptFor(ctx);
-  const bootCmds = [
-    { type: "cmd" as const, text: "whoami" },
-    { type: "out" as const, text: greetingLine(ctx.author) },
-    { type: "cmd" as const, text: "ls posts/" },
+  const streak = streakLine();
+  const bootCmds: { type: "cmd" | "out"; text: string }[] = [
+    { type: "cmd", text: "whoami" },
+    { type: "out", text: greetingLine(ctx.author) },
+  ];
+  if (streak) bootCmds.push({ type: "out", text: streak });
+  bootCmds.push(
+    { type: "cmd", text: "ls posts/" },
     {
-      type: "out" as const,
+      type: "out",
       text:
         ctx.posts.length === 0
           ? "(empty)"
@@ -1048,12 +1099,12 @@ async function startTerminal(
               .map(p => p.slug)
               .join("   ") + (ctx.posts.length > 4 ? "   …" : ""),
     },
-    { type: "cmd" as const, text: "help" },
+    { type: "cmd", text: "help" },
     {
-      type: "out" as const,
+      type: "out",
       text: "试一下 grep / cat / today，或把文章拖进终端",
-    },
-  ];
+    }
+  );
 
   if (reducedMotion()) {
     for (const line of bootCmds) {
@@ -1173,6 +1224,7 @@ function watchScrollFade(hero: HTMLElement, stage: HTMLElement) {
 }
 
 export async function initHomeHero() {
+  touchVisitDay();
   const hero = document.getElementById("hero");
   const body = document.getElementById("home-term-body");
   const boot = document.getElementById("home-boot");

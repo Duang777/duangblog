@@ -4,11 +4,51 @@
  * Each guard is idempotent so ClientRouter re-runs stay safe.
  */
 
+import {
+  rememberReadProgress,
+  rememberScrollBookmark,
+  getScrollBookmark,
+  clearScrollBookmark,
+  getReadSlugs,
+  touchVisitDay,
+} from "@/scripts/read-state";
+
 const SITE_NAME = "duangblog";
+const EXT_SEEN_KEY = "post-ext-seen";
+const SNIPPET_LANGS = new Set([
+  "go",
+  "golang",
+  "sql",
+  "mysql",
+  "postgres",
+  "postgresql",
+  "tsql",
+  "plsql",
+]);
 
 function currentSlug(): string {
   const parts = window.location.pathname.replace(/\/+$/, "").split("/");
   return parts[parts.length - 1] || "posts";
+}
+
+function getSeenHosts(): Set<string> {
+  try {
+    const raw = localStorage.getItem(EXT_SEEN_KEY);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function markHostSeen(host: string) {
+  const seen = getSeenHosts();
+  seen.add(host);
+  try {
+    localStorage.setItem(EXT_SEEN_KEY, JSON.stringify([...seen].slice(-80)));
+  } catch {
+    // ignore
+  }
 }
 
 function initCopyWithSource(article: HTMLElement) {
@@ -77,11 +117,25 @@ function initCodeStamps(article: HTMLElement) {
     }
     if (!lang || lang === "plaintext" || lang === "text") continue;
 
+    const code = pre.querySelector("code");
+    const text = code?.textContent ?? "";
+    const lineCount = Math.max(1, text.replace(/\n$/, "").split("\n").length);
+
     const stamp = document.createElement("span");
     stamp.className = "code-stamp font-mono";
-    stamp.textContent = lang;
+    stamp.textContent =
+      lineCount >= 4 ? `${lang} · ${lineCount} lines` : lang;
     stamp.setAttribute("aria-hidden", "true");
     pre.appendChild(stamp);
+
+    if (SNIPPET_LANGS.has(lang.toLowerCase())) {
+      const note = document.createElement("span");
+      note.className = "code-snippet-note font-mono";
+      note.textContent = "片段 · 不可跑";
+      note.setAttribute("aria-hidden", "true");
+      const wrap = pre.closest(".code-block-wrap");
+      (wrap ?? pre).appendChild(note);
+    }
   }
 }
 
@@ -207,6 +261,156 @@ function initMidCrease(article: HTMLElement) {
     () => window.removeEventListener("scroll", onScroll),
     { once: true }
   );
+}
+
+function initScrollInk(article: HTMLElement) {
+  if (article.dataset.scrollInkBound === "1") return;
+  article.dataset.scrollInkBound = "1";
+
+  let bar = document.querySelector<HTMLElement>(".progress-container");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.className = "progress-container";
+    const fill = document.createElement("div");
+    fill.className = "progress-bar";
+    fill.id = "myBar";
+    bar.appendChild(fill);
+    document.body.appendChild(bar);
+  }
+  bar.classList.add("is-ink");
+
+  let hideTimer = 0;
+  let lastWrite = 0;
+  const slug = currentSlug();
+
+  const onScroll = () => {
+    const winScroll =
+      document.body.scrollTop || document.documentElement.scrollTop;
+    const height = Math.max(
+      1,
+      document.documentElement.scrollHeight -
+        document.documentElement.clientHeight
+    );
+    const scrolled = winScroll / height;
+    const myBar = document.getElementById("myBar");
+    if (myBar) myBar.style.width = `${scrolled * 100}%`;
+
+    if (scrolled > 0.01) {
+      bar!.classList.add("is-shown");
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(
+        () => bar!.classList.remove("is-shown"),
+        1000
+      );
+    }
+
+    const rect = article.getBoundingClientRect();
+    const top = window.scrollY + rect.top;
+    const articleH = Math.max(1, article.offsetHeight - window.innerHeight);
+    const articleProgress = Math.min(
+      1,
+      Math.max(0, (window.scrollY - top) / articleH)
+    );
+    const now = Date.now();
+    if (now - lastWrite > 800) {
+      lastWrite = now;
+      rememberReadProgress(slug, articleProgress);
+      rememberScrollBookmark(slug, window.scrollY, articleProgress);
+    }
+  };
+
+  const persistNow = () => {
+    const rect = article.getBoundingClientRect();
+    const top = window.scrollY + rect.top;
+    const articleH = Math.max(1, article.offsetHeight - window.innerHeight);
+    const articleProgress = Math.min(
+      1,
+      Math.max(0, (window.scrollY - top) / articleH)
+    );
+    rememberReadProgress(slug, articleProgress);
+    rememberScrollBookmark(slug, window.scrollY, articleProgress);
+  };
+
+  const onHide = () => {
+    if (document.visibilityState === "hidden") persistNow();
+  };
+
+  // Seed width without flashing the ink on first paint.
+  {
+    const winScroll =
+      document.body.scrollTop || document.documentElement.scrollTop;
+    const height = Math.max(
+      1,
+      document.documentElement.scrollHeight -
+        document.documentElement.clientHeight
+    );
+    const myBar = document.getElementById("myBar");
+    if (myBar) myBar.style.width = `${(winScroll / height) * 100}%`;
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("pagehide", persistNow);
+  document.addEventListener("visibilitychange", onHide);
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      persistNow();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", persistNow);
+      document.removeEventListener("visibilitychange", onHide);
+      window.clearTimeout(hideTimer);
+    },
+    { once: true }
+  );
+}
+
+function initResumeBookmark(article: HTMLElement) {
+  if (article.dataset.resumeBound === "1") return;
+  article.dataset.resumeBound = "1";
+
+  const slug = currentSlug();
+  const bookmark = getScrollBookmark(slug);
+  if (!bookmark) return;
+  // Only offer resume when the reader was meaningfully mid-article.
+  if (bookmark.progress < 0.12 || bookmark.progress > 0.92) return;
+  if (bookmark.y < window.innerHeight * 0.55) return;
+
+  const host =
+    document.querySelector("main h1")?.parentElement ??
+    document.getElementById("main-content") ??
+    article;
+
+  const tip = document.createElement("button");
+  tip.type = "button";
+  tip.className = "post-resume-tip font-mono";
+  const pct = Math.round(bookmark.progress * 100);
+  tip.textContent = `接着上次 · 约 ${pct}%`;
+  tip.setAttribute("aria-label", `跳到上次阅读位置，约 ${pct}%`);
+
+  const title = document.querySelector("main h1");
+  if (title) title.insertAdjacentElement("afterend", tip);
+  else host.prepend(tip);
+
+  window.requestAnimationFrame(() => tip.classList.add("is-shown"));
+
+  tip.addEventListener("click", () => {
+    const y = bookmark.y;
+    clearScrollBookmark(slug);
+    tip.classList.remove("is-shown");
+    window.setTimeout(() => tip.remove(), 280);
+    window.scrollTo({
+      top: y,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
+  });
+
+  // Auto-dismiss after a while if ignored.
+  window.setTimeout(() => {
+    if (!tip.isConnected) return;
+    tip.classList.remove("is-shown");
+    window.setTimeout(() => tip.remove(), 400);
+  }, 10000);
 }
 
 function initFootnotePreviews(article: HTMLElement) {
@@ -349,6 +553,7 @@ function initExternalLinkHints(article: HTMLElement) {
   article.dataset.extHintBound = "1";
 
   const origin = window.location.origin;
+  const seen = getSeenHosts();
   const links = Array.from(
     article.querySelectorAll<HTMLAnchorElement>("a[href^='http']")
   );
@@ -357,11 +562,31 @@ function initExternalLinkHints(article: HTMLElement) {
       const url = new URL(link.href);
       if (url.origin === origin) continue;
       const host = url.hostname.replace(/^www\./, "");
+      const again = seen.has(host);
       const existing = link.getAttribute("title")?.trim();
-      if (!existing) link.setAttribute("title", host);
+      const base = again ? `${host} · 又见` : host;
+      if (!existing) link.setAttribute("title", base);
       else if (!existing.includes(host)) {
-        link.setAttribute("title", `${existing} · ${host}`);
+        link.setAttribute("title", `${existing} · ${base}`);
+      } else if (again && !existing.includes("又见")) {
+        link.setAttribute("title", `${existing} · 又见`);
       }
+
+      if (again) {
+        link.classList.add("ext-seen-again");
+        if (!link.querySelector(".ext-again-mark")) {
+          const mark = document.createElement("span");
+          mark.className = "ext-again-mark font-mono";
+          mark.textContent = "又见";
+          mark.setAttribute("aria-hidden", "true");
+          link.appendChild(mark);
+        }
+      }
+
+      link.addEventListener("click", () => markHostSeen(host), { once: true });
+      link.addEventListener("mouseenter", () => markHostSeen(host), {
+        once: true,
+      });
     } catch {
       // ignore bad hrefs
     }
@@ -393,6 +618,47 @@ function initCodeLineNumbers(article: HTMLElement) {
   }
 }
 
+function initQuoteCopy(article: HTMLElement) {
+  if (article.dataset.quoteCopyBound === "1") return;
+  article.dataset.quoteCopyBound = "1";
+
+  const quotes = Array.from(article.querySelectorAll("blockquote"));
+  for (const quote of quotes) {
+    if ((quote as HTMLElement).dataset.copyBound === "1") continue;
+    (quote as HTMLElement).dataset.copyBound = "1";
+    (quote as HTMLElement).classList.add("has-quote-copy");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "quote-copy font-mono";
+    btn.textContent = "抄";
+    btn.setAttribute("aria-label", "抄录这段引用");
+    quote.appendChild(btn);
+
+    btn.addEventListener("click", async event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const clone = quote.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".quote-copy, .quote-host-note").forEach(el => {
+        el.remove();
+      });
+      const text = clone.textContent?.replace(/\s+\n/g, "\n").trim() ?? "";
+      if (!text) return;
+      const url = window.location.href.split("#")[0];
+      const payload = `${text}\n\n— ${SITE_NAME} · ${currentSlug()}\n${url}`;
+      try {
+        await navigator.clipboard.writeText(payload);
+        btn.textContent = "已抄";
+        window.setTimeout(() => {
+          btn.textContent = "抄";
+        }, 900);
+      } catch {
+        // ignore
+      }
+    });
+  }
+}
+
 function initQuoteInkFade(article: HTMLElement) {
   if (article.dataset.quoteInkBound === "1") return;
   const quotes = Array.from(article.querySelectorAll("blockquote"));
@@ -406,7 +672,10 @@ function initQuoteInkFade(article: HTMLElement) {
       const center = rect.top + rect.height / 2;
       const dist = Math.abs(center - mid) / window.innerHeight;
       const dry = Math.min(1, Math.max(0, dist * 1.6));
-      (quote as HTMLElement).style.setProperty("--quote-ink", String(1 - dry * 0.55));
+      (quote as HTMLElement).style.setProperty(
+        "--quote-ink",
+        String(1 - dry * 0.55)
+      );
     }
   };
 
@@ -440,9 +709,129 @@ function initImageAltNotes(article: HTMLElement) {
   }
 }
 
+function initQuoteLinkNotes(article: HTMLElement) {
+  if (article.dataset.quoteLinkBound === "1") return;
+  article.dataset.quoteLinkBound = "1";
+
+  const quotes = Array.from(article.querySelectorAll("blockquote"));
+  const origin = window.location.origin;
+  for (const quote of quotes) {
+    if ((quote as HTMLElement).dataset.linkNote === "1") continue;
+    const link = quote.querySelector<HTMLAnchorElement>("a[href^='http']");
+    if (!link) continue;
+    try {
+      const url = new URL(link.href);
+      if (url.origin === origin) continue;
+      const host = url.hostname.replace(/^www\./, "");
+      (quote as HTMLElement).dataset.linkNote = "1";
+      (quote as HTMLElement).classList.add("has-quote-host");
+      const note = document.createElement("span");
+      note.className = "quote-host-note font-mono";
+      note.textContent = `可核对 · ${host}`;
+      note.setAttribute("aria-hidden", "true");
+      quote.appendChild(note);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function initPrintSheetHead() {
+  if (document.querySelector(".print-sheet-head")) return;
+  const title =
+    document.querySelector("main h1")?.textContent?.trim() || document.title;
+  const dateEl = document.querySelector("time");
+  const date =
+    dateEl?.getAttribute("datetime")?.slice(0, 10) ||
+    dateEl?.textContent?.trim() ||
+    "";
+  const head = document.createElement("p");
+  head.className = "print-sheet-head font-mono";
+  head.textContent = date
+    ? `${SITE_NAME} · ${title} · ${date}`
+    : `${SITE_NAME} · ${title}`;
+  document.body.prepend(head);
+}
+
+function initHubSeriesDots(article: HTMLElement) {
+  if (article.dataset.hubDotsBound === "1") return;
+  const lists = Array.from(article.querySelectorAll(":scope > ul"));
+  if (lists.length === 0) return;
+
+  const reads = new Set(getReadSlugs());
+  let bound = false;
+
+  for (const list of lists) {
+    const links = Array.from(
+      list.querySelectorAll<HTMLAnchorElement>("a[href*='/posts/']")
+    );
+    if (links.length < 2) continue;
+    const slugs = links
+      .map(a => {
+        try {
+          const parts = new URL(a.href, window.location.origin).pathname
+            .replace(/\/+$/, "")
+            .split("/");
+          return parts[parts.length - 1] || "";
+        } catch {
+          return "";
+        }
+      })
+      .filter(Boolean);
+    if (slugs.length < 2) continue;
+
+    const readCount = slugs.filter(s => reads.has(s)).length;
+    const total = slugs.length;
+    const maxDots = Math.min(12, total);
+    const filled = Math.round((readCount / total) * maxDots);
+    const dots =
+      "●".repeat(filled) + "○".repeat(Math.max(0, maxDots - filled));
+
+    const line = document.createElement("p");
+    line.className = "hub-series-progress font-mono";
+    line.textContent = `${dots}  ${readCount}/${total}`;
+    line.setAttribute("aria-label", `已读 ${readCount} 篇，共 ${total} 篇`);
+    list.parentElement?.insertBefore(line, list);
+    bound = true;
+  }
+
+  if (bound) article.dataset.hubDotsBound = "1";
+}
+
+export function initColumnProgressDots() {
+  const stat = document.querySelector<HTMLElement>(".tag-notebook-stat");
+  const list = document.querySelector<HTMLElement>(".tag-post-list");
+  if (!stat || !list || stat.dataset.progressBound === "1") return;
+  const cards = Array.from(list.querySelectorAll<HTMLElement>(".post-card"));
+  if (cards.length === 0) return;
+  stat.dataset.progressBound = "1";
+
+  const reads = new Set(getReadSlugs());
+  let readCount = 0;
+  for (const card of cards) {
+    const slug = card.dataset.termSlug;
+    if (slug && reads.has(slug)) readCount += 1;
+  }
+
+  const total = cards.length;
+  const maxDots = Math.min(12, total);
+  const filled = Math.round((readCount / Math.max(1, total)) * maxDots);
+  const dots =
+    "●".repeat(filled) + "○".repeat(Math.max(0, maxDots - filled));
+  const line = document.createElement("span");
+  line.className = "column-progress-dots font-mono";
+  line.textContent = `${dots}  ${readCount}/${total}`;
+  line.setAttribute("aria-label", `已读 ${readCount} 篇，共 ${total} 篇`);
+  stat.appendChild(document.createTextNode(" · "));
+  stat.appendChild(line);
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
-  if (!article) return;
+  if (!article) {
+    initColumnProgressDots();
+    return;
+  }
   initCopyWithSource(article);
   initReadCompleteHint(article);
   initCodeStamps(article);
@@ -450,11 +839,18 @@ export function initPostEnhancements() {
   initChapterTrail(article);
   initFootnotePreviews(article);
   initMidCrease(article);
+  initScrollInk(article);
+  initResumeBookmark(article);
   initExcerptPick(article);
   initExternalLinkHints(article);
   initCodeLineNumbers(article);
   initQuoteInkFade(article);
   initImageAltNotes(article);
+  initQuoteLinkNotes(article);
+  initQuoteCopy(article);
+  initHubSeriesDots(article);
+  initPrintSheetHead();
+  touchVisitDay();
 }
 
 export function bindPostEnhancements() {
@@ -462,5 +858,6 @@ export function bindPostEnhancements() {
   if (!w.__postEnhanceBound) {
     w.__postEnhanceBound = true;
     document.addEventListener("astro:page-load", initPostEnhancements);
+    document.addEventListener("astro:page-load", initColumnProgressDots);
   }
 }

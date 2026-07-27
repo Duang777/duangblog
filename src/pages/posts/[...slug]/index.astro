@@ -85,12 +85,27 @@ export async function getStaticPaths() {
       )
       .map(candidate => {
         const sharedTags = candidate.data.tags.filter(tag => postTags.has(tag));
+        const sharedTag = sharedTags[0];
+        let seriesIndex: number | undefined;
+        let seriesTotal: number | undefined;
+        if (sharedTag) {
+          const series = sortedPosts.filter(p =>
+            p.data.tags.includes(sharedTag)
+          );
+          const idx = series.findIndex(p => p.id === candidate.id);
+          if (idx >= 0) {
+            seriesIndex = idx + 1;
+            seriesTotal = series.length;
+          }
+        }
         return {
           id: candidate.id,
           title: candidate.data.title,
           description: candidate.data.description,
           filePath: candidate.filePath,
-          sharedTag: sharedTags[0],
+          sharedTag,
+          seriesIndex,
+          seriesTotal,
           score: sharedTags.length,
         };
       })
@@ -142,6 +157,8 @@ type Props = {
     description: string;
     filePath: string | undefined;
     sharedTag: string | undefined;
+    seriesIndex?: number;
+    seriesTotal?: number;
   }[];
 };
 
@@ -278,36 +295,19 @@ const ogImage = ogImageUrl
 
 <script is:inline data-astro-rerun>
   function createProgressBar() {
+    // Prefer the ink bar from post-enhance; only seed a shell if missing.
+    if (document.querySelector(".progress-container")) return;
     const progressContainer = document.createElement("div");
-    progressContainer.className =
-      "progress-container fixed top-0 z-10 h-1 w-full bg-background";
+    progressContainer.className = "progress-container is-ink";
 
     const progressBar = document.createElement("div");
-    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.className = "progress-bar";
     progressBar.id = "myBar";
 
     progressContainer.appendChild(progressBar);
     document.body.appendChild(progressContainer);
   }
   createProgressBar();
-
-  function updateScrollProgress() {
-    document.addEventListener("scroll", () => {
-      const winScroll =
-        document.body.scrollTop || document.documentElement.scrollTop;
-      const height =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      if (document) {
-        const myBar = document.getElementById("myBar");
-        if (myBar) {
-          myBar.style.width = scrolled + "%";
-        }
-      }
-    });
-  }
-  updateScrollProgress();
 
   function addHeadingLinks() {
     const headings = Array.from(

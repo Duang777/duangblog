@@ -23,8 +23,11 @@ const { prevPost, nextPost } = Astro.props;
 const locale = Astro.currentLocale ?? config.site.lang;
 
 function noteLabel(post: NonNullable<AdjacentPost>, fallback: string) {
+  if (post.label && post.index && post.total) {
+    return `${fallback} · 同系列第 ${post.index} / ${post.total} 篇`;
+  }
   if (post.label && post.index) {
-    return `${post.label} · ${post.index}`;
+    return `${fallback} · ${post.label} · 第 ${post.index} 篇`;
   }
   return fallback;
 }
@@ -39,7 +42,7 @@ function noteLabel(post: NonNullable<AdjacentPost>, fallback: string) {
           class="adjacent-notes-item is-prev"
         >
           <span class="adjacent-notes-mark font-mono">
-            ← {noteLabel(prevPost, "上一篇")}
+            {noteLabel(prevPost, "上一篇")}
           </span>
           <span class="adjacent-notes-title">{prevPost.title}</span>
         </a>
@@ -50,7 +53,7 @@ function noteLabel(post: NonNullable<AdjacentPost>, fallback: string) {
           class="adjacent-notes-item is-next"
         >
           <span class="adjacent-notes-mark font-mono">
-            {noteLabel(nextPost, "下一篇")} →
+            {noteLabel(nextPost, "下一篇")}
           </span>
           <span class="adjacent-notes-title">{nextPost.title}</span>
         </a>
