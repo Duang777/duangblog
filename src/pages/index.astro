@@ -250,28 +250,31 @@ const termIdeas = [
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    if (reduced) {
-      cards.forEach(card => card.classList.add("is-visible"));
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const delay = Number(el.dataset.revealDelay ?? 0);
-          window.setTimeout(() => el.classList.add("is-visible"), delay);
-          observer.unobserve(el);
-        });
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+    const softNav = Boolean(
+      (window as unknown as { __softNav?: boolean }).__softNav
     );
+    // Soft ClientRouter visits should not wait on staggered fades.
+    if (reduced || softNav) {
+      cards.forEach(card => card.classList.add("is-visible"));
+    } else {
+      const observer = new IntersectionObserver(
+        entries => {
+          entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target as HTMLElement;
+            const delay = Number(el.dataset.revealDelay ?? 0);
+            window.setTimeout(() => el.classList.add("is-visible"), delay);
+            observer.unobserve(el);
+          });
+        },
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+      );
 
-    cards.forEach((card, i) => {
-      card.dataset.revealDelay = String(Math.min(i * 70, 280));
-      observer.observe(card);
-    });
+      cards.forEach((card, i) => {
+        card.dataset.revealDelay = String(Math.min(i * 70, 280));
+        observer.observe(card);
+      });
+    }
 
     // Finger-on-catalog: deepen the title currently in the reading band.
     let activeCard: HTMLElement | null = null;

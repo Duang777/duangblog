@@ -47,6 +47,10 @@ const backUrl = config.features.showBackButton
 
     if (mainContent?.querySelector(".post-card")) {
       applyReadEcho(mainContent);
+      // List/archive/tag pages have no staggered reveal — show immediately.
+      mainContent
+        .querySelectorAll<HTMLElement>(".post-card")
+        .forEach(card => card.classList.add("is-visible"));
     }
   });
 </script>

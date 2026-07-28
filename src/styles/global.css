@@ -300,15 +300,15 @@ body {
   }
 }
 
-/* Title morph between home cards and post pages */
+/* Title morph between home cards and post pages — keep short for snappy nav */
 ::view-transition-group(*) {
-  animation-duration: 0.38s;
+  animation-duration: 0.16s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.28s;
+  animation-duration: 0.12s;
 }
 
 @media (prefers-reduced-motion: reduce) {

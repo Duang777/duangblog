@@ -5,6 +5,7 @@
 <div
   class="brand-logo-badge"
   data-brand-logo-3d
+  transition:persist="brand-logo-3d"
   role="img"
   aria-label="品牌标识，拖拽旋转，双击复原"
   title="拖拽旋转 · 双击复原"
@@ -45,21 +46,35 @@
 <script>
   let dispose: (() => void) | null = null;
   let observer: IntersectionObserver | null = null;
+  let mountedStage: HTMLElement | null = null;
 
   function teardown() {
     observer?.disconnect();
     observer = null;
     dispose?.();
     dispose = null;
+    if (mountedStage) {
+      mountedStage.dataset.logoMounted = "0";
+      mountedStage = null;
+    }
   }
 
   async function boot() {
-    teardown();
-
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const stage = document.querySelector<HTMLElement>("[data-brand-logo-3d]");
     if (!stage) return;
+
+    // Soft navigations keep the persisted node + Three.js instance.
+    if (
+      dispose &&
+      mountedStage === stage &&
+      (stage.dataset.logoMounted === "1" || stage.querySelector("canvas"))
+    ) {
+      return;
+    }
+
+    teardown();
 
     observer = new IntersectionObserver(
       async (entries) => {
@@ -72,6 +87,8 @@
           "@/components/about-logo-3d/load-about-logo.ts"
         );
         dispose = mountAboutLogo(stage, { compact: true });
+        mountedStage = stage;
+        stage.dataset.logoMounted = "1";
       },
       { rootMargin: "0px", threshold: 0 }
     );
@@ -79,5 +96,5 @@
   }
 
   document.addEventListener("astro:page-load", boot);
-  document.addEventListener("astro:before-swap", teardown);
+  // Do not teardown on soft swaps: the badge uses transition:persist.
 </script>

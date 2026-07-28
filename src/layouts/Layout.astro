@@ -148,6 +148,15 @@ const searchHref =
       bindSearchHotkey();
       bindPostHotkeys();
       bindPostEnhancements();
+
+      // Mark soft ClientRouter navigations so pages can skip entrance delays.
+      const w = window as unknown as { __softNavBound?: boolean };
+      if (!w.__softNavBound) {
+        w.__softNavBound = true;
+        document.addEventListener("astro:after-swap", () => {
+          (window as unknown as { __softNav?: boolean }).__softNav = true;
+        });
+      }
     </script>
   </body>
 </html>
