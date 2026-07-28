@@ -84,6 +84,15 @@ Every post under the backend mega-column must carry this tag. Hub post: `src/con
 
 Do **not** use a lone vague tag like `专栏`. Do **not** label 请求过境 as "the backend column".
 
+## 最新速递 (standalone column)
+
+**Tag:** `最新速递`  
+**Hub:** `src/content/posts/latest-digest.md`
+
+Short, fast notes: one post = one recent thing (new tool, a long article worth following, an online incident). Not a deep mechanism series — leave that to 请求过境 / 后端专栏.
+
+**Shape:** what you saw → what you think → whether to follow up. No weekly digests, no link dumps.
+
 **Skills (required for 后端专栏 prose):**
 
 1. `source-driven-development` when naming library/API behavior: fetch official docs for the version you cite

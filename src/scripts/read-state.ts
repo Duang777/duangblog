@@ -209,22 +209,47 @@ export function jarLevelRose(current: number): boolean {
   return current > prev + 0.008;
 }
 
-export function markJarPourPending() {
+export function markJarPourPending(column?: string | null) {
   try {
-    sessionStorage.setItem(JAR_POUR_KEY, "1");
+    sessionStorage.setItem(
+      JAR_POUR_KEY,
+      JSON.stringify({ at: Date.now(), column: column ?? null })
+    );
   } catch {
     // ignore
   }
 }
 
-export function takeJarPourPending(): boolean {
+export type JarPourPending = { column: string | null };
+
+export function peekJarPourPending(): JarPourPending | null {
   try {
-    if (sessionStorage.getItem(JAR_POUR_KEY) !== "1") return false;
-    sessionStorage.removeItem(JAR_POUR_KEY);
-    return true;
+    const raw = sessionStorage.getItem(JAR_POUR_KEY);
+    if (!raw) return null;
+    if (raw === "1") return { column: null };
+    const data = JSON.parse(raw) as { column?: string | null };
+    return { column: data.column ?? null };
   } catch {
-    return false;
+    return null;
   }
+}
+
+/**
+ * Consume a pending pour only for an exact column match.
+ * Null/legacy pending is ignored so unrelated bottles never false-flash.
+ * Do not call from routine sync (e.g. hover) — only on bind / page entry.
+ */
+export function takeJarPourPending(forColumn?: string | null): boolean {
+  if (!forColumn) return false;
+  const pending = peekJarPourPending();
+  if (!pending?.column) return false;
+  if (pending.column !== forColumn) return false;
+  try {
+    sessionStorage.removeItem(JAR_POUR_KEY);
+  } catch {
+    // ignore
+  }
+  return true;
 }
 
 export function resolveJarDragSlug(opts: {

@@ -1,18 +1,57 @@
 ---
-/** Archives / list pages — liquid level only. */
+/**
+ * Mini「念头瓶」— archives / lists / tag columns.
+ * Column pages pick a silhouette via `kind` so each series feels like its own bottle.
+ */
+import type { ColumnJarKind } from "@/data/column-jars";
+
 type Props = {
   totalPosts: number;
+  kind?: ColumnJarKind;
+  caption?: string;
+  hint?: string;
+  /** Column tag name — enables whispers + pour reaction. */
+  columnTag?: string;
+  /** If set, liquid = reads among these slugs (column-scoped). */
+  tagSlugs?: string[];
 };
 
-const { totalPosts } = Astro.props;
+const {
+  totalPosts,
+  kind = "plain",
+  caption,
+  hint = "念头瓶液位",
+  columnTag,
+  tagSlugs,
+} = Astro.props;
+
+const uid = `jar-${kind}-${Math.random().toString(36).slice(2, 7)}`;
+const showCaption = Boolean(caption);
+const interactive = Boolean(columnTag);
+
+/** Liquid pivot (cx, bottom-y) per silhouette — must match each SVG. */
+const liquidPivot: Record<ColumnJarKind, { x: number; y: number }> = {
+  wide: { x: 28, y: 68 },
+  plain: { x: 28, y: 68 },
+  flask: { x: 28, y: 72 },
+  vial: { x: 28, y: 70 },
+  round: { x: 28, y: 70 },
+};
+const pivot = liquidPivot[kind];
 ---
 
 <div
-  class="idea-jar-mini"
+  class:list={["idea-jar-mini", `is-kind-${kind}`, { "is-interactive": interactive }]}
   data-total-posts={totalPosts}
+  data-jar-kind={kind}
+  data-column-tag={columnTag}
+  data-liquid-x={pivot.x}
+  data-liquid-y={pivot.y}
+  data-tag-slugs={tagSlugs ? JSON.stringify(tagSlugs) : undefined}
   data-pagefind-ignore
-  title="念头瓶液位"
-  aria-hidden="true"
+  title={interactive ? undefined : hint}
+  aria-label={interactive ? hint : undefined}
+  aria-hidden={interactive ? undefined : "true"}
 >
   <svg
     class="idea-jar-mini-svg"
@@ -22,27 +61,156 @@ const { totalPosts } = Astro.props;
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <linearGradient id="jar-mini-liquid" x1="0" y1="1" x2="0" y2="0">
+      <linearGradient id={`${uid}-liquid`} x1="0" y1="1" x2="0" y2="0">
         <stop offset="0%" class="jar-stop-liquid-deep" />
+        <stop offset="55%" class="jar-stop-liquid-mid" />
         <stop offset="100%" class="jar-stop-liquid-surface" />
       </linearGradient>
-      <clipPath id="jar-mini-clip">
-        <path
-          d="M 16 30 C 14 30 13 31.5 13 33 V 62 C 13 68 18 71 28 71 C 38 71 43 68 43 62 V 33 C 43 31.5 42 30 40 30 Z"
-        />
-      </clipPath>
+      {
+        (kind === "wide" || kind === "plain") && (
+          <clipPath id={`${uid}-clip`}>
+            <path d="M 16 30 C 14 30 13 31.5 13 33 V 62 C 13 68 18 71 28 71 C 38 71 43 68 43 62 V 33 C 43 31.5 42 30 40 30 Z" />
+          </clipPath>
+        )
+      }
+      {
+        kind === "flask" && (
+          <clipPath id={`${uid}-clip`}>
+            <path d="M 25 22 L 31 22 L 33 40 C 38 48 40 56 40 64 C 40 72 35 76 28 76 C 21 76 16 72 16 64 C 16 56 18 48 23 40 Z" />
+          </clipPath>
+        )
+      }
+      {
+        kind === "vial" && (
+          <clipPath id={`${uid}-clip`}>
+            <rect x="18" y="28" width="20" height="44" rx="2" />
+          </clipPath>
+        )
+      }
+      {
+        kind === "round" && (
+          <clipPath id={`${uid}-clip`}>
+            <path d="M 24 26 L 32 26 L 33 36 C 40 40 44 48 44 58 C 44 70 37 78 28 78 C 19 78 12 70 12 58 C 12 48 16 40 23 36 Z" />
+          </clipPath>
+        )
+      }
     </defs>
-    <rect x="18" y="8" width="20" height="5" rx="1" class="jar-mini-lid" />
-    <path
-      class="jar-mini-glass"
-      d="M 16 30 C 14 30 13 31.5 13 33 V 62 C 13 68 18 71 28 71 C 38 71 43 68 43 62 V 33 C 43 31.5 42 30 40 30 C 38 26 34 24 28 24 C 22 24 18 26 16 30 Z"
-    />
-    <g clip-path="url(#jar-mini-clip)">
-      <g class="jar-liquid-fill" transform="translate(28 68) scale(1 0.08)">
-        <rect x="-14" y="-40" width="28" height="40" fill="url(#jar-mini-liquid)" />
-      </g>
-    </g>
+
+    {
+      (kind === "wide" || kind === "plain") && (
+        <g>
+          <rect x="18" y="8" width="20" height="5" rx="1" class="jar-mini-lid" />
+          <path
+            class="jar-mini-glass"
+            d="M 16 30 C 14 30 13 31.5 13 33 V 62 C 13 68 18 71 28 71 C 38 71 43 68 43 62 V 33 C 43 31.5 42 30 40 30 C 38 26 34 24 28 24 C 22 24 18 26 16 30 Z"
+          />
+          <g clip-path={`url(#${uid}-clip)`}>
+            <g
+              class="jar-liquid-fill"
+              transform={`translate(${pivot.x} ${pivot.y}) scale(1 0.08)`}
+            >
+              <rect
+                x="-14"
+                y="-40"
+                width="28"
+                height="40"
+                fill={`url(#${uid}-liquid)`}
+              />
+            </g>
+          </g>
+        </g>
+      )
+    }
+
+    {
+      kind === "flask" && (
+        <g>
+          <rect x="23" y="6" width="10" height="8" rx="1" class="jar-mini-lid" />
+          <path
+            class="jar-mini-glass"
+            d="M 24 14 L 32 14 L 33 22 L 35 40 C 40 48 42 56 42 64 C 42 73 36 78 28 78 C 20 78 14 73 14 64 C 14 56 16 48 21 40 L 23 22 Z"
+          />
+          <g clip-path={`url(#${uid}-clip)`}>
+            <g
+              class="jar-liquid-fill"
+              transform={`translate(${pivot.x} ${pivot.y}) scale(1 0.08)`}
+            >
+              <rect
+                x="-14"
+                y="-48"
+                width="28"
+                height="48"
+                fill={`url(#${uid}-liquid)`}
+              />
+            </g>
+          </g>
+        </g>
+      )
+    }
+
+    {
+      kind === "vial" && (
+        <g>
+          <rect x="17" y="10" width="22" height="6" rx="1" class="jar-mini-lid" />
+          <rect x="19" y="16" width="18" height="4" rx="0.5" class="jar-mini-lid-ring" />
+          <path
+            class="jar-mini-glass"
+            d="M 18 26 L 38 26 L 38 72 C 38 74 36 76 34 76 L 22 76 C 20 76 18 74 18 72 Z"
+          />
+          <g clip-path={`url(#${uid}-clip)`}>
+            <g
+              class="jar-liquid-fill"
+              transform={`translate(${pivot.x} ${pivot.y}) scale(1 0.08)`}
+            >
+              <rect
+                x="-10"
+                y="-42"
+                width="20"
+                height="42"
+                fill={`url(#${uid}-liquid)`}
+              />
+            </g>
+          </g>
+        </g>
+      )
+    }
+
+    {
+      kind === "round" && (
+        <g>
+          <rect x="22" y="8" width="12" height="7" rx="1.5" class="jar-mini-lid" />
+          <path
+            class="jar-mini-glass"
+            d="M 24 15 L 32 15 L 33 26 C 41 31 46 42 46 56 C 46 70 38 80 28 80 C 18 80 10 70 10 56 C 10 42 15 31 23 26 Z"
+          />
+          <g clip-path={`url(#${uid}-clip)`}>
+            <g
+              class="jar-liquid-fill"
+              transform={`translate(${pivot.x} ${pivot.y}) scale(1 0.08)`}
+            >
+              <rect
+                x="-16"
+                y="-44"
+                width="32"
+                height="44"
+                fill={`url(#${uid}-liquid)`}
+              />
+            </g>
+          </g>
+        </g>
+      )
+    }
   </svg>
+  {
+    showCaption && (
+      <span class="idea-jar-mini-caption font-mono">{caption}</span>
+    )
+  }
+  {
+    interactive && (
+      <p class="idea-jar-mini-tip font-mono" role="status"></p>
+    )
+  }
 </div>
 
 <script>

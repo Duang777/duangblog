@@ -13,6 +13,7 @@ import {
   touchVisitDay,
   markJarPourPending,
 } from "@/scripts/read-state";
+import { JAR_POUR_EVENT, type JarPourDetail } from "@/scripts/idea-jar";
 
 const SITE_NAME = "duangblog";
 const EXT_SEEN_KEY = "post-ext-seen";
@@ -102,7 +103,43 @@ function initReadCompleteHint(article: HTMLElement) {
   observer.observe(hint);
 }
 
+const CODE_COPIED_KEY = "post-code-copied";
+
+function codeBlockKey(pre: HTMLElement): string {
+  const text = pre.querySelector("code")?.textContent ?? "";
+  return `${currentSlug()}::${text.slice(0, 48).replace(/\s+/g, " ")}`;
+}
+
+function getCopiedCodeKeys(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(CODE_COPIED_KEY);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function markCodeCopied(pre: HTMLElement) {
+  const key = codeBlockKey(pre);
+  const set = getCopiedCodeKeys();
+  set.add(key);
+  try {
+    sessionStorage.setItem(CODE_COPIED_KEY, JSON.stringify([...set].slice(-40)));
+  } catch {
+    // ignore
+  }
+  const stamp = pre.querySelector<HTMLElement>(".code-stamp");
+  if (stamp) {
+    stamp.dataset.langLabel = stamp.dataset.langLabel || stamp.textContent || "";
+    stamp.textContent = "copied";
+    stamp.classList.add("is-copied");
+  }
+  pre.classList.add("is-code-copied");
+}
+
 function initCodeStamps(article: HTMLElement) {
+  const copied = getCopiedCodeKeys();
   const blocks = Array.from(
     article.querySelectorAll<HTMLElement>("pre:not(.mermaid)")
   );
@@ -121,12 +158,20 @@ function initCodeStamps(article: HTMLElement) {
     const code = pre.querySelector("code");
     const text = code?.textContent ?? "";
     const lineCount = Math.max(1, text.replace(/\n$/, "").split("\n").length);
+    const label = lineCount >= 4 ? `${lang} · ${lineCount} lines` : lang;
 
     const stamp = document.createElement("span");
     stamp.className = "code-stamp font-mono";
-    stamp.textContent =
-      lineCount >= 4 ? `${lang} · ${lineCount} lines` : lang;
+    stamp.dataset.langLabel = label;
     stamp.setAttribute("aria-hidden", "true");
+
+    if (copied.has(codeBlockKey(pre))) {
+      stamp.textContent = "copied";
+      stamp.classList.add("is-copied");
+      pre.classList.add("is-code-copied");
+    } else {
+      stamp.textContent = label;
+    }
     pre.appendChild(stamp);
 
     if (SNIPPET_LANGS.has(lang.toLowerCase())) {
@@ -138,6 +183,11 @@ function initCodeStamps(article: HTMLElement) {
       (wrap ?? pre).appendChild(note);
     }
   }
+}
+
+/** Persist that a code block was copied this session (also used by inline copy button). */
+export function noteCodeBlockCopied(pre: HTMLElement) {
+  markCodeCopied(pre);
 }
 
 function initQuoteSources(article: HTMLElement) {
@@ -426,7 +476,15 @@ function initJarPourHint(article: HTMLElement) {
     const seen = (window.innerHeight - rect.top) / Math.max(1, rect.height);
     if (seen < 0.88) return;
     poured = true;
-    markJarPourPending();
+    const column =
+      document.querySelector<HTMLElement>(".idea-jar-mini[data-column-tag]")
+        ?.dataset.columnTag ?? null;
+    markJarPourPending(column);
+    document.dispatchEvent(
+      new CustomEvent<JarPourDetail>(JAR_POUR_EVENT, {
+        detail: { column },
+      })
+    );
     hint.hidden = false;
     hint.classList.add("is-shown");
     window.removeEventListener("scroll", onScroll);
@@ -1020,16 +1078,77 @@ export function initColumnProgressDots() {
   }
 
   const total = cards.length;
-  const maxDots = Math.min(12, total);
-  const filled = Math.round((readCount / Math.max(1, total)) * maxDots);
-  const dots =
-    "●".repeat(filled) + "○".repeat(Math.max(0, maxDots - filled));
-  const line = document.createElement("span");
-  line.className = "column-progress-dots font-mono";
-  line.textContent = `${dots}  ${readCount}/${total}`;
-  line.setAttribute("aria-label", `已读 ${readCount} 篇，共 ${total} 篇`);
+  const maxBeads = Math.min(14, Math.max(total, 4));
+  const filled = Math.round((readCount / Math.max(1, total)) * maxBeads);
+
+  const rail = document.createElement("span");
+  rail.className = "tag-bead-rail";
+  rail.setAttribute(
+    "aria-label",
+    `已读 ${readCount} 篇，共 ${total} 篇`
+  );
+  rail.title = `已读 ${readCount}/${total}`;
+
+  for (let i = 0; i < maxBeads; i++) {
+    const bead = document.createElement("span");
+    bead.className = i < filled ? "tag-bead is-read" : "tag-bead";
+    bead.setAttribute("aria-hidden", "true");
+    rail.appendChild(bead);
+  }
+
   stat.appendChild(document.createTextNode(" · "));
-  stat.appendChild(line);
+  stat.appendChild(rail);
+}
+
+/** Quiet margin mark: copy a whole paragraph with source. */
+function initParagraphMarks(article: HTMLElement) {
+  if (article.dataset.paraMarkBound === "1") return;
+  article.dataset.paraMarkBound = "1";
+
+  const paragraphs = Array.from(
+    article.querySelectorAll<HTMLElement>(":scope > p")
+  ).filter(p => {
+    const text = p.textContent?.trim() ?? "";
+    return text.length >= 72 && !p.querySelector("img, pre, .marginalia");
+  });
+  if (paragraphs.length === 0) return;
+
+  for (const p of paragraphs) {
+    if (p.dataset.paraMark === "1") continue;
+    p.dataset.paraMark = "1";
+    p.classList.add("has-para-mark");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "para-mark font-mono";
+    btn.textContent = "※";
+    btn.setAttribute("aria-label", "复制本段并附出处");
+    btn.tabIndex = -1;
+
+    btn.addEventListener("click", async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const clone = p.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".para-mark").forEach(el => el.remove());
+      const text = clone.textContent?.trim() ?? "";
+      if (!text) return;
+      const url = window.location.href.split("#")[0] ?? window.location.href;
+      const payload = `${text}\n\n— ${SITE_NAME} · ${currentSlug()}\n${url}`;
+      try {
+        await navigator.clipboard.writeText(payload);
+        btn.textContent = "已抄";
+        btn.classList.add("is-done");
+        window.setTimeout(() => {
+          btn.textContent = "※";
+          btn.classList.remove("is-done");
+        }, 1200);
+      } catch {
+        // ignore
+      }
+    });
+
+    p.prepend(btn);
+  }
 }
 
 export function initPostEnhancements() {
@@ -1053,6 +1172,7 @@ export function initPostEnhancements() {
   initScrollInk(article);
   initResumeBookmark(article);
   initExcerptPick(article);
+  initParagraphMarks(article);
   initExternalLinkHints(article);
   initCodeLineNumbers(article);
   initQuoteInkFade(article);

@@ -12,6 +12,8 @@ type AdjacentPost = {
   index?: number;
   /** Total posts in the series */
   total?: number;
+  /** Shared non-series tag with the current post */
+  sharedTag?: string;
 } | null;
 
 type Props = {
@@ -24,10 +26,13 @@ const locale = Astro.currentLocale ?? config.site.lang;
 
 function noteLabel(post: NonNullable<AdjacentPost>, fallback: string) {
   if (post.label && post.index && post.total) {
-    return `${fallback} · 同系列第 ${post.index} / ${post.total} 篇`;
+    return `${fallback} · 同属 · ${post.label} · ${post.index}/${post.total}`;
   }
   if (post.label && post.index) {
-    return `${fallback} · ${post.label} · 第 ${post.index} 篇`;
+    return `${fallback} · 同属 · ${post.label} · 第 ${post.index} 篇`;
+  }
+  if (post.sharedTag) {
+    return `${fallback} · 同属 · ${post.sharedTag}`;
   }
   return fallback;
 }

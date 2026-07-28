@@ -11,8 +11,11 @@ import Pagination from "@/components/Pagination.astro";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { slugifyAll } from "@/utils/slugify";
+import { getPostSlugPath } from "@/utils/getPostPaths";
 import { useTranslations } from "@/i18n";
 import { getTagIntro } from "@/data/tag-intros";
+import { resolveColumnJar } from "@/data/column-jars";
+import HomeIdeaJarMini from "@/components/HomeIdeaJarMini.astro";
 import config from "@/config";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
@@ -23,22 +26,27 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
     const tagPosts = getSortedPosts(
       posts.filter(({ data }) => slugifyAll(data.tags).includes(tag))
     );
+    const tagSlugs = tagPosts.map(p => {
+      const path = getPostSlugPath(p.id, p.filePath);
+      return path.split("/").filter(Boolean).pop() ?? p.id;
+    });
 
     return paginate(tagPosts, {
       params: { tag },
-      props: { tagName },
+      props: { tagName, tagSlugs },
       pageSize: config.posts.perPage,
     });
   });
 }
 
-const { page, tagName } = Astro.props;
+const { page, tagName, tagSlugs } = Astro.props;
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 const tagIntro = getTagIntro(tagName);
 const totalInTag = page.total;
 const notebookStat = `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
+const jar = resolveColumnJar(tagName);
 ---
 
 <Layout title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}>
@@ -51,6 +59,16 @@ const notebookStat = `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
     pageDesc={tagIntro}
     backLabel={`标签 · ${tagName}`}
   >
+    <div class="list-jar-aside is-column-jar">
+      <HomeIdeaJarMini
+        totalPosts={tagSlugs.length}
+        kind={jar.kind}
+        caption={jar.caption}
+        hint={jar.hint}
+        columnTag={tagName}
+        tagSlugs={tagSlugs}
+      />
+    </div>
     <p class="tag-notebook-stat font-mono" data-tag-name={tagName}>
       {notebookStat}
     </p>

@@ -1,7 +1,14 @@
 /**
  * Prefer a column-ish tag for notebook adjacent labels.
+ * Jar columns are listed first so article pages match tag-page bottles.
  */
-const COLUMN_PRIORITY = ["请求过境", "后端专栏"];
+const COLUMN_PRIORITY = [
+  "最新速递",
+  "请求过境",
+  "后端专栏",
+  "Agent",
+  "拆解",
+];
 
 export function pickColumnTag(tags: string[] | undefined): string | undefined {
   if (!tags?.length) return undefined;

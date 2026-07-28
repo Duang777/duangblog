@@ -177,6 +177,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #6f8794 65%, var(--muted-foreground));
 }
 
+.post-card[data-column="digest"] {
+  --column-tint: color-mix(in oklab, #8a7a4a 55%, var(--accent));
+}
+
 /* Today’s pick owns the edge — hide column scent so two rules never stack. */
 .post-card.is-today-pick[data-column]::after {
   display: none;
@@ -217,6 +221,10 @@ html[data-theme="dark"] body::before {
 
 .tag-chip[data-tag-scent="agent"] {
   border-bottom-color: color-mix(in oklab, #6f8794 70%, var(--foreground));
+}
+
+.tag-chip[data-tag-scent="digest"] {
+  border-bottom-color: color-mix(in oklab, #8a7a4a 55%, var(--accent));
 }
 
 /* Read echo: already opened — quieter title, tiny check. */
@@ -376,6 +384,12 @@ body {
   color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
   opacity: 0.7;
   pointer-events: none;
+}
+
+.app-prose pre .code-stamp.is-copied {
+  color: color-mix(in oklab, var(--accent) 70%, var(--muted-foreground));
+  opacity: 0.9;
+  letter-spacing: 0.08em;
 }
 
 .app-prose pre.mermaid .mermaid-stamp {
@@ -1238,15 +1252,224 @@ html[data-theme="dark"] .jar-mini-lid {
 
 .idea-jar-mini {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.28rem;
   margin: 0 0 0.75rem;
   opacity: 0.88;
+}
+
+.idea-jar-mini-caption {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+}
+
+.idea-jar-mini.is-interactive {
+  cursor: default;
+  position: relative;
+  z-index: 2;
+}
+
+.idea-jar-mini-tip {
+  position: absolute;
+  top: 0.15rem;
+  /* Grow to the right of the bottle — never expand left over the title. */
+  inset-inline-start: calc(100% + 0.55rem);
+  inset-inline-end: auto;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  margin: 0;
+  width: max-content;
+  min-width: 9.5rem;
+  max-width: min(13.5rem, 36vw);
+  text-align: start;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    visibility 0.22s ease;
+  pointer-events: none;
+}
+
+.idea-jar-mini.is-tip-shown .idea-jar-mini-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.idea-jar-mini-tip-progress {
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+}
+
+.idea-jar-mini-tip-whisper {
+  display: block;
+  padding: 0.4rem 0.55rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 75%, transparent);
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--background) 92%, var(--muted));
+  color: color-mix(in oklab, var(--accent) 72%, var(--foreground));
+  font-size: 0.72rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  box-shadow: 0 1px 3px color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.idea-jar-mini.is-wobble .idea-jar-mini-svg {
+  animation: jar-wobble 0.42s ease-out;
+}
+
+.idea-jar-mini.is-pour-flash .jar-liquid-fill {
+  animation: jar-mini-pour-flash 1.2s ease-out;
+}
+
+@keyframes jar-mini-pour-flash {
+  0%,
+  100% {
+    filter: none;
+  }
+  35% {
+    filter: brightness(1.18);
+  }
+}
+
+.jar-mini-lid-ring {
+  fill: color-mix(in oklab, var(--foreground) 18%, #c9c4b8);
+  opacity: 0.85;
+}
+
+html[data-theme="dark"] .jar-mini-lid-ring {
+  fill: color-mix(in oklab, var(--foreground) 22%, #5a5854);
+}
+
+/* Column bottle liquid tints — silhouette already differs by kind. */
+.idea-jar-mini.is-kind-wide .jar-stop-liquid-deep,
+.idea-jar-mini.is-kind-plain .jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, var(--accent) 35%, #6b4f12);
+}
+.idea-jar-mini.is-kind-wide .jar-stop-liquid-mid,
+.idea-jar-mini.is-kind-plain .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, var(--accent) 55%, #c9a24a);
+}
+.idea-jar-mini.is-kind-wide .jar-stop-liquid-surface,
+.idea-jar-mini.is-kind-plain .jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, var(--accent) 40%, #e8d4a0);
+}
+
+.idea-jar-mini.is-kind-flask .jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, #4a6a82 55%, #2a3a48);
+}
+.idea-jar-mini.is-kind-flask .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, #6f8794 60%, var(--accent));
+}
+.idea-jar-mini.is-kind-flask .jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, #9bb0bc 50%, #d8e4ea);
+}
+
+.idea-jar-mini.is-kind-vial .jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, #8a7a4a 55%, #4a4020);
+}
+.idea-jar-mini.is-kind-vial .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, #8a7a4a 45%, var(--accent));
+}
+.idea-jar-mini.is-kind-vial .jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, #c4b888 50%, #e8dcc0);
+}
+
+.idea-jar-mini.is-kind-round .jar-stop-liquid-deep {
+  stop-color: color-mix(in oklab, #6f8794 50%, #2e3840);
+}
+.idea-jar-mini.is-kind-round .jar-stop-liquid-mid {
+  stop-color: color-mix(in oklab, #6f8794 65%, var(--muted-foreground));
+}
+.idea-jar-mini.is-kind-round .jar-stop-liquid-surface {
+  stop-color: color-mix(in oklab, #a8b8c2 55%, #dce4e8);
 }
 
 .list-jar-aside {
   display: flex;
   justify-content: flex-end;
   margin: -0.25rem 0 0.5rem;
+}
+
+.list-jar-aside.is-column-jar {
+  margin-bottom: 0.15rem;
+}
+
+/* Article page: column bottle sits beside the title. */
+.post-head-with-jar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  overflow: visible;
+}
+
+.post-head-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.post-jar-aside {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  overflow: visible;
+}
+
+.post-jar-aside .idea-jar-mini {
+  margin-bottom: 0;
+  align-items: flex-end;
+}
+
+.post-jar-aside {
+  position: relative;
+  z-index: 4;
+}
+
+/* Force tip to the right of the bottle on article / tag pages. */
+.post-jar-aside .idea-jar-mini-tip,
+.list-jar-aside.is-column-jar .idea-jar-mini-tip {
+  top: 0.15rem;
+  inset-inline-start: calc(100% + 0.55rem);
+  inset-inline-end: auto;
+  transform: translateX(-4px);
+}
+
+@media (max-width: 639px) {
+  .post-head-with-jar {
+    flex-wrap: wrap;
+  }
+
+  .post-jar-aside {
+    margin-inline-start: auto;
+  }
+
+  /* Narrow: tip still to the right if space allows, else under bottle flush right. */
+  .idea-jar-mini-tip,
+  .post-jar-aside .idea-jar-mini-tip,
+  .list-jar-aside.is-column-jar .idea-jar-mini-tip {
+    top: calc(100% + 0.2rem);
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    max-width: min(12rem, 70vw);
+    transform: translateY(4px);
+  }
+}
+
+@media print {
+  .post-jar-aside {
+    display: none !important;
+  }
 }
 
 .post-jar-pour {
@@ -1268,8 +1491,10 @@ html[data-theme="dark"] .jar-mini-lid {
 
 @media (prefers-reduced-motion: reduce) {
   .home-idea-jar.is-wobble .home-idea-jar-svg,
+  .idea-jar-mini.is-wobble .idea-jar-mini-svg,
   .home-idea-jar.is-bubbling .jar-bubble,
-  .home-idea-jar.is-pour-flash .jar-liquid-meniscus {
+  .home-idea-jar.is-pour-flash .jar-liquid-meniscus,
+  .idea-jar-mini.is-pour-flash .jar-liquid-fill {
     animation: none;
   }
 }
@@ -1548,7 +1773,8 @@ html[data-theme="dark"] .jar-mini-lid {
   .quote-host-note,
   .quote-copy,
   .post-resume-tip,
-  .post-jar-pour {
+  .post-jar-pour,
+  .para-mark {
     display: none !important;
   }
 
@@ -1595,6 +1821,11 @@ html[data-theme="dark"] .jar-mini-lid {
 
 .footer-path:hover .footer-path-value {
   color: var(--accent);
+}
+
+.footer-copy {
+  opacity: 0.72;
+  white-space: nowrap;
 }
 
 .footer-rss-note {
@@ -1771,6 +2002,100 @@ html[data-theme="dark"] .jar-mini-lid {
 .column-progress-dots {
   letter-spacing: 0.14em;
   color: color-mix(in oklab, var(--accent) 65%, var(--muted-foreground));
+}
+
+/* Tag page bead rail — read ratio without shouting numbers. */
+.tag-bead-rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-inline-start: 0.15rem;
+  padding-inline: 0.15rem;
+  vertical-align: middle;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--border) 70%, transparent) 8%,
+    color-mix(in oklab, var(--border) 70%, transparent) 92%,
+    transparent 100%
+  );
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.tag-bead {
+  display: inline-block;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: color-mix(in oklab, var(--muted) 40%, var(--background));
+  box-shadow: none;
+}
+
+.tag-bead.is-read {
+  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  background: color-mix(in oklab, var(--accent) 55%, var(--background));
+}
+
+/* Paragraph margin mark — copy whole paragraph with source. */
+.app-prose > p.has-para-mark {
+  position: relative;
+}
+
+.para-mark {
+  position: absolute;
+  inset-inline-start: -1.35rem;
+  top: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease;
+}
+
+.app-prose > p.has-para-mark:hover .para-mark,
+.app-prose > p.has-para-mark:focus-within .para-mark,
+.para-mark:focus-visible {
+  opacity: 0.75;
+}
+
+.para-mark:hover,
+.para-mark.is-done {
+  color: var(--accent);
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .para-mark {
+    inset-inline-start: -0.15rem;
+    top: -0.05rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .para-mark {
+    opacity: 0.35;
+  }
+}
+
+@media print {
+  .para-mark,
+  .tag-bead-rail {
+    display: none !important;
+  }
 }
 
 .hub-series-progress {
