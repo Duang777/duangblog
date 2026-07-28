@@ -1203,38 +1203,56 @@ function initTimelineReveal(article: HTMLElement) {
   }
 }
 
+function whenIdle(fn: () => void, timeout = 1500) {
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(() => fn(), { timeout });
+    return;
+  }
+  window.setTimeout(fn, 80);
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
   if (!article) {
     initColumnProgressDots();
     return;
   }
+
+  // Keep reading-critical work on the first tick.
   initMermaidStamps(article);
   initCopyWithSource(article);
-  initReadCompleteHint(article);
   initCodeStamps(article);
-  initQuoteSources(article);
   initChapterTrail(article);
   initChapterOutline(article);
   initHashFlash(article);
-  initPrintFootnotes(article);
-  initJarPourHint(article);
-  initFootnotePreviews(article);
-  initMidCrease(article);
   initScrollInk(article);
   initResumeBookmark(article);
-  initExcerptPick(article);
-  initParagraphMarks(article);
-  initExternalLinkHints(article);
-  initCodeLineNumbers(article);
-  initQuoteInkFade(article);
-  initImageAltNotes(article);
-  initQuoteLinkNotes(article);
-  initQuoteCopy(article);
-  initTimelineReveal(article);
-  initHubSeriesDots(article);
-  initPrintSheetHead();
   touchVisitDay();
+
+  // Defer flourish touches until the browser is idle.
+  const pagePath = window.location.pathname;
+  whenIdle(() => {
+    if (window.location.pathname !== pagePath) return;
+    if (!document.getElementById("article")) return;
+
+    initReadCompleteHint(article);
+    initQuoteSources(article);
+    initPrintFootnotes(article);
+    initJarPourHint(article);
+    initFootnotePreviews(article);
+    initMidCrease(article);
+    initExcerptPick(article);
+    initParagraphMarks(article);
+    initExternalLinkHints(article);
+    initCodeLineNumbers(article);
+    initQuoteInkFade(article);
+    initImageAltNotes(article);
+    initQuoteLinkNotes(article);
+    initQuoteCopy(article);
+    initTimelineReveal(article);
+    initHubSeriesDots(article);
+    initPrintSheetHead();
+  });
 }
 
 export function bindPostEnhancements() {

@@ -1,5 +1,5 @@
 ---
-/** Site brand mark beside Duang. Three.js loads when visible. */
+/** Site brand mark beside Duang. Three.js mounts after first paint / idle. */
 ---
 
 <div
@@ -47,8 +47,38 @@
   let dispose: (() => void) | null = null;
   let observer: IntersectionObserver | null = null;
   let mountedStage: HTMLElement | null = null;
+  let idleHandle: number | null = null;
+
+  function cancelIdle() {
+    if (idleHandle == null) return;
+    if (typeof cancelIdleCallback === "function") {
+      cancelIdleCallback(idleHandle);
+    } else {
+      window.clearTimeout(idleHandle);
+    }
+    idleHandle = null;
+  }
+
+  function whenIdle(fn: () => void, timeout = 2200) {
+    cancelIdle();
+    if (typeof requestIdleCallback === "function") {
+      idleHandle = requestIdleCallback(
+        () => {
+          idleHandle = null;
+          fn();
+        },
+        { timeout }
+      );
+      return;
+    }
+    idleHandle = window.setTimeout(() => {
+      idleHandle = null;
+      fn();
+    }, 350);
+  }
 
   function teardown() {
+    cancelIdle();
     observer?.disconnect();
     observer = null;
     dispose?.();
@@ -57,6 +87,18 @@
       mountedStage.dataset.logoMounted = "0";
       mountedStage = null;
     }
+  }
+
+  async function mountLogo(stage: HTMLElement) {
+    if (dispose) return;
+    const { mountAboutLogo } = await import(
+      "@/components/about-logo-3d/load-about-logo.ts"
+    );
+    if (dispose) return;
+    if (!document.contains(stage)) return;
+    dispose = mountAboutLogo(stage, { compact: true });
+    mountedStage = stage;
+    stage.dataset.logoMounted = "1";
   }
 
   async function boot() {
@@ -77,18 +119,15 @@
     teardown();
 
     observer = new IntersectionObserver(
-      async (entries) => {
+      entries => {
         const entry = entries[0];
         if (!entry?.isIntersecting || dispose) return;
         observer?.disconnect();
         observer = null;
-
-        const { mountAboutLogo } = await import(
-          "@/components/about-logo-3d/load-about-logo.ts"
-        );
-        dispose = mountAboutLogo(stage, { compact: true });
-        mountedStage = stage;
-        stage.dataset.logoMounted = "1";
+        // Wait until the browser is idle so article text can paint first.
+        whenIdle(() => {
+          void mountLogo(stage);
+        });
       },
       { rootMargin: "0px", threshold: 0 }
     );

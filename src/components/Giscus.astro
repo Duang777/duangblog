@@ -2,6 +2,7 @@
 /**
  * Giscus comments (GitHub Discussions).
  * Requires the Giscus GitHub App installed on Duang777/duangblog.
+ * Loads only when the comments section nears the viewport.
  */
 const repo = "Duang777/duangblog";
 const repoId = "R_kgDOThhAqA";
@@ -9,7 +10,7 @@ const category = "General";
 const categoryId = "DIC_kwDOThhAqM4DB0kU";
 ---
 
-<section class="comments" aria-label="评论">
+<section class="comments" aria-label="评论" data-giscus-root>
   <div class="comments-inner app-layout">
     <header class="comments-head">
       <p class="comments-eyebrow">Discussion</p>
@@ -18,7 +19,7 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
         用 GitHub 账号登录即可留言。想法、纠错、补充都欢迎。
       </p>
     </header>
-    <div class="giscus"></div>
+    <div class="giscus" data-giscus-slot></div>
   </div>
 </section>
 
@@ -86,10 +87,7 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
       : `${origin}/giscus/light.css`;
   }
 
-  function loadGiscus() {
-    const container = document.querySelector(".giscus");
-    if (!container) return;
-
+  function injectGiscus(container) {
     container.innerHTML = "";
 
     const script = document.createElement("script");
@@ -111,6 +109,47 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
     container.appendChild(script);
   }
 
+  function scheduleGiscus() {
+    const root = document.querySelector("[data-giscus-root]");
+    const container = document.querySelector("[data-giscus-slot]");
+    if (!root || !container) return;
+
+    // Soft nav to a new post: reset and wait until near viewport again.
+    if (container.dataset.giscusPath !== window.location.pathname) {
+      container.dataset.giscusPath = window.location.pathname;
+      container.dataset.giscusLoaded = "0";
+      container.innerHTML = "";
+    }
+
+    if (container.dataset.giscusLoaded === "1") return;
+
+    const load = () => {
+      if (container.dataset.giscusLoaded === "1") return;
+      container.dataset.giscusLoaded = "1";
+      injectGiscus(container);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      load();
+      return;
+    }
+
+    const prev = container.__giscusObserver;
+    if (prev) prev.disconnect();
+
+    const io = new IntersectionObserver(
+      entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        io.disconnect();
+        container.__giscusObserver = null;
+        load();
+      },
+      { rootMargin: "280px 0px", threshold: 0.01 }
+    );
+    container.__giscusObserver = io;
+    io.observe(root);
+  }
+
   function syncGiscusTheme() {
     const iframe = document.querySelector("iframe.giscus-frame");
     if (!iframe?.contentWindow) return;
@@ -120,12 +159,16 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
     );
   }
 
-  loadGiscus();
-  document.addEventListener("astro:page-load", loadGiscus);
+  const w = window;
+  if (!w.__giscusBound) {
+    w.__giscusBound = true;
+    document.addEventListener("astro:page-load", scheduleGiscus);
+    const themeObserver = new MutationObserver(syncGiscusTheme);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
+  }
 
-  const themeObserver = new MutationObserver(syncGiscusTheme);
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme", "class"],
-  });
+  scheduleGiscus();
 </script>
