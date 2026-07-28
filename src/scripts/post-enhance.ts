@@ -1153,7 +1153,7 @@ function initParagraphMarks(article: HTMLElement) {
 
 function initTimelineReveal(article: HTMLElement) {
   const timelines = Array.from(
-    article.querySelectorAll<HTMLOListElement>(".article-timeline")
+    article.querySelectorAll<HTMLElement>(".article-flow-stack")
   );
   if (!timelines.length) return;
 
@@ -1164,7 +1164,7 @@ function initTimelineReveal(article: HTMLElement) {
     timeline.dataset.revealBound = "1";
 
     const events = Array.from(
-      timeline.querySelectorAll<HTMLElement>(".article-event")
+      timeline.querySelectorAll<HTMLElement>(".article-flow-row")
     );
     if (!events.length) continue;
 
