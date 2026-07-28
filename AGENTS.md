@@ -70,6 +70,7 @@ When a post talks about process topology, request paths, agent loops, graph rout
 - **Draw it**: use Mermaid (`flowchart` / `sequenceDiagram` / `stateDiagram`) for the topology or call path. One diagram per idea. Label real component names.
 - **Show core code**: paste short excerpts from a real repo or minimal repro (trimmed with `// ...`), citing path or version. Prefer the loop / SQL / handler / config that proves the claim. Do not paste entire files.
 - Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
+- Add at least one right-side marginal note per post using the `marginalia` pattern from `notes/怎么写博客.md` unless the post is extremely short.
 
 ## Backend: 后端专栏 (parent) and sub-columns
 
