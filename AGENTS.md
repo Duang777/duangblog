@@ -179,5 +179,15 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Topic inbox: `notes/ideas.md`
 - Optional voice sample for humanizer: `notes/voice-sample.md`
 
+## Required read before writing posts
+
+When an agent is asked to draft, rewrite, or format any post in `src/content/posts/`, it must read `notes/怎么写博客.md` first and follow it.
+
+Priority sections in that file:
+
+1. Frontmatter and publish flow
+2. Post skeleton by column type
+3. Section 9, reusable diagram and citation rules (HTML blocks, timeline template, old-vs-new template, table usage, evidence rules, pre-publish checklist)
+
 Frontmatter: `title`, `description`, `pubDatetime`, `tags`. Use `featured: true` sparingly.  
 Backend mega-column posts: tag `后端专栏`. Sub-column posts add their own tag (e.g. `请求过境`).

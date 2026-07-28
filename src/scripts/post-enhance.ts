@@ -1151,6 +1151,58 @@ function initParagraphMarks(article: HTMLElement) {
   }
 }
 
+function initTimelineReveal(article: HTMLElement) {
+  const timelines = Array.from(
+    article.querySelectorAll<HTMLOListElement>(".article-timeline")
+  );
+  if (!timelines.length) return;
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  for (const timeline of timelines) {
+    if (timeline.dataset.revealBound === "1") continue;
+    timeline.dataset.revealBound = "1";
+
+    const events = Array.from(
+      timeline.querySelectorAll<HTMLElement>(".article-event")
+    );
+    if (!events.length) continue;
+
+    if (reduced) {
+      for (const event of events) event.classList.add("is-in");
+      continue;
+    }
+
+    timeline.classList.add("is-reveal-ready");
+
+    const reveal = () => {
+      for (const [index, event] of events.entries()) {
+        window.setTimeout(() => {
+          event.classList.add("is-in");
+        }, index * 85);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            reveal();
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      {
+        rootMargin: "0px 0px -18% 0px",
+        threshold: 0.2,
+      }
+    );
+
+    observer.observe(timeline);
+  }
+}
+
 export function initPostEnhancements() {
   const article = document.getElementById("article");
   if (!article) {
@@ -1179,6 +1231,7 @@ export function initPostEnhancements() {
   initImageAltNotes(article);
   initQuoteLinkNotes(article);
   initQuoteCopy(article);
+  initTimelineReveal(article);
   initHubSeriesDots(article);
   initPrintSheetHead();
   touchVisitDay();
