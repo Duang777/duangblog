@@ -1036,7 +1036,8 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
 
   const navHistory = getCmdHistory();
   let histIdx = -1;
-  const focusInput = () => input.focus();
+  // Focus must not move the page: the terminal scrolls itself instead.
+  const focusInput = () => input.focus({ preventScroll: true });
   body.addEventListener("click", focusInput);
   focusInput();
 
