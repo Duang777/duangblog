@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>粒子着色器背景（零依赖版）</title>
+    <style>
+      :root {
+        --canvas: #191919;
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.65);
+        --faint: rgba(255, 255, 255, 0.42);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC",
+          "PingFang SC", Roboto, Helvetica, Arial, sans-serif;
+        overflow: hidden;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          115% 85% at 50% 46%,
+          rgba(25, 25, 25, 0) 30%,
+          rgba(25, 25, 25, 0.35) 74%,
+          rgba(25, 25, 25, 0.92) 100%
+        );
+      }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 32px;
+      }
+      .overlay::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(820px, 94%);
+        height: 380px;
+        background: radial-gradient(
+          closest-side,
+          rgba(25, 25, 25, 0.86),
+          rgba(25, 25, 25, 0) 100%
+        );
+      }
+      .overlay > * {
+        position: relative;
+      }
+      .eyebrow {
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin: 0 0 20px;
+        text-shadow: 0 1px 14px rgba(0, 0, 0, 0.9);
+      }
+      h1 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        font-size: clamp(32px, 7vw, 68px);
+        text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+      }
+      .sub {
+        margin: 20px 0 0;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--muted);
+        max-width: 460px;
+        text-shadow: 0 1px 14px rgba(0, 0, 0, 0.9);
+      }
+      .hint {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 22px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--faint);
+        pointer-events: none;
+      }
+      .err {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <div class="vignette"></div>
+    <div class="overlay">
+      <p class="eyebrow">Particle Shader</p>
+      <h1 id="demo-title">粒子着色器背景</h1>
+      <p class="sub" id="demo-subtitle">
+        24,000 个粒子，全部位置计算跑在 GPU 的顶点着色器里。
+      </p>
+    </div>
+    <div class="hint" id="demo-hint">移动鼠标 / 手指拖动可以改变视角</div>
+    <div class="err" id="err">当前环境不支持 WebGL，无法渲染粒子背景。</div>
+    <script>
+      if (new URLSearchParams(location.search).get("lang") === "en") {
+        document.documentElement.lang = "en";
+        document.title = "Particle shader background";
+        document.getElementById("demo-title").textContent =
+          "Particle Shader Background";
+        document.getElementById("demo-subtitle").textContent =
+          "24,000 particle positions calculated in a GPU vertex shader.";
+        document.getElementById("demo-hint").textContent =
+          "Move the pointer or drag a finger to change the view";
+        document.getElementById("err").textContent =
+          "This browser cannot render the particle background because WebGL is unavailable.";
+      }
+
+      const VERT_SRC = `
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+attribute vec3 position;
+attribute float aScale;
+attribute float aSeed;
+attribute vec3 aColor;
+uniform float uTime;
+uniform float uSize;
+uniform float uPixelRatio;
+varying vec3 vColor;
+varying float vAlpha;
+
+vec3 mod289(vec3 x){ return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 mod289(vec4 x){ return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 permute(vec4 x){ return mod289(((x*34.0)+1.0)*x); }
+vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v){
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+}
+
+void main() {
+  vec3 p = position;
+  float t = uTime * 0.06;
+  float n1 = snoise(vec3(p.xz * 0.34, t));
+  float n2 = snoise(vec3(p.zy * 0.29, t + 11.3));
+  p += vec3(n1, n2 * 0.55, n2) * 0.42;
+
+  float r = length(p.xz);
+  float ang = uTime * (0.19 / (r + 0.9));
+  float s = sin(ang), c = cos(ang);
+  p.xz = mat2(c, -s, s, c) * p.xz;
+  p.y += sin(uTime * 0.45 + aSeed * 6.2831) * 0.06;
+
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  gl_PointSize = max(uSize * aScale * uPixelRatio / max(-mv.z, 0.001), 1.0);
+
+  float twinkle = 0.72 + 0.28 * sin(uTime * 1.5 + aSeed * 40.0);
+  vColor = aColor;
+  vAlpha = twinkle * smoothstep(14.0, 3.0, -mv.z);
+}`;
+
+      const FRAG_SRC = `
+precision mediump float;
+varying vec3 vColor;
+varying float vAlpha;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  float a = smoothstep(0.5, 0.0, d);
+  a = pow(a, 1.9);
+  if (a < 0.01) discard;
+  gl_FragColor = vec4(vColor, a * vAlpha);
+}`;
+
+      function buildParticles(count) {
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        const scales = new Float32Array(count);
+        const seeds = new Float32Array(count);
+        const core = [0.91, 0.95, 1.0];
+        const mid = [0.369, 0.624, 0.91];
+        const edge = [0.749, 0.557, 0.855];
+        const mix = (a, b, k) => [
+          a[0] + (b[0] - a[0]) * k,
+          a[1] + (b[1] - a[1]) * k,
+          a[2] + (b[2] - a[2]) * k,
+        ];
+
+        for (let i = 0; i < count; i++) {
+          const i3 = i * 3;
+          const rn = Math.pow(Math.random(), 1.7);
+          const radius = rn * 4.6;
+          const branch = ((i % 3) / 3) * Math.PI * 2;
+          const spin = radius * 1.05;
+          const spread =
+            Math.pow(Math.random(), 2.6) *
+            (Math.random() < 0.5 ? 1 : -1) *
+            0.55;
+          const theta = branch + spin + spread;
+          const thickness = 0.34 * Math.exp(-radius * 0.22) + 0.03;
+          const y =
+            (Math.random() + Math.random() + Math.random() - 1.5) * thickness +
+            Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 0.12;
+
+          positions[i3] = Math.cos(theta) * radius;
+          positions[i3 + 1] = y;
+          positions[i3 + 2] = Math.sin(theta) * radius;
+
+          const k = Math.min(radius / 4.6, 1);
+          const color =
+            k < 0.45
+              ? mix(core, mid, k / 0.45)
+              : mix(mid, edge, (k - 0.45) / 0.55);
+          const jitter = 0.88 + Math.random() * 0.24;
+          colors[i3] = Math.min(color[0] * jitter, 1);
+          colors[i3 + 1] = Math.min(color[1] * jitter, 1);
+          colors[i3 + 2] = Math.min(color[2] * jitter, 1);
+          scales[i] = 0.4 + Math.pow(Math.random(), 3) * 1.7;
+          seeds[i] = Math.random();
+        }
+
+        return { positions, colors, scales, seeds };
+      }
+
+      function mIdentity() {
+        return new Float32Array([
+          1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+        ]);
+      }
+      function mMul(a, b) {
+        const o = new Float32Array(16);
+        for (let c = 0; c < 4; c++)
+          for (let r = 0; r < 4; r++) {
+            o[c * 4 + r] =
+              a[r] * b[c * 4] +
+              a[4 + r] * b[c * 4 + 1] +
+              a[8 + r] * b[c * 4 + 2] +
+              a[12 + r] * b[c * 4 + 3];
+          }
+        return o;
+      }
+      function mPerspective(fovy, aspect, near, far) {
+        const f = 1 / Math.tan(fovy / 2),
+          nf = 1 / (near - far);
+        return new Float32Array([
+          f / aspect,
+          0,
+          0,
+          0,
+          0,
+          f,
+          0,
+          0,
+          0,
+          0,
+          (far + near) * nf,
+          -1,
+          0,
+          0,
+          2 * far * near * nf,
+          0,
+        ]);
+      }
+      function mTranslate(x, y, z) {
+        const m = mIdentity();
+        m[12] = x;
+        m[13] = y;
+        m[14] = z;
+        return m;
+      }
+      function mRotX(a) {
+        const c = Math.cos(a),
+          s = Math.sin(a),
+          m = mIdentity();
+        m[5] = c;
+        m[6] = s;
+        m[9] = -s;
+        m[10] = c;
+        return m;
+      }
+      function mRotY(a) {
+        const c = Math.cos(a),
+          s = Math.sin(a),
+          m = mIdentity();
+        m[0] = c;
+        m[2] = -s;
+        m[8] = s;
+        m[10] = c;
+        return m;
+      }
+
+      const canvas = document.getElementById("scene");
+      const gl = canvas.getContext("webgl", {
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance",
+      });
+
+      if (!gl) {
+        document.getElementById("err").style.display = "flex";
+      } else {
+        main();
+      }
+
+      function compile(type, src) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error(gl.getShaderInfoLog(shader));
+          throw new Error("shader compile failed");
+        }
+        return shader;
+      }
+
+      function main() {
+        const program = gl.createProgram();
+        gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT_SRC));
+        gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAG_SRC));
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          console.error(gl.getProgramInfoLog(program));
+          document.getElementById("err").style.display = "flex";
+          return;
+        }
+        gl.useProgram(program);
+
+        const count = 24000;
+        const data = buildParticles(count);
+        function attrib(name, array, size) {
+          const location = gl.getAttribLocation(program, name);
+          if (location < 0) return;
+          const buffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
+          gl.enableVertexAttribArray(location);
+          gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
+        }
+        attrib("position", data.positions, 3);
+        attrib("aColor", data.colors, 3);
+        attrib("aScale", data.scales, 1);
+        attrib("aSeed", data.seeds, 1);
+
+        const uTime = gl.getUniformLocation(program, "uTime");
+        const uSize = gl.getUniformLocation(program, "uSize");
+        const uDpr = gl.getUniformLocation(program, "uPixelRatio");
+        const uMV = gl.getUniformLocation(program, "modelViewMatrix");
+        const uP = gl.getUniformLocation(program, "projectionMatrix");
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.clearColor(0.098, 0.098, 0.098, 1.0);
+
+        let dpr = 1;
+        let projection = mIdentity();
+        function resize() {
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const width = canvas.clientWidth;
+          const height = canvas.clientHeight;
+          canvas.width = Math.floor(width * dpr);
+          canvas.height = Math.floor(height * dpr);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          projection = mPerspective(
+            (55 * Math.PI) / 180,
+            width / height,
+            0.1,
+            100
+          );
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        let tx = 0,
+          ty = 0,
+          cx = 0,
+          cy = 0;
+        function pointer(x, y) {
+          tx = (x / window.innerWidth - 0.5) * 2;
+          ty = (y / window.innerHeight - 0.5) * 2;
+        }
+        window.addEventListener("pointermove", event =>
+          pointer(event.clientX, event.clientY)
+        );
+        window.addEventListener(
+          "touchmove",
+          event => {
+            if (event.touches[0])
+              pointer(event.touches[0].clientX, event.touches[0].clientY);
+          },
+          { passive: true }
+        );
+
+        const reduced = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        const start = performance.now();
+        function frame(now) {
+          const time = reduced ? 6.0 : (now - start) / 1000;
+          cx += (tx - cx) * 0.045;
+          cy += (ty - cy) * 0.045;
+          const modelView = mMul(
+            mMul(mTranslate(0, -0.15, -6.6), mRotX(0.5 + cy * 0.18)),
+            mRotY(cx * 0.5)
+          );
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.uniform1f(uTime, time);
+          gl.uniform1f(uSize, 30.0);
+          gl.uniform1f(uDpr, dpr);
+          gl.uniformMatrix4fv(uMV, false, modelView);
+          gl.uniformMatrix4fv(uP, false, projection);
+          gl.drawArrays(gl.POINTS, 0, count);
+          if (!reduced) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+    </script>
+  </body>
+</html>

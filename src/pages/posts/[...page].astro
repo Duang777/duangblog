@@ -15,16 +15,57 @@ import config from "@/config";
 
 export const getStaticPaths = (async ({ paginate }) => {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
-  const sorted = getSortedPosts(posts);
-  return paginate(sorted, { pageSize: config.posts.perPage });
+  const zh = getSortedPosts(posts, "zh-CN");
+  const en = getSortedPosts(posts, "en");
+  // Enough pages for the larger language; each locale slices its own list at render.
+  const longer = zh.length >= en.length ? zh : en;
+  return paginate(longer, { pageSize: config.posts.perPage });
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
-const allPosts = await getCollection("posts", ({ data }) => !data.draft);
-const totalPosts = allPosts.length;
-
 const locale = Astro.currentLocale ?? config.site.lang;
+const sorted = getSortedPosts(
+  await getCollection("posts", ({ data }) => !data.draft),
+  locale
+);
+const pageSize = config.posts.perPage;
+const lastPage = Math.max(1, Math.ceil(sorted.length / pageSize));
+const currentPage = Math.min(page.currentPage, lastPage);
+const start = (currentPage - 1) * pageSize;
+const pagePosts = sorted.slice(start, start + pageSize);
+const totalPosts = sorted.length;
+
 const t = useTranslations(locale);
+
+const localePage = {
+  ...page,
+  data: pagePosts,
+  currentPage,
+  lastPage,
+  total: sorted.length,
+  size: pageSize,
+  url: {
+    ...page.url,
+    prev:
+      currentPage > 1
+        ? currentPage === 2
+          ? page.url.first ?? page.url.current.replace(/\/\d+\/?$/, "/")
+          : page.url.current.replace(
+              /\/\d+\/?$/,
+              `/${currentPage - 1}/`
+            )
+        : undefined,
+    next:
+      currentPage < lastPage
+        ? page.url.current.includes(`/${currentPage}`)
+          ? page.url.current.replace(
+              `/${currentPage}`,
+              `/${currentPage + 1}`
+            )
+          : `${page.url.current.replace(/\/?$/, "/")}${currentPage + 1}/`
+        : undefined,
+  },
+};
 ---
 
 <Layout title={`${t.pages.postsTitle} | ${config.site.title}`}>
@@ -32,16 +73,20 @@ const t = useTranslations(locale);
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.postsTitle} pageDesc={t.pages.postsDesc} backLabel="文章">
+  <Main
+    pageTitle={t.pages.postsTitle}
+    pageDesc={t.pages.postsDesc}
+    backLabel={t.nav.posts}
+  >
     <div class="list-jar-aside">
       <HomeIdeaJarMini totalPosts={totalPosts} />
     </div>
     <ul>
-      {page.data.map(data => <Card {...data} />)}
+      {pagePosts.map(data => <Card {...data} />)}
     </ul>
   </Main>
 
-  <Pagination {page} />
+  <Pagination page={localePage} />
 
-  <Footer noMarginTop={page.lastPage > 1} />
+  <Footer noMarginTop={lastPage > 1} />
 </Layout>

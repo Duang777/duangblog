@@ -19,6 +19,24 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  /*
+   * Chinese reads better with a touch more leading than Latin Source metrics.
+   * Noto SC handles glyphs; this only eases line rhythm for mixed prose.
+   */
+  html {
+    hanging-punctuation: first allow-end last;
+  }
+
+  body {
+    text-rendering: optimizeLegibility;
+  }
+
+  .font-serif,
+  .app-prose :is(h1, h2, h3, h4) {
+    font-feature-settings: "kern" 1;
+    letter-spacing: 0.01em;
+  }
 }
 
 @utility max-w-app {
@@ -171,6 +189,10 @@ html[data-theme="dark"] body::before {
 
 .post-card[data-column="backend"] {
   --column-tint: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+}
+
+.post-card[data-column="frontend"] {
+  --column-tint: color-mix(in oklab, #3f7b78 65%, var(--muted-foreground));
 }
 
 .post-card[data-column="agent"] {
@@ -912,6 +934,138 @@ body {
   opacity: 0.92;
   visibility: visible;
   transform: none;
+}
+
+/* Homepage columns — one mega-column per section, after hero notes. */
+.home-columns {
+  padding-top: 2.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.home-columns-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.home-columns-meta .home-writing-status {
+  margin-bottom: 0;
+}
+
+.home-column {
+  --column-ink: color-mix(in oklab, var(--foreground) 55%, transparent);
+  padding-block: 1.75rem 1.25rem;
+  border-top: 1px solid color-mix(in oklab, var(--border) 88%, transparent);
+}
+
+.home-column:first-of-type {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+
+.home-column.is-digest {
+  --column-ink: color-mix(in oklab, #3d6b7a 70%, var(--foreground));
+}
+
+.home-column.is-backend {
+  --column-ink: color-mix(in oklab, #8a5a3a 65%, var(--foreground));
+}
+
+.home-column.is-frontend {
+  --column-ink: color-mix(in oklab, #2f6f6c 70%, var(--foreground));
+}
+
+.home-column.is-agent {
+  --column-ink: color-mix(in oklab, #3a5c72 70%, var(--foreground));
+}
+
+.home-column.is-misc {
+  --column-ink: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+}
+
+.home-column-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.home-column-titles {
+  min-width: 0;
+  flex: 1;
+}
+
+.home-column-title {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  color: var(--column-ink);
+}
+
+.home-column-intro {
+  margin: 0.45rem 0 0;
+  max-width: 36rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--muted-foreground) 92%, transparent);
+}
+
+.home-column-enter {
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--muted-foreground) 28%, transparent);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.home-column-enter:hover,
+.home-column-enter:focus-visible {
+  color: var(--column-ink);
+  border-bottom-color: color-mix(in oklab, var(--column-ink) 45%, transparent);
+}
+
+.home-column-enter:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.home-column-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-column-list .post-card {
+  margin-block: 0.85rem;
+}
+
+.home-column-empty {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+}
+
+@media (max-width: 640px) {
+  .home-column-head {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .home-column-enter {
+    margin-top: 0;
+  }
 }
 
 /* Homepage phenology + idea bottle — top of content, after hero. */

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新旧 MCP 对照</title>
+<style>
+  :root{
+    --text:#2C2C2B; --muted:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
+    --surface:#F0EFED; --border:#E6E5E3; --blue:#2783DE; --blue-soft:#E5F2FC;
+    --orange:#D5803B; --orange-soft:#FBEBDE; --green:#46A171; --green-soft:#E8F1EC;
+    --red:#E56458;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--canvas); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.5;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:32px 32px 36px;}
+  h1{font-size:25px; margin:0 0 6px; font-weight:650; letter-spacing:-.01em;}
+  .sub{margin:0 0 24px; color:var(--muted); font-size:14px;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .col{border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .col header{padding:14px 18px; border-bottom:1px solid var(--border);}
+  .old header{background:var(--surface);}
+  .new header{background:var(--blue-soft);}
+  .col header h2{margin:0; font-size:16px; font-weight:650;}
+  .col header p{margin:2px 0 0; font-size:12.5px; color:var(--muted);}
+  ul{list-style:none; margin:0; padding:8px 18px 16px;}
+  li{padding:9px 0; border-bottom:1px dashed var(--border); font-size:13.5px;}
+  li:last-child{border-bottom:none;}
+  li b{display:block; font-weight:600; font-size:13.5px; margin-bottom:2px;}
+  li span{color:var(--muted); font-size:12.5px; line-height:1.45;}
+  code{font-family:Menlo,Consolas,monospace; font-size:12.5px; background:var(--soft); padding:1px 4px; border-radius:4px;}
+  .old li b::before{content:"●"; color:var(--muted); font-size:9px; vertical-align:2px; margin-right:7px;}
+  .new li b::before{content:"●"; color:var(--blue); font-size:9px; vertical-align:2px; margin-right:7px;}
+  .why{
+    margin-top:20px; border:1px solid var(--border); border-left:3px solid var(--green);
+    background:var(--green-soft); border-radius:8px; padding:14px 18px;
+  }
+  .why b{font-size:13.5px;}
+  .why p{margin:4px 0 0; font-size:13px; color:#4a5b51; line-height:1.5;}
+  @media (max-width:720px){
+    .wrap{padding:24px 20px;}
+    .cols{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>同一件事，两种模型</h1>
+  <p class="sub">左边是 2025-11-25 的 MCP，右边是草案。差别几乎都能从「服务端还记不记得你」这一条推出来。</p>
+  <div class="cols">
+    <section class="col old">
+      <header>
+        <h2>旧：有状态的会话</h2>
+        <p>2025-11-25 及更早</p>
+      </header>
+      <ul>
+        <li><b>先握手再干活</b><span><code>initialize</code> + <code>notifications/initialized</code>，版本和能力只协商一次。</span></li>
+        <li><b>会话 ID 贯穿全程</b><span><code>Mcp-Session-Id</code> 由服务端下发，状态存在服务端。</span></li>
+        <li><b>工具列表可以因人而异</b><span>同一个 server 能按会话身份返回不同的 <code>tools/list</code>。</span></li>
+        <li><b>服务端反向请求客户端</b><span>Roots、Sampling、Elicitation 都靠双向连接。</span></li>
+        <li><b>GET + SSE 收通知</b><span><code>resources/subscribe</code>，断线可用 <code>Last-Event-ID</code> 续传。</span></li>
+        <li><b>ping 保活、全局日志级别</b><span><code>logging/setLevel</code> 一设就是整个会话。</span></li>
+      </ul>
+    </section>
+    <section class="col new">
+      <header>
+        <h2>新：无状态的请求响应</h2>
+        <p>draft</p>
+      </header>
+      <ul>
+        <li><b>没有开场白</b><span>版本和能力放进每个请求的 <code>_meta</code>，需要探测就调 <code>server/discover</code>。</span></li>
+        <li><b>没有会话</b><span>要跨调用记东西，服务端自己签发 handle，当普通参数传。</span></li>
+        <li><b>一张清单对所有人</b><span>列表接口不随连接变化，要区分就拆端点。</span></li>
+        <li><b>MRTR 把方向反过来</b><span>返回 <code>input_required</code>，客户端补齐信息后重试原请求。</span></li>
+        <li><b>subscriptions/listen 统一入口</b><span>流一断请求即作废，必须用新 ID 重发。</span></li>
+        <li><b>ping 删除、日志按请求开</b><span>保活交给传输层，默认不发 <code>notifications/message</code>。</span></li>
+      </ul>
+    </section>
+  </div>
+  <div class="why">
+    <b>为什么值得这么改</b>
+    <p>每个请求自包含之后，任意实例都能处理任意请求 —— MCP server 可以像普通 HTTP 服务那样做负载均衡、水平扩容和滚动重启。代价是幂等、重试、状态管理这些复杂度，从协议层挪到了你自己的业务代码里。</p>
+  </div>
+</div>
+</body>
+</html>

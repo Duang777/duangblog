@@ -3,6 +3,7 @@ import { getRelativeLocaleUrl } from "astro:i18n";
 import config from "@/config";
 import { homeWritingStatus } from "@/data/home-status";
 import type { TermPost } from "@/scripts/home-term";
+import { useTranslations } from "@/i18n";
 
 type Props = {
   locale: string;
@@ -15,6 +16,7 @@ const postsHref = getRelativeLocaleUrl(locale, "posts");
 const aboutHref = getRelativeLocaleUrl(locale, "about");
 const prompt = "duang@blog:~$";
 const author = config.site.author;
+const t = useTranslations(locale);
 ---
 
 <section
@@ -33,7 +35,7 @@ const author = config.site.author;
 
   <div
     id="home-boot"
-    class="home-boot font-mono text-foreground absolute inset-0 z-20 flex items-center justify-center bg-background px-6"
+    class="home-boot font-mono text-foreground fixed inset-0 z-50 flex items-center justify-center bg-background px-6"
     aria-hidden="true"
   >
     <pre id="home-boot-log" class="text-muted-foreground w-full max-w-xl text-xs leading-6 sm:text-sm"></pre>
@@ -84,15 +86,16 @@ const author = config.site.author;
   <a
     href="#posts"
     class="home-hero-scroll text-muted-foreground hover:text-accent absolute inset-x-0 bottom-6 z-10 mx-auto flex w-fit flex-col items-center gap-1 text-xs tracking-wide"
-    aria-label="滚动到文章"
+    aria-label={t.home.scrollToPosts}
   >
-    <span>文章</span>
+    <span>{t.home.scrollToPosts}</span>
     <span class="home-hero-scroll-cue border-border block h-8 w-px border-l" aria-hidden="true"></span>
   </a>
 </section>
 
 <style is:global>
-  body:has(main[data-layout="index"]) header {
+  /* Only the site chrome <header>, not column section headers. */
+  body:has(main[data-layout="index"]) > header {
     position: fixed;
     inset-inline: 0;
     top: 0;
@@ -102,19 +105,19 @@ const author = config.site.author;
       backdrop-filter 0.25s ease;
   }
 
-  body:has(main[data-layout="index"]) header > div {
+  body:has(main[data-layout="index"]) > header > div {
     background: transparent;
     border-bottom-color: transparent;
     transition: border-color 0.25s ease;
   }
 
-  body:has(main[data-layout="index"]) header.home-header-solid,
-  body:has(main[data-layout="index"]) header:has(#menu-items:not(.hidden)) {
+  body:has(main[data-layout="index"]) > header.home-header-solid,
+  body:has(main[data-layout="index"]) > header:has(#menu-items:not(.hidden)) {
     background: color-mix(in oklab, var(--background) 88%, transparent);
     backdrop-filter: blur(10px);
   }
 
-  body:has(main[data-layout="index"]) header.home-header-solid > div {
+  body:has(main[data-layout="index"]) > header.home-header-solid > div {
     border-bottom-color: var(--border);
   }
 
@@ -145,12 +148,25 @@ const author = config.site.author;
   }
 
   .home-boot {
+    /* Cover the whole viewport so below-hero notes / VT ghosts never peek. */
     transition: opacity 0.35s ease;
   }
 
   .home-boot.is-done {
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
+  }
+
+  :global(body.is-home-booting) {
+    overflow: hidden;
+  }
+
+  :global(body.is-home-booting .home-aside-notes-wrap),
+  :global(body.is-home-booting .home-columns),
+  :global(body.is-home-booting .home-seam),
+  :global(body.is-home-booting #posts) {
+    visibility: hidden;
   }
 
   .home-hero-stage {

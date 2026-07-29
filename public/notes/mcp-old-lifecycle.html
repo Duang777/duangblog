@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>旧版 MCP 的会话生命周期</title>
+<style>
+  :root{
+    --text:#2C2C2B; --muted:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
+    --surface:#F0EFED; --border:#E6E5E3; --blue:#2783DE; --blue-soft:#E5F2FC;
+    --orange:#D5803B; --orange-soft:#FBEBDE; --green:#46A171; --green-soft:#E8F1EC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--canvas); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.5;
+  }
+  .wrap{max-width:1000px; margin:0 auto; padding:24px 28px 26px;}
+  .eyebrow{font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 6px;}
+  h1{font-size:25px; line-height:1.25; margin:0 0 6px; font-weight:650;}
+  .sub{margin:0 0 18px; color:var(--muted); font-size:14px;}
+  .lanes{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:10px;}
+  .lane{
+    background:var(--soft); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; font-size:14px; font-weight:600; text-align:center;
+  }
+  .lane span{display:block; font-weight:400; font-size:12px; color:var(--muted); margin-top:2px;}
+  .flow{position:relative; padding-left:0;}
+  .step{
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    gap:12px; padding:3px 0;
+  }
+  .msg{
+    border:1px solid var(--border); border-radius:8px; padding:7px 12px;
+    background:#fff; font-size:13.5px;
+  }
+  .msg code{font-family:Menlo,Consolas,monospace; font-size:12.5px;}
+  .msg .note{display:block; color:var(--muted); font-size:12px; margin-top:2px;}
+  .to-server{grid-column:1 / 2; border-left:3px solid var(--blue); background:var(--blue-soft);}
+  .to-client{grid-column:3 / 4; border-right:3px solid var(--orange); background:var(--orange-soft); text-align:right;}
+  .arrow{grid-column:2 / 3; color:var(--muted); font-size:13px; white-space:nowrap;}
+  .rail{
+    grid-column:2 / 3; width:1px; height:100%; background:var(--border); margin:0 auto;
+  }
+  .phase{
+    display:flex; align-items:center; gap:10px; margin:12px 0 4px;
+  }
+  .phase b{font-size:12.5px; letter-spacing:.04em; color:var(--muted); font-weight:600; white-space:nowrap;}
+  .phase i{flex:1; height:1px; background:var(--border); display:block;}
+  .state{
+    margin-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+  }
+  .card{border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--soft);}
+  .card h3{margin:0 0 4px; font-size:13.5px; font-weight:600;}
+  .card p{margin:0; font-size:12.5px; color:var(--muted); line-height:1.45;}
+  .tag{
+    display:inline-block; font-size:11.5px; padding:1px 7px; border-radius:999px;
+    background:var(--surface); color:var(--muted); margin-left:6px; vertical-align:1px;
+  }
+  @media (max-width:720px){
+    .wrap{padding:24px 20px;}
+    .step{grid-template-columns:1fr; gap:4px;}
+    .to-server,.to-client{grid-column:1 / -1; text-align:left; border-right:none; border-left:3px solid var(--border);}
+    .to-server{border-left-color:var(--blue);} .to-client{border-left-color:var(--orange);}
+    .arrow{grid-column:1 / -1;}
+    .state{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">2025-11-25 及更早</p>
+  <h1>旧版 MCP：一条有状态的长连接</h1>
+  <p class="sub">连接建立后先握手，双方各自记住对方，之后所有请求都跑在同一个会话上下文里。</p>
+
+  <div class="lanes">
+    <div class="lane">客户端 Client<span>Host / LLM 应用</span></div>
+    <div class="lane">服务端 Server<span>MCP Server</span></div>
+  </div>
+
+  <div class="phase"><b>① 握手</b><i></i></div>
+  <div class="flow">
+    <div class="step">
+      <div class="msg to-server"><code>initialize</code><span class="note">协议版本 + 客户端能力 + clientInfo</span></div>
+      <div class="arrow">──▶</div>
+    </div>
+    <div class="step">
+      <div class="arrow" style="grid-column:2/3">◀──</div>
+      <div class="msg to-client">InitializeResult<span class="note">服务端能力 + serverInfo</span></div>
+    </div>
+    <div class="step">
+      <div class="msg to-server"><code>notifications/initialized</code><span class="note">握手完成，会话开始</span></div>
+      <div class="arrow">──▶</div>
+    </div>
+    <div class="step">
+      <div class="arrow" style="grid-column:2/3">◀──</div>
+      <div class="msg to-client"><code>Mcp-Session-Id</code> 下发<span class="note">后续请求都要带上这个头</span></div>
+    </div>
+  </div>
+
+  <div class="phase"><b>② 会话内的往返</b><i></i></div>
+  <div class="flow">
+    <div class="step">
+      <div class="msg to-server"><code>tools/list</code> · <code>tools/call</code><span class="note">可按会话身份返回不同的工具集</span></div>
+      <div class="arrow">──▶</div>
+    </div>
+    <div class="step">
+      <div class="arrow" style="grid-column:2/3">◀──</div>
+      <div class="msg to-client">服务端反向请求<span class="note">roots/list · sampling/createMessage · elicitation/create</span></div>
+    </div>
+    <div class="step">
+      <div class="msg to-server">回答反向请求<span class="note">服务端一直挂着这次调用的上下文等结果</span></div>
+      <div class="arrow">──▶</div>
+    </div>
+    <div class="step">
+      <div class="msg to-server"><code>GET</code> + <code>resources/subscribe</code><span class="note">开一条 SSE 长连收通知</span></div>
+      <div class="arrow">──▶</div>
+    </div>
+    <div class="step">
+      <div class="arrow" style="grid-column:2/3">◀──</div>
+      <div class="msg to-client">推送通知 / <code>ping</code> 保活<span class="note">断线可用 Last-Event-ID 续传</span></div>
+    </div>
+  </div>
+
+  <div class="state">
+    <div class="card">
+      <h3>状态藏在传输层<span class="tag">隐式</span></h3>
+      <p>会话 ID 绑定了版本、能力、订阅和进行中的调用，客户端看不见也管不了。</p>
+    </div>
+    <div class="card">
+      <h3>连接必须是双向的<span class="tag">对等</span></h3>
+      <p>服务端可以在处理一半时反过来调用客户端，前提是这条连接一直活着。</p>
+    </div>
+    <div class="card">
+      <h3>上云很别扭<span class="tag">代价</span></h3>
+      <p>同一会话必须落到同一实例，发版重启就会把所有客户端的会话一起丢掉。</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

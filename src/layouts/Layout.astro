@@ -6,6 +6,9 @@ import { resolveDefaultOgImagePath } from "@/utils/resolveDefaultOgImagePath";
 import { getAssetPath } from "@/utils/withBase";
 import config from "@/config";
 import "@/styles/global.css";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/newsreader/wght.css";
+import "@fontsource-variable/newsreader/wght-italic.css";
 
 type Props = {
   title?: string;
@@ -15,6 +18,7 @@ type Props = {
 };
 
 const { site } = config;
+const locale = Astro.currentLocale ?? site.lang;
 
 const {
   title = site.title,
@@ -25,19 +29,19 @@ const {
 
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
 const rssHref = getRelativeLocaleUrl(
-  Astro.currentLocale ?? config.site.lang,
+  locale,
   "rss.xml"
 );
 const searchHref =
   config.features.search === "pagefind"
-    ? getRelativeLocaleUrl(Astro.currentLocale ?? config.site.lang, "search")
+    ? getRelativeLocaleUrl(locale, "search")
     : undefined;
 ---
 
 <!doctype html>
 <html
   dir={site.dir ?? "ltr"}
-  lang={Astro.currentLocale ?? site.lang}
+  lang={locale}
   class="overflow-y-scroll scroll-smooth"
 >
   <head>
@@ -48,7 +52,7 @@ const searchHref =
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Fonts: sans body, serif headings, mono terminal/code -->
+    <!-- Fonts: Source (zh) / Inter+Newsreader (en) + CJK LXGW WenKai Screen -->
     <Font
       cssVariable="--font-source-sans"
       preload={[{ subset: "latin", weight: 400, style: "normal" }]}
@@ -61,6 +65,14 @@ const searchHref =
       cssVariable="--font-google-sans-code"
       preload={[{ subset: "latin", weight: 400, style: "normal" }]}
     />
+    {
+      locale !== "en" && (
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/lxgwwenkaiscreen.css"
+        />
+      )
+    }
 
     <!-- Primary meta -->
     <title>{title}</title>

@@ -32,6 +32,9 @@ export default {
     featured: "精选",
     recentPosts: "最近更新",
     allPosts: "全部文章",
+    enterColumn: "进入专栏",
+    scrollToPosts: "文章",
+    columnsEmpty: "这一栏还在攒稿。",
   },
   footer: {
     copyright: "版权所有",
@@ -62,6 +65,8 @@ export default {
     noResults: "没有找到结果",
     goToPreviousPage: "上一页",
     goToNextPage: "下一页",
+    switchToZh: "切换到中文",
+    switchToEn: "Switch to English",
   },
   notFound: {
     title: "404 未找到",

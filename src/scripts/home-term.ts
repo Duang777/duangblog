@@ -1212,7 +1212,9 @@ async function startTerminal(
   body: HTMLElement,
   ctx: TermCtx,
   still: () => boolean,
-  returnNote?: string | null
+  returnNote?: string | null,
+  /** Render the opening lines at once instead of typing them out. */
+  instant = false
 ) {
   const brand = body.querySelector("#home-brand");
   body.replaceChildren();
@@ -1244,7 +1246,7 @@ async function startTerminal(
     }
   );
 
-  if (reducedMotion()) {
+  if (instant || reducedMotion()) {
     for (const line of bootCmds) {
       if (!still()) return;
       if (line.type === "cmd") {
@@ -1411,6 +1413,9 @@ export async function initHomeHero() {
   }
 
   const resume = shouldResume();
+  const softNav = Boolean(
+    (window as unknown as { __softNav?: boolean }).__softNav
+  );
   const ctx: TermCtx = {
     postsHref: hero.dataset.postsHref ?? "/posts/",
     aboutHref: hero.dataset.aboutHref ?? "/about/",
@@ -1424,33 +1429,46 @@ export async function initHomeHero() {
   bindDropTarget(body, ctx, still);
   const returnNote = takeReturnNote(posts);
 
-  if (resume) {
-    clearResume();
-    syncChromePrompt(ctx);
+  const finishBootChrome = () => {
+    document.body.classList.remove("is-home-booting");
     boot.classList.add("is-done");
     stage.classList.add("is-ready");
     scrollCue?.classList.add("is-ready");
-    await resumeTerminal(body, ctx, still, returnNote);
+  };
+
+  if (resume || softNav) {
+    if (resume) clearResume();
+    syncChromePrompt(ctx);
+    finishBootChrome();
+    if (resume) {
+      await resumeTerminal(body, ctx, still, returnNote);
+    } else {
+      // Soft ClientRouter return: keep the opening lines, skip duangboot + typing.
+      await startTerminal(body, ctx, still, returnNote, true);
+    }
     if (!still()) return;
     watchHeader(hero);
     watchScrollFade(hero, stage);
     return;
   }
 
-  await runBoot(bootLog, posts.length, still);
-  if (!still()) return;
+  document.body.classList.add("is-home-booting");
+  try {
+    await runBoot(bootLog, posts.length, still);
+    if (!still()) return;
 
-  boot.classList.add("is-done");
-  stage.classList.add("is-ready");
-  scrollCue?.classList.add("is-ready");
-  await sleep(200);
-  if (!still()) return;
+    finishBootChrome();
+    await sleep(200);
+    if (!still()) return;
 
-  await startTerminal(body, ctx, still, returnNote);
-  if (!still()) return;
+    await startTerminal(body, ctx, still, returnNote);
+    if (!still()) return;
 
-  watchHeader(hero);
-  watchScrollFade(hero, stage);
+    watchHeader(hero);
+    watchScrollFade(hero, stage);
+  } finally {
+    document.body.classList.remove("is-home-booting");
+  }
 }
 
 export function bindHomeHeroPageLoad() {

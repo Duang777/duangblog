@@ -25,7 +25,9 @@ if (!config.features.showArchives && notFoundUrl) {
 const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
-const filteredPosts = posts.filter(postFilter);
+const filteredPosts = posts
+  .filter(postFilter)
+  .filter(p => (p.data.lang ?? "zh-CN") === (locale === "en" ? "en" : "zh-CN"));
 const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 ---
 

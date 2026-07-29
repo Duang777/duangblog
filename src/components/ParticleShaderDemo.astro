@@ -1,0 +1,84 @@
+---
+type Props = {
+  title?: string;
+  hint?: string;
+  openLabel?: string;
+  locale?: "zh-CN" | "en";
+};
+
+const {
+  title = "24,000 个粒子的 WebGL 着色器演示",
+  hint = "移动鼠标或拖动手指可以改变视角。",
+  openLabel = "在新页面打开演示",
+  locale = "zh-CN",
+} = Astro.props;
+const demoHref = `${import.meta.env.BASE_URL}demos/particle-shader.html${
+  locale === "en" ? "?lang=en" : ""
+}`;
+---
+
+<figure class="particle-demo not-prose">
+  <iframe
+    src={demoHref}
+    title={title}
+    loading="lazy"
+    sandbox="allow-scripts"
+    allow="fullscreen"></iframe>
+  <figcaption>
+    <span>{hint}</span>
+    <a href={demoHref} target="_blank" rel="noopener noreferrer">
+      {openLabel}
+    </a>
+  </figcaption>
+</figure>
+
+<style>
+  .particle-demo {
+    margin: 2rem 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #191919;
+  }
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: clamp(24rem, 68vw, 42rem);
+    border: 0;
+  }
+
+  figcaption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid color-mix(in oklab, white 15%, transparent);
+    color: rgb(255 255 255 / 65%);
+    font-family: var(--font-mono), monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  a {
+    flex: none;
+    color: rgb(255 255 255 / 85%);
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 0.25rem;
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: white;
+  }
+
+  @media (max-width: 36rem) {
+    figcaption {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+  }
+</style>

@@ -38,8 +38,13 @@ export default defineConfig({
   i18n: {
     locales: ["en", "zh-CN"],
     defaultLocale: "zh-CN",
+    fallback: {
+      // Same pages, English UI chrome via Astro.currentLocale.
+      en: "zh-CN",
+    },
     routing: {
       prefixDefaultLocale: false,
+      fallbackType: "rewrite",
     },
   },
   markdown: {
@@ -75,9 +80,9 @@ export default defineConfig({
       cssVariable: "--font-source-sans",
       provider: fontProviders.local(),
       fallbacks: [
+        "LXGW WenKai Screen",
         "PingFang SC",
         "Hiragino Sans GB",
-        "Noto Sans SC",
         "Microsoft YaHei",
         "sans-serif",
       ],
@@ -105,8 +110,8 @@ export default defineConfig({
       cssVariable: "--font-source-serif",
       provider: fontProviders.local(),
       fallbacks: [
+        "LXGW WenKai Screen",
         "Songti SC",
-        "Noto Serif SC",
         "STSong",
         "serif",
       ],
@@ -138,6 +143,7 @@ export default defineConfig({
         "ui-monospace",
         "SFMono-Regular",
         "Menlo",
+        "LXGW WenKai Screen",
         "PingFang SC",
         "Microsoft YaHei",
         "monospace",

@@ -1,0 +1,13 @@
+---
+/**
+ * Explicit EN route avoids Astro i18n fallback rewriting this URL into the
+ * posts pagination catch-all in dev mode.
+ */
+import PostPage, {
+  getStaticPaths as getSharedStaticPaths,
+} from "../../../posts/[...slug]/index.astro";
+
+export const getStaticPaths = getSharedStaticPaths;
+---
+
+<PostPage {...Astro.props} />

@@ -1,0 +1,63 @@
+---
+/**
+ * Toggle between zh-CN (default, unprefixed) and en (/en/...).
+ * Same posts for now — only UI chrome switches language.
+ */
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { stripBase, stripLocale } from "@/utils/withBase";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const isEn = locale === "en";
+
+const relativePath = stripBase(Astro.url.pathname);
+const pathWithoutTrailingSlash =
+  relativePath.endsWith("/") && relativePath !== "/"
+    ? relativePath.slice(0, -1)
+    : relativePath;
+const barePath = stripLocale(pathWithoutTrailingSlash, locale);
+const pathForLocale = barePath === "/" ? "" : barePath.replace(/^\//, "");
+
+const zhHref = getRelativeLocaleUrl("zh-CN", pathForLocale);
+const enHref = getRelativeLocaleUrl("en", pathForLocale);
+---
+
+<a
+  class="lang-switch font-mono"
+  href={isEn ? zhHref : enHref}
+  hreflang={isEn ? "zh-CN" : "en"}
+  lang={isEn ? "zh-CN" : "en"}
+  title={isEn ? "切换到中文" : "Switch to English"}
+  aria-label={isEn ? "切换到中文" : "Switch to English"}
+>
+  {isEn ? "中文" : "EN"}
+</a>
+
+<style>
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.85rem;
+    height: 2rem;
+    padding: 0 0.35rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--muted-foreground);
+    text-decoration: none;
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    border-radius: 0.3rem;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .lang-switch:hover,
+  .lang-switch:focus-visible {
+    color: var(--accent);
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+    background: color-mix(in oklab, var(--accent) 6%, transparent);
+  }
+</style>

@@ -17,7 +17,11 @@ function getPostPathSegments(filePath: string | undefined): string[] {
 
 function getIdSlug(id: string): string {
   const postId = id.split("/");
-  return postId.length > 0 ? String(postId[postId.length - 1]) : id;
+  let raw = postId.length > 0 ? String(postId[postId.length - 1]) : id;
+  // English twins: `slug-en.md` (id `slug-en`) or legacy `slug.en`.
+  if (raw.endsWith("-en")) raw = raw.slice(0, -3);
+  else if (raw.endsWith(".en")) raw = raw.slice(0, -3);
+  return raw;
 }
 
 export function getPostSlugPath(

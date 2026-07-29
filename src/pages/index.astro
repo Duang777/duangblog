@@ -11,7 +11,7 @@ import HomeWritingStatus from "@/components/HomeWritingStatus.astro";
 import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
 import HomePhenology from "@/components/HomePhenology.astro";
 import HomeIdeaJar from "@/components/HomeIdeaJar.astro";
-import Card from "@/components/Card.astro";
+import HomeColumnSection from "@/components/HomeColumnSection.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getPostSlugPath, getPostUrl } from "@/utils/getPostPaths";
@@ -19,17 +19,21 @@ import { useTranslations } from "@/i18n";
 import config from "@/config";
 import type { TermPost } from "@/scripts/home-term";
 import { getReadingMinutes } from "@/utils/readingTime";
-
-const { posts: postsConfig } = config;
+import {
+  getHomeColumns,
+  getHomeMiscColumn,
+  type HomeColumnDef,
+} from "@/data/home-columns";
+import type { CollectionEntry } from "astro:content";
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
-const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const sortedPosts = getSortedPosts(posts, locale);
 const homePath = getRelativeLocaleUrl(locale, "");
+const homeColumns = getHomeColumns(locale);
+const homeMiscColumn = getHomeMiscColumn(locale);
 
 const FRESH_MS = 48 * 60 * 60 * 1000;
 const REVISED_MS = 7 * 24 * 60 * 60 * 1000;
@@ -50,6 +54,40 @@ function isRevisedPost(pubDatetime: Date, modDatetime?: Date | null) {
   if (modDatetime.getTime() <= pubDatetime.getTime()) return false;
   return nowMs - modDatetime.getTime() < REVISED_MS;
 }
+
+function postSlug(post: CollectionEntry<"posts">) {
+  const path = getPostSlugPath(post.id, post.filePath);
+  return path.split("/").filter(Boolean).pop() ?? post.id;
+}
+
+const hubSlugs = new Set(
+  homeColumns.map(c => c.hubSlug).filter((s): s is string => Boolean(s))
+);
+
+/** Articles only — hub landing pages stay out of the “latest” lists. */
+const articlePosts = sortedPosts.filter(p => !hubSlugs.has(postSlug(p)));
+
+type ColumnBucket = {
+  column: HomeColumnDef;
+  posts: CollectionEntry<"posts">[];
+};
+
+const claimed = new Set<string>();
+const columnBuckets: ColumnBucket[] = homeColumns.map(column => {
+  const matched = articlePosts
+    .filter(p => {
+      if (claimed.has(p.id)) return false;
+      return column.match(p.data.tags ?? []);
+    })
+    .slice(0, column.limit);
+  matched.forEach(p => claimed.add(p.id));
+  return { column, posts: matched };
+});
+
+const miscPosts = articlePosts
+  .filter(p => !claimed.has(p.id))
+  .slice(0, homeMiscColumn.limit);
+const showMisc = miscPosts.length > 0;
 
 const termPosts: TermPost[] = sortedPosts.map(post => {
   const path = getPostSlugPath(post.id, post.filePath);
@@ -121,72 +159,40 @@ const termIdeas = [
     </div>
 
     <div class="app-layout">
-      {
-        featuredPosts.length > 0 && (
-          <section
-            id="posts"
-            class:list={[
-              "scroll-mt-24 pt-14 pb-6",
-              { "border-border border-b": recentPosts.length > 0 },
-            ]}
-          >
-            <div class="mb-1 flex items-end justify-between gap-4">
-              <h2 class="font-serif text-2xl font-semibold tracking-wide">
-                {t.home.featured}
-              </h2>
-              <HomeDateStamp />
-            </div>
-            <HomeWritingStatus />
-            <ul>
-              {featuredPosts.map(data => (
-                <Card
-                  variant="h3"
-                  {...data}
-                  isFresh={isFreshPost(data.data.pubDatetime)}
-                  isRevised={isRevisedPost(
-                    data.data.pubDatetime,
-                    data.data.modDatetime
-                  )}
-                  isTodayPick={data.id === todayPickId}
-                  isNewest={data.id === newestId}
-                />
-              ))}
-            </ul>
-          </section>
-        )
-      }
+      <div id="posts" class="home-columns scroll-mt-24">
+        <div class="home-columns-meta">
+          <HomeDateStamp />
+          <HomeWritingStatus />
+        </div>
 
-      {
-        recentPosts.length > 0 && (
-          <section
-            id={featuredPosts.length > 0 ? "recent-posts" : "posts"}
-            class="scroll-mt-24 pt-14 pb-6"
-          >
-            <div class="mb-1 flex items-end justify-between gap-4">
-              <h2 class="font-serif text-2xl font-semibold tracking-wide">
-                {t.home.recentPosts}
-              </h2>
-              {featuredPosts.length === 0 && <HomeDateStamp />}
-            </div>
-            {featuredPosts.length === 0 && <HomeWritingStatus />}
-            <ul>
-              {recentPosts.slice(0, postsConfig.perIndex).map(data => (
-                <Card
-                  variant="h3"
-                  {...data}
-                  isFresh={isFreshPost(data.data.pubDatetime)}
-                  isRevised={isRevisedPost(
-                    data.data.pubDatetime,
-                    data.data.modDatetime
-                  )}
-                  isTodayPick={data.id === todayPickId}
-                  isNewest={data.id === newestId}
-                />
-              ))}
-            </ul>
-          </section>
-        )
-      }
+        {
+          columnBuckets.map(({ column, posts: columnPosts }) => (
+            <HomeColumnSection
+              column={column}
+              posts={columnPosts}
+              locale={locale}
+              todayPickId={todayPickId}
+              newestId={newestId}
+              isFreshPost={isFreshPost}
+              isRevisedPost={isRevisedPost}
+            />
+          ))
+        }
+
+        {
+          showMisc && (
+            <HomeColumnSection
+              column={homeMiscColumn}
+              posts={miscPosts}
+              locale={locale}
+              todayPickId={todayPickId}
+              newestId={newestId}
+              isFreshPost={isFreshPost}
+              isRevisedPost={isRevisedPost}
+            />
+          )
+        }
+      </div>
 
       <div class="my-8 flex items-center justify-center gap-4">
         <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
@@ -194,7 +200,6 @@ const termIdeas = [
           <IconArrowRight class="inline-block rtl:-rotate-180" />
         </LinkButton>
       </div>
-
     </div>
   </main>
   <Footer />
@@ -234,7 +239,6 @@ const termIdeas = [
 
     applyReadEcho();
 
-    // Returning from today's pick leaves a quiet fold on that card.
     try {
       const last = sessionStorage.getItem("term-last-post");
       if (last) {
@@ -253,7 +257,6 @@ const termIdeas = [
     const softNav = Boolean(
       (window as unknown as { __softNav?: boolean }).__softNav
     );
-    // Soft ClientRouter visits should not wait on staggered fades.
     if (reduced || softNav) {
       cards.forEach(card => card.classList.add("is-visible"));
     } else {
@@ -276,7 +279,6 @@ const termIdeas = [
       });
     }
 
-    // Finger-on-catalog: deepen the title currently in the reading band.
     let activeCard: HTMLElement | null = null;
     const onCatalogScroll = () => {
       const band = window.innerHeight * 0.38;

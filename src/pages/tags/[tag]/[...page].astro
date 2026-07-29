@@ -10,7 +10,7 @@ import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { getSortedPosts } from "@/utils/getSortedPosts";
-import { slugifyAll } from "@/utils/slugify";
+import { slugifyAll, slugifyStr } from "@/utils/slugify";
 import { getPostSlugPath } from "@/utils/getPostPaths";
 import { useTranslations } from "@/i18n";
 import { getTagIntro } from "@/data/tag-intros";
@@ -20,18 +20,33 @@ import config from "@/config";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
+  // Tags come from all posts so EN/ZH share the same tag routes.
   const tags = getUniqueTags(posts);
 
   return tags.flatMap(({ tag, tagName }) => {
-    const tagPosts = getSortedPosts(
-      posts.filter(({ data }) => slugifyAll(data.tags).includes(tag))
+    const zhTagPosts = getSortedPosts(
+      posts.filter(
+        ({ data }) =>
+          (data.lang ?? "zh-CN") === "zh-CN" &&
+          slugifyAll(data.tags).includes(tag)
+      ),
+      "zh-CN"
     );
-    const tagSlugs = tagPosts.map(p => {
+    const enTagPosts = getSortedPosts(
+      posts.filter(
+        ({ data }) =>
+          data.lang === "en" && slugifyAll(data.tags).includes(tag)
+      ),
+      "en"
+    );
+    const longer =
+      zhTagPosts.length >= enTagPosts.length ? zhTagPosts : enTagPosts;
+    const tagSlugs = longer.map(p => {
       const path = getPostSlugPath(p.id, p.filePath);
       return path.split("/").filter(Boolean).pop() ?? p.id;
     });
 
-    return paginate(tagPosts, {
+    return paginate(longer.length > 0 ? longer : zhTagPosts, {
       params: { tag },
       props: { tagName, tagSlugs },
       pageSize: config.posts.perPage,
@@ -40,13 +55,37 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 }
 
 const { page, tagName, tagSlugs } = Astro.props;
-
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
+
+const tagSlug = slugifyStr(tagName);
+const localeTagPosts = getSortedPosts(
+  (await getCollection("posts", ({ data }) => !data.draft)).filter(({ data }) =>
+    slugifyAll(data.tags).includes(tagSlug)
+  ),
+  locale
+);
+const pageSize = config.posts.perPage;
+const lastPage = Math.max(1, Math.ceil(localeTagPosts.length / pageSize));
+const currentPage = Math.min(page.currentPage, lastPage);
+const start = (currentPage - 1) * pageSize;
+const pagePosts = localeTagPosts.slice(start, start + pageSize);
 const tagIntro = getTagIntro(tagName);
-const totalInTag = page.total;
-const notebookStat = `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
+const totalInTag = localeTagPosts.length;
+const notebookStat =
+  locale === "en"
+    ? `${totalInTag} notes tagged ${tagName}`
+    : `这本里有 ${totalInTag} 篇关于${tagName}的笔记`;
 const jar = resolveColumnJar(tagName);
+
+const localePage = {
+  ...page,
+  data: pagePosts,
+  currentPage,
+  lastPage,
+  total: totalInTag,
+  size: pageSize,
+};
 ---
 
 <Layout title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}>
@@ -57,11 +96,11 @@ const jar = resolveColumnJar(tagName);
   <Main
     pageTitle={`${t.pages.tagTitle}: ${tagName}`}
     pageDesc={tagIntro}
-    backLabel={`标签 · ${tagName}`}
+    backLabel={`${t.nav.tags} · ${tagName}`}
   >
     <div class="list-jar-aside is-column-jar">
       <HomeIdeaJarMini
-        totalPosts={tagSlugs.length}
+        totalPosts={localeTagPosts.length}
         kind={jar.kind}
         caption={jar.caption}
         hint={jar.hint}
@@ -73,13 +112,13 @@ const jar = resolveColumnJar(tagName);
       {notebookStat}
     </p>
     <ul class="tag-post-list" data-tag-name={tagName}>
-      {page.data.map(data => <Card {...data} />)}
+      {pagePosts.map(data => <Card {...data} />)}
     </ul>
   </Main>
 
-  <Pagination {page} />
+  <Pagination page={localePage} />
 
-  <Footer noMarginTop={page.lastPage > 1} />
+  <Footer noMarginTop={lastPage > 1} />
 </Layout>
 
 <script>

@@ -1,0 +1,76 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { slugifyStr } from "@/utils/slugify";
+import { getPostUrl } from "@/utils/getPostPaths";
+import Card from "@/components/Card.astro";
+import type { HomeColumnDef } from "@/data/home-columns";
+import { useTranslations } from "@/i18n";
+
+type Props = {
+  column: HomeColumnDef;
+  posts: CollectionEntry<"posts">[];
+  locale: string;
+  todayPickId: string | null;
+  newestId: string | null;
+  isFreshPost: (pubDatetime: Date) => boolean;
+  isRevisedPost: (pubDatetime: Date, modDatetime?: Date | null) => boolean;
+};
+
+const {
+  column,
+  posts,
+  locale,
+  todayPickId,
+  newestId,
+  isFreshPost,
+  isRevisedPost,
+} = Astro.props;
+
+const t = useTranslations(locale);
+
+const hubHref = column.hubSlug
+  ? getPostUrl(column.hubSlug, undefined, locale)
+  : column.tagHrefName
+    ? getRelativeLocaleUrl(locale, `tags/${slugifyStr(column.tagHrefName)}`)
+    : getRelativeLocaleUrl(locale, "posts");
+---
+
+<section
+  class:list={["home-column", `is-${column.scent}`]}
+  aria-labelledby={`home-column-${column.id}`}
+>
+  <div class="home-column-head">
+    <div class="home-column-titles">
+      <h2 id={`home-column-${column.id}`} class="home-column-title font-serif">
+        {column.title}
+      </h2>
+      <p class="home-column-intro">{column.intro}</p>
+    </div>
+    <a class="home-column-enter font-mono" href={hubHref}>
+      {t.home.enterColumn}
+    </a>
+  </div>
+
+  {
+    posts.length > 0 ? (
+      <ul class="home-column-list">
+        {posts.map(data => (
+          <Card
+            variant="h3"
+            {...data}
+            isFresh={isFreshPost(data.data.pubDatetime)}
+            isRevised={isRevisedPost(
+              data.data.pubDatetime,
+              data.data.modDatetime
+            )}
+            isTodayPick={data.id === todayPickId}
+            isNewest={data.id === newestId}
+          />
+        ))}
+      </ul>
+    ) : (
+      <p class="home-column-empty">{t.home.columnsEmpty}</p>
+    )
+  }
+</section>

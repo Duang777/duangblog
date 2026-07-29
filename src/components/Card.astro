@@ -32,13 +32,15 @@ const transitionName = toTransitionName(title);
 const path = getPostSlugPath(id, filePath);
 const slug = path.split("/").filter(Boolean).pop() ?? id;
 
-/** Column scent: warm for backend, cool for Agent, brisk for digests. */
+/** Column scent: warm for backend, cyan for frontend, cool for Agent. */
 const tags = (data.tags ?? []).map(tag => tag.toLowerCase());
-let column: "backend" | "agent" | "digest" | null = null;
+let column: "backend" | "frontend" | "agent" | "digest" | null = null;
 if (tags.some(tag => tag.includes("最新速递"))) {
   column = "digest";
 } else if (tags.some(tag => tag.includes("后端") || tag.includes("请求过境"))) {
   column = "backend";
+} else if (tags.some(tag => tag.includes("前端实验室"))) {
+  column = "frontend";
 } else if (tags.some(tag => tag.includes("agent") || tag.includes("拆解"))) {
   column = "agent";
 }

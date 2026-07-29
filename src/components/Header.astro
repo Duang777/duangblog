@@ -9,6 +9,7 @@ import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconX from "@/assets/icons/IconX.svg";
 import LinkButton from "./LinkButton.astro";
 import AboutLogo3D from "./AboutLogo3D.astro";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
 import { stripBase, stripLocale } from "@/utils/withBase";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
@@ -166,6 +167,9 @@ const isActive = (path: string) => {
             </li>
           )
         }
+        <li class="col-span-1 flex items-center justify-center">
+          <LanguageSwitcher />
+        </li>
       </ul>
     </nav>
   </div>

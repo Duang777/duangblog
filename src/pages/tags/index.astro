@@ -13,17 +13,20 @@ import { useTranslations } from "@/i18n";
 import config from "@/config";
 
 const posts = await getCollection("posts", ({ data }) => !data.draft);
-const tags = getUniqueTags(posts);
+const locale = Astro.currentLocale ?? config.site.lang;
+const localePosts = posts.filter(
+  p => (p.data.lang ?? "zh-CN") === (locale === "en" ? "en" : "zh-CN")
+);
+const tags = getUniqueTags(localePosts);
 
 const tagCounts = new Map<string, number>();
-for (const post of posts.filter(postFilter)) {
+for (const post of localePosts.filter(postFilter)) {
   for (const tag of post.data.tags) {
     const slug = slugifyStr(tag);
     tagCounts.set(slug, (tagCounts.get(slug) ?? 0) + 1);
   }
 }
 
-const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 ---
 

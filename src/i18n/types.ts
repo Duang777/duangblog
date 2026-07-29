@@ -30,6 +30,9 @@ export interface UIStrings {
     featured: string;
     recentPosts: string;
     allPosts: string;
+    enterColumn: string;
+    scrollToPosts: string;
+    columnsEmpty: string;
   };
   footer: {
     copyright: string;
@@ -60,6 +63,8 @@ export interface UIStrings {
     noResults: string;
     goToPreviousPage: string;
     goToNextPage: string;
+    switchToZh: string;
+    switchToEn: string;
   };
   notFound: {
     title: string;

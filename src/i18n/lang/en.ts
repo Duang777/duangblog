@@ -32,6 +32,9 @@ export default {
     featured: "Featured",
     recentPosts: "Recent Posts",
     allPosts: "All Posts",
+    enterColumn: "Enter column",
+    scrollToPosts: "Posts",
+    columnsEmpty: "Nothing here yet.",
   },
   footer: {
     copyright: "Copyright",
@@ -62,6 +65,8 @@ export default {
     noResults: "No results found",
     goToPreviousPage: "Go to previous page",
     goToNextPage: "Go to next page",
+    switchToZh: "切换到中文",
+    switchToEn: "Switch to English",
   },
   notFound: {
     title: "404 Not Found",

@@ -13,7 +13,7 @@ const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 
 const posts = await getCollection("posts", ({ data }) => !data.draft);
-const recentPosts = getSortedPosts(posts)
+const recentPosts = getSortedPosts(posts, locale)
   .slice(0, 4)
   .map(post => ({
     title: post.data.title,

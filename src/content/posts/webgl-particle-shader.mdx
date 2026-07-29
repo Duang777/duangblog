@@ -1,0 +1,88 @@
+---
+author: Duang
+pubDatetime: 2026-07-29T19:20:00+08:00
+title: 用原生 WebGL 跑 24,000 个粒子
+featured: false
+draft: false
+tags:
+  - 前端实验室
+  - WebGL
+  - Shader
+description: 把粒子的初始数据交给 GPU，再用顶点着色器完成每一帧的位置计算。文章里嵌入了可以直接操作的完整演示。
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import ParticleShaderDemo from "@/components/ParticleShaderDemo.astro";
+
+这个页面里有 24,000 个粒子。鼠标移动时，视角会跟着变化。整个演示没有加载 Three.js，也没有请求外部脚本，浏览器只需要支持 WebGL。
+
+<ParticleShaderDemo />
+
+我一开始担心的是 JS 动画循环。如果每一帧都遍历 24,000 个粒子，再逐个改坐标，主线程会承担大量重复计算。这个版本只在初始化时生成位置、颜色、大小和随机种子。每一帧的粒子位置由顶点着色器并行计算，JS 只更新 uniform、相机矩阵并提交一次绘制。
+
+<Marginalia>
+  这里说的 GPU 计算只指粒子顶点。相机矩阵和时间仍由 JS 更新。
+</Marginalia>
+
+## 初始分布决定星系形状
+
+初始位置只生成一次。半径经过幂函数处理，所以更多粒子集中在中心。每个粒子还会分到三条旋臂中的一条，并根据半径增加旋转角度。
+
+```js
+// public/demos/particle-shader.html
+const radius = Math.pow(Math.random(), 1.7) * 4.6;
+const branch = ((i % 3) / 3) * Math.PI * 2;
+const spin = radius * 1.05;
+const spread =
+  Math.pow(Math.random(), 2.6) *
+  (Math.random() < 0.5 ? 1 : -1) *
+  0.55;
+const theta = branch + spin + spread;
+```
+
+`spread` 使用偏向小数值的随机分布。大部分粒子靠近旋臂，少数粒子散到外侧。颜色也按半径插值，中心接近白蓝色，外侧逐渐变成紫色。
+
+## 顶点着色器负责运动
+
+顶点着色器先用 Simplex noise 改变粒子位置，再按照半径计算不同的旋转速度。内圈转得更快，外圈转得更慢，所以旋臂不会像一张圆盘那样整体转动。
+
+```glsl
+float t = uTime * 0.06;
+float n1 = snoise(vec3(p.xz * 0.34, t));
+float n2 = snoise(vec3(p.zy * 0.29, t + 11.3));
+p += vec3(n1, n2 * 0.55, n2) * 0.42;
+
+float r = length(p.xz);
+float ang = uTime * (0.19 / (r + 0.9));
+float s = sin(ang), c = cos(ang);
+p.xz = mat2(c, -s, s, c) * p.xz;
+```
+
+粒子大小还会除以相机空间中的深度。近处的粒子更大，远处的粒子更小。每个粒子的 `aSeed` 不同，因此闪烁时间也不同。
+
+## 片元着色器把方点削成圆点
+
+WebGL 的点默认是方形。片元着色器使用 `gl_PointCoord` 计算当前片元到中心的距离，然后把边缘透明度降到零。透明度太低的片元会直接丢弃。
+
+```glsl
+float d = length(gl_PointCoord - 0.5);
+float a = smoothstep(0.5, 0.0, d);
+a = pow(a, 1.9);
+if (a < 0.01) discard;
+gl_FragColor = vec4(vColor, a * vAlpha);
+```
+
+绘制时使用加法混合，粒子重叠的位置会变亮。深度测试已经关闭，所以透明粒子不会因为写入深度而互相挡住。
+
+## 页面里怎么嵌入
+
+演示本身是一个独立 HTML 文件，博客文章通过带 `sandbox="allow-scripts"` 的 `iframe` 加载它。独立页面的全屏样式和脚本不会改到博客正文，也不能访问博客页面的 DOM。
+
+这个文件还处理了几个运行边界：
+
+- 设备像素比最多取 2，避免高分屏扩大过多像素。
+- 用户开启减少动态效果后，页面只绘制一帧。
+- WebGL 创建失败时，页面会显示文字提示。
+- 动画不依赖网络，静态部署后可以直接运行。
+
+[在新页面打开完整演示](/demos/particle-shader.html)。

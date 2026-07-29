@@ -18,6 +18,8 @@ const posts = defineCollection({
       tags: z.array(z.string()).default(["others"]),
       ogImage: image().or(z.string()).optional(),
       description: z.string(),
+      /** Content language. English twins use `name-en.md` and share the route slug. */
+      lang: z.enum(["zh-CN", "en"]).default("zh-CN"),
       /** Short hand-written changelog, newest last. */
       revisions: z
         .array(z.object({ date: z.date(), note: z.string() }))

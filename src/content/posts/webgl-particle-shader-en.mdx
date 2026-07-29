@@ -1,0 +1,95 @@
+---
+author: Duang
+pubDatetime: 2026-07-29T19:20:00+08:00
+title: Running 24,000 particles with raw WebGL
+featured: false
+draft: false
+lang: en
+tags:
+  - 前端实验室
+  - WebGL
+  - Shader
+description: Generate the initial particle data once, then calculate each frame's positions in a vertex shader. The complete interactive demo runs inside the post.
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import ParticleShaderDemo from "@/components/ParticleShaderDemo.astro";
+
+This page draws 24,000 particles, and the camera responds when the pointer moves. The demo does not load Three.js or any external script. It only needs WebGL support in the browser.
+
+<ParticleShaderDemo
+  title="WebGL shader demo with 24,000 particles"
+  hint="Move the pointer or drag a finger to change the view."
+  openLabel="Open the demo in a new page"
+  locale="en"
+/>
+
+My first concern was the JavaScript animation loop. If JavaScript iterates over all 24,000 particles and changes every position on each frame, the main thread has to repeat a large amount of work. This version generates position, color, size, and a random seed once during setup. The vertex shader calculates particle positions in parallel. JavaScript updates the uniforms and camera matrices, then submits one draw call per frame.
+
+<Marginalia label="Note">
+  The GPU calculation here covers particle vertices. JavaScript still updates time
+  and the camera matrices.
+</Marginalia>
+
+## The initial distribution sets the shape
+
+The initial positions are generated once. A power function places more particles near the center. Each particle is also assigned to one of three arms, with an angle that grows with its radius.
+
+```js
+// public/demos/particle-shader.html
+const radius = Math.pow(Math.random(), 1.7) * 4.6;
+const branch = ((i % 3) / 3) * Math.PI * 2;
+const spin = radius * 1.05;
+const spread =
+  Math.pow(Math.random(), 2.6) *
+  (Math.random() < 0.5 ? 1 : -1) *
+  0.55;
+const theta = branch + spin + spread;
+```
+
+The distribution behind `spread` favors small values. Most particles stay near an arm, while a smaller number scatter farther away. Color is interpolated by radius, from pale blue near the center to purple at the edge.
+
+## The vertex shader handles motion
+
+The vertex shader applies Simplex noise first, then calculates a rotation speed from the radius. Inner particles rotate faster than outer particles, so the arms do not move like one rigid disc.
+
+```glsl
+float t = uTime * 0.06;
+float n1 = snoise(vec3(p.xz * 0.34, t));
+float n2 = snoise(vec3(p.zy * 0.29, t + 11.3));
+p += vec3(n1, n2 * 0.55, n2) * 0.42;
+
+float r = length(p.xz);
+float ang = uTime * (0.19 / (r + 0.9));
+float s = sin(ang), c = cos(ang);
+p.xz = mat2(c, -s, s, c) * p.xz;
+```
+
+Point size is divided by depth in camera space. Nearby points look larger, while distant points look smaller. Every particle has a different `aSeed`, so their brightness changes at different times.
+
+## The fragment shader rounds each point
+
+WebGL points are square by default. The fragment shader uses `gl_PointCoord` to measure the distance from the center, then fades the edge to zero. It discards fragments with very low opacity.
+
+```glsl
+float d = length(gl_PointCoord - 0.5);
+float a = smoothstep(0.5, 0.0, d);
+a = pow(a, 1.9);
+if (a < 0.01) discard;
+gl_FragColor = vec4(vColor, a * vAlpha);
+```
+
+Additive blending makes overlapping particles brighter. Depth testing is disabled, so transparent particles do not hide each other by writing depth.
+
+## Embedding the page in the post
+
+The demo is a separate HTML file. The post loads it through an `iframe` with `sandbox="allow-scripts"`. Its full-page styles and scripts stay inside the frame, and the demo cannot access the blog page's DOM.
+
+The standalone page also handles a few runtime limits:
+
+- Device pixel ratio is capped at 2, which avoids rendering too many pixels on dense displays.
+- When reduced motion is enabled, the page draws one frame and stops.
+- If WebGL initialization fails, the page displays a text message.
+- The animation has no network dependency.
+
+[Open the complete demo in a new page](/demos/particle-shader.html).

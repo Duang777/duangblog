@@ -14,6 +14,18 @@
   --font-app: var(--font-source-sans);
 }
 
+/* English: Inter body + Newsreader headings; WenKai remains Chinese-only. */
+html[lang="en"] body {
+  font-family: "Inter Variable", system-ui, sans-serif;
+  font-style: normal;
+}
+
+html[lang="en"] .font-serif,
+html[lang="en"] .app-prose :is(h1, h2, h3, h4, th) {
+  font-family: "Newsreader Variable", Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
 /* Anthropic-inspired light theme */
 :root,
 [data-theme="light"] {

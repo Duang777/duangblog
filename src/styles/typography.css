@@ -4,6 +4,8 @@
   /* ===== Override default Tailwind Typography styles ===== */
   .app-prose {
     @apply prose;
+    /* Chinese body needs a bit more air than Latin-default prose. */
+    line-height: 1.8;
 
     h1,
     h2,
