@@ -1,0 +1,128 @@
+---
+author: Duang
+pubDatetime: 2026-07-30T19:00:00+08:00
+title: 滚动叙事长页：平滑、固钉、视差和进度
+featured: false
+draft: false
+tags:
+  - 前端实验室
+  - Scroll
+  - GSAP
+description: 用零依赖演示拆开滚动叙事页的四种手法：平滑滚动、固钉横向推进、视差分层，以及滚动驱动数字。文末对照 GSAP 与 Lenis 的写法。
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import ScrollNarrativeDemo from "@/components/ScrollNarrativeDemo.astro";
+
+很多获奖落地页看起来复杂，拆开之后常常只有几种滚动手法在换素材。这一篇把其中四种放进同一个长页：Hero 退场、逐行错开浮现、固钉加横向推进、视差，以及滚动驱动的数字。
+
+下面的预览是零依赖版。在框里向下滚，就能看到每一屏在干什么。
+
+<ScrollNarrativeDemo />
+
+核心主张就一句：
+
+**先把真实滚动位置换成 0 到 1 的进度，再用这个进度去驱动 transform 和 opacity。**
+
+GSAP 的 ScrollTrigger 和 Lenis 做的也是这件事。零依赖版把计算摊开写，方便对照。
+
+<Marginalia>
+  预览框里的滚动只发生在 iframe 内部，不会拖动博客正文。
+</Marginalia>
+
+## 平滑滚动在算什么
+
+浏览器原生滚动是跳变的。滚轮一格，位置立刻过去。平滑滚动把真实 `scrollY` 当目标值，每帧用插值朝它靠近：
+
+```js
+// public/demos/scroll-narrative.html
+target = window.scrollY;
+current += (target - current) * 0.09;
+content.style.transform = `translate3d(0,${-current}px,0)`;
+```
+
+内容容器设成 `position: fixed`，再用 `document.body.style.height` 撑出真实滚动行程。系数 `0.09` 是手感旋钮：越小越黏，超过 `0.15` 就几乎看不出平滑。
+
+## 固钉没有魔法
+
+固钉分两步：
+
+1. 外层容器给很高的高度，这里是 `420vh`，只负责占据滚动行程。
+2. 当容器顶部越过视窗顶部，给内层同等距离的反向位移。
+
+```js
+const rect = wrap.getBoundingClientRect();
+const total = wrap.offsetHeight - vh;
+const offset = clamp(-rect.top, 0, total);
+inner.style.transform = `translate3d(0,${offset}px,0)`;
+const progress = clamp(offset / total, 0, 1);
+```
+
+视觉上内层停住了，同时你拿到一个 0 到 1 的进度值。横向推进就是：
+
+```js
+const dist = Math.max(track.scrollWidth - innerWidth + 40, 0);
+track.style.transform = `translate3d(${-progress * dist}px,0,0)`;
+```
+
+数字计数也是同一套进度：`Math.round(progress * 100)`。
+
+## 视差用相对位置，不用全局滚动量
+
+视差看的是元素在视窗里的相对位置，这样进入和离开都对称：
+
+```js
+const r = section.getBoundingClientRect();
+const centered = (vh / 2 - (r.top + r.height / 2)) / vh;
+layer.style.transform = `translate3d(0,${centered * speed * 180}px,0)`;
+```
+
+`speed` 取负数就是反向移动。整个行程内位移别超过 200px，否则会很假。
+
+## 进场别只做淡入
+
+单纯的 `opacity: 0` 到 `1` 像幻灯片。更稳的组合是位移、透明度和错开延迟。演示里每行比上一行晚 80ms，缓动用 `cubic-bezier(.16, 1, .3, 1)`：开头快，结尾慢。
+
+## 项目里用 GSAP + Lenis 怎么写
+
+实际项目里不必手写固钉。把 Lenis 和 GSAP 接到同一个 ticker，否则滚动和动画会各跑各的，画面会抖：
+
+```js
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({ lerp: 0.09 });
+lenis.on("scroll", ScrollTrigger.update);
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+gsap.to(track, {
+  x: () => -(track.scrollWidth - innerWidth + 40),
+  ease: "none",
+  scrollTrigger: {
+    trigger: "#pinWrap",
+    pin: "#pinInner",
+    start: "top top",
+    end: "bottom bottom",
+    scrub: 0.6,
+    invalidateOnRefresh: true,
+  },
+});
+```
+
+`x` 写成函数，并打开 `invalidateOnRefresh`，窗口变宽后横向距离才会重算。动画只写 `transform` 和 `opacity`，不要去改 `left`、`top` 或 `width`。
+
+## 想改手感时动这些数
+
+| 想调什么 | 改哪里 |
+| --- | --- |
+| 滚动黏度 | `lerp` 或插值系数 `0.09` |
+| 固钉时长 | `.pin-wrap` 的 `height: 420vh` |
+| 卡片宽度 | `.card` 的 `flex-basis` |
+| 错开节奏 | 每行 `80ms` |
+| 视差幅度 | `speed * 180` 里的 `180` |
+
+[在新页面打开完整演示](/demos/scroll-narrative.html)。上一篇同专栏：[用原生 WebGL 跑 24,000 个粒子](/posts/webgl-particle-shader/)。

@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>滚动叙事长页（零依赖版）</title>
+<style>
+:root{
+  --canvas:#191919;
+  --surface:#202020;
+  --raised:#383836;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.65);
+  --faint:rgba(255,255,255,.42);
+  --border:rgba(255,255,255,.20);
+  --accent:#5E9FE8;
+  --accent-soft:rgba(94,159,232,.12);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--canvas);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.5;
+  overflow-x:hidden;
+}
+
+/* 顶部进度条 */
+.progress{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.10);z-index:50}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transform-origin:0 50%}
+
+/* 平滑滚动容器 */
+#content{position:fixed;top:0;left:0;width:100%;will-change:transform}
+
+section{padding:0 clamp(24px,6vw,80px)}
+.inner{max-width:1080px;margin:0 auto;width:100%}
+
+.eyebrow{
+  font-size:13px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 24px;
+}
+h1{
+  margin:0;font-weight:600;letter-spacing:-.03em;line-height:1.05;
+  font-size:clamp(40px,8.5vw,104px);
+}
+h1 em{font-style:normal;color:var(--accent)}
+h2{
+  margin:0 0 32px;font-weight:600;letter-spacing:-.02em;line-height:1.15;
+  font-size:clamp(28px,4.6vw,56px);
+}
+p{margin:0}
+.lede{font-size:clamp(17px,2vw,21px);line-height:1.6;color:var(--muted);max-width:640px}
+
+/* 1. HERO */
+.hero{height:100vh;display:flex;flex-direction:column;justify-content:center}
+.hero .inner{will-change:transform,opacity,filter}
+.hero .sub{margin-top:28px;font-size:clamp(16px,1.8vw,19px);color:var(--muted);max-width:520px}
+.hint{
+  position:absolute;left:0;right:0;bottom:40px;text-align:center;
+  font-size:13px;letter-spacing:.14em;color:var(--faint);
+}
+.hero{position:relative}
+
+/* 2. 逐行浮现 */
+.reveal-sec{min-height:100vh;display:flex;align-items:center;padding-top:120px;padding-bottom:120px}
+.reveal{
+  opacity:0;transform:translateY(28px);
+  transition:opacity .8s var(--ease), transform .8s var(--ease);
+}
+.reveal.in{opacity:1;transform:none}
+.lines{display:flex;flex-direction:column;gap:20px;max-width:680px}
+.lines p{font-size:clamp(17px,2vw,20px);line-height:1.6;color:var(--muted)}
+.lines p strong{color:var(--text);font-weight:600}
+
+/* 3. 固钉 + 横向 */
+.pin-wrap{height:420vh;padding:0}
+.pin-inner{
+  height:100vh;display:flex;flex-direction:column;justify-content:center;
+  overflow:hidden;will-change:transform;
+}
+.pin-head{padding:0 clamp(24px,6vw,80px);margin-bottom:48px}
+.pin-head .tag{
+  display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);
+  border:1px solid rgba(94,159,232,.28);
+  padding:6px 12px;border-radius:8px;margin-bottom:20px;
+}
+.pin-head h2{margin-bottom:12px}
+.track{display:flex;gap:24px;padding-left:clamp(24px,6vw,80px);will-change:transform}
+.card{
+  flex:0 0 min(360px,78vw);
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:32px;min-height:280px;display:flex;flex-direction:column;
+}
+.card .num{font-size:13px;letter-spacing:.14em;color:var(--accent);margin-bottom:auto}
+.card h3{margin:0 0 12px;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.card p{font-size:15px;line-height:1.6;color:var(--muted)}
+
+/* 4. 视差 */
+.parallax{position:relative;min-height:110vh;display:flex;align-items:center;overflow:hidden}
+.layer{position:absolute;border-radius:50%;will-change:transform;pointer-events:none}
+.l1{width:min(520px,70vw);height:min(520px,70vw);right:-8%;top:8%;
+    background:radial-gradient(closest-side, rgba(94,159,232,.20), rgba(94,159,232,0))}
+.l2{width:min(320px,46vw);height:min(320px,46vw);left:-4%;bottom:6%;
+    background:radial-gradient(closest-side, rgba(191,142,218,.18), rgba(191,142,218,0))}
+.l3{width:min(180px,30vw);height:min(180px,30vw);right:22%;bottom:14%;
+    border:1px solid var(--border);background:transparent}
+.parallax .inner{position:relative;z-index:1}
+
+/* 5. 数字计数 */
+.count-wrap{height:280vh;padding:0}
+.count-inner{
+  height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 24px;will-change:transform;
+}
+.count-num{
+  font-size:clamp(88px,20vw,220px);font-weight:600;letter-spacing:-.05em;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.count-num .pct{color:var(--accent);font-size:.38em;vertical-align:super;margin-left:8px;letter-spacing:-.02em}
+.count-inner p{margin-top:24px;color:var(--muted);max-width:440px;font-size:17px}
+
+/* 6. 结尾 */
+.outro{min-height:88vh;display:flex;align-items:center;padding-top:100px;padding-bottom:140px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;
+    background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px}
+.kv div{background:var(--canvas);padding:24px}
+.kv dt{font-size:13px;color:var(--faint);margin:0 0 8px}
+.kv dd{margin:0;font-size:15px;line-height:1.55;color:var(--muted)}
+.kv dd code{color:var(--text);font-family:Menlo,Consolas,monospace;font-size:13px}
+
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .hint{display:none}
+}
+</style>
+
+</head>
+<body>
+
+<div class="progress"><i id="bar"></i></div>
+
+<div id="content">
+
+  <section class="hero" id="hero">
+    <div class="inner" id="heroInner">
+      <p class="eyebrow">Scroll Storytelling</p>
+      <h1>滚动，是网页的<em>时间轴</em></h1>
+      <p class="sub">往下滚。每一屏演示一种获奖网站常用的滚动驱动手法。</p>
+    </div>
+    <div class="hint">向下滚动</div>
+  </section>
+
+  <section class="reveal-sec">
+    <div class="inner">
+      <h2 class="reveal">进场不是“淡入”</h2>
+      <div class="lines">
+        <p class="reveal">直接 <strong>opacity 0 → 1</strong> 看起来像 PPT 动画。</p>
+        <p class="reveal">真正的做法是三件事叠加：<strong>位移</strong> + <strong>透明度</strong> + <strong>错开延迟</strong>。</p>
+        <p class="reveal">每行比上一行晚 <strong>80ms</strong>，眼睛会自动把它们读成一个“流”而不是一堆块。</p>
+        <p class="reveal">缓动用 <strong>cubic-bezier(.16,1,.3,1)</strong>，开头快、结尾慢，手感就对了。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pin-wrap" id="pinWrap">
+    <div class="pin-inner" id="pinInner">
+      <div class="pin-head">
+        <span class="tag">Pin + Horizontal</span>
+        <h2>页面停住，内容在动</h2>
+        <p class="lede">这一段的高度是 4 屏。滚动条在走，但画面被钉住，滚动进度被换算成卡片的横向位移。</p>
+      </div>
+      <div class="track" id="track">
+        <article class="card">
+          <div class="num">01</div>
+          <h3>创建一个高容器</h3>
+          <p>外层给 420vh 高度，它只负责“占据滚动行程”，本身不显示任何东西。</p>
+        </article>
+        <article class="card">
+          <div class="num">02</div>
+          <h3>把内层钉在屏幕上</h3>
+          <p>当容器顶部越过视窗顶部，就给内层反向位移同等距离。视觉上它就“不动”了。</p>
+        </article>
+        <article class="card">
+          <div class="num">03</div>
+          <h3>把进度换算成动画</h3>
+          <p>progress = 0→1，乘上“轨道总宽 - 视窗宽”，就是横向要走的距离。</p>
+        </article>
+        <article class="card">
+          <div class="num">04</div>
+          <h3>只动 transform</h3>
+          <p>永远用 translate3d，不要去改 left 或 margin。前者走 GPU 合成层，后者每帧重排。</p>
+        </article>
+        <article class="card">
+          <div class="num">05</div>
+          <h3>别钉太久</h3>
+          <p>超过 5 屏的固钉，用户会以为页面卡死了。给个进度指示会好很多。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="parallax" id="plx">
+    <div class="layer l1" data-speed="0.28"></div>
+    <div class="layer l2" data-speed="-0.18"></div>
+    <div class="layer l3" data-speed="0.45"></div>
+    <div class="inner">
+      <h2 class="reveal">视差，就是“不同速度”</h2>
+      <p class="lede reveal">背景层比滚动慢 20–30%，前景层快一点。大脑会把速度差异直接读成深度。<br>幅度宁小勿大：整个滚动行程内位移不要超过 200px，否则会变成廉价的“飘”。</p>
+    </div>
+  </section>
+
+  <section class="count-wrap" id="countWrap">
+    <div class="count-inner" id="countInner">
+      <div class="count-num"><span id="countNum">0</span><span class="pct">%</span></div>
+      <p>滚动进度不只能驱动位移。它可以驱动数字、颜色、SVG 路径、视频帧——任何可以插值的东西。</p>
+    </div>
+  </section>
+
+  <section class="outro">
+    <div class="inner">
+      <h2 class="reveal">就这么多</h2>
+      <p class="lede reveal">上面四种手法几乎能拼出你在 Awwwards 上看到的 80% 滚动叙事页。差别只在于素材质量和节奏拿捏。</p>
+      <dl class="kv reveal">
+        <div><dt>平滑滚动</dt><dd>对真实滚动位置做 <code>lerp</code> 插值，系数 <code>0.09</code></dd></div>
+        <div><dt>固钉</dt><dd>高容器 + 内层反向 <code>translateY</code></dd></div>
+        <div><dt>进度</dt><dd><code>-rect.top / (高度 - 视窗)</code>，限制在 0–1</dd></div>
+        <div><dt>性能</dt><dd>只写 <code>transform</code> 与 <code>opacity</code></dd></div>
+      </dl>
+    </div>
+  </section>
+
+</div>
+
+<script>
+if (new URLSearchParams(location.search).get("lang") === "en") {
+  document.documentElement.lang = "en";
+  document.title = "Scroll storytelling page";
+  const set = (sel, html) => {
+    const el = document.querySelector(sel);
+    if (el) el.innerHTML = html;
+  };
+  set(".hero .eyebrow", "Scroll Storytelling");
+  set(".hero h1", "Scroll is the page's <em>timeline</em>");
+  set(".hero .sub", "Keep scrolling. Each screen shows one scroll-driven technique.");
+  set(".hint", "Scroll down");
+  set(".reveal-sec h2", "Entrance is not a plain fade");
+  const lines = document.querySelectorAll(".reveal-sec .lines p");
+  if (lines[0]) lines[0].innerHTML = 'A plain <strong>opacity 0 to 1</strong> looks like a slide deck.';
+  if (lines[1]) lines[1].innerHTML = 'The better stack is <strong>motion</strong>, <strong>opacity</strong>, and <strong>stagger</strong>.';
+  if (lines[2]) lines[2].innerHTML = 'Delay each line by <strong>80ms</strong> so the eye reads a stream, not a pile of blocks.';
+  if (lines[3]) lines[3].innerHTML = 'Use <strong>cubic-bezier(.16,1,.3,1)</strong>: fast start, soft landing.';
+  set(".pin-head .tag", "Pin + Horizontal");
+  set(".pin-head h2", "The page holds still while content moves");
+  set(".pin-head .lede", "This section is four viewports tall. The scrollbar moves, the frame stays pinned, and scroll progress becomes horizontal card travel.");
+  const cards = [...document.querySelectorAll(".card")];
+  const cardCopy = [
+    ["Create a tall wrapper", "Give the outer wrap 420vh. It only owns scroll distance."],
+    ["Pin the inner layer", "When the wrap top crosses the viewport top, push the inner layer back by the same distance so it looks fixed."],
+    ["Map progress to motion", "Progress runs from 0 to 1. Multiply by track width minus viewport width."],
+    ["Only move transform", "Use translate3d. Do not animate left or margin."],
+    ["Do not pin too long", "More than five screens feels stuck. A progress cue helps."],
+  ];
+  cards.forEach((card, i) => {
+    if (!cardCopy[i]) return;
+    const h3 = card.querySelector("h3");
+    const p = card.querySelector("p");
+    if (h3) h3.textContent = cardCopy[i][0];
+    if (p) p.textContent = cardCopy[i][1];
+  });
+  set("#plx h2", "Parallax is different speeds");
+  set("#plx .lede", "Background layers lag by about 20 to 30 percent. Foreground layers move a little faster. Keep travel under 200px or it looks cheap.");
+  set("#countInner p", "Scroll progress can drive numbers, color, SVG paths, or video frames, anything that can interpolate.");
+  set(".outro h2", "That is the set");
+  set(".outro .lede", "These four techniques cover most scroll storytelling pages. The rest is material quality and pacing.");
+  const dts = document.querySelectorAll(".kv dt");
+  const dds = document.querySelectorAll(".kv dd");
+  const kv = [
+    ["Smooth scroll", 'Lerp the real scroll position. Coefficient <code>0.09</code>'],
+    ["Pin", "Tall wrap plus reverse <code>translateY</code> on the inner layer"],
+    ["Progress", "<code>-rect.top / (height - viewport)</code>, clamped to 0–1"],
+    ["Performance", "Only write <code>transform</code> and <code>opacity</code>"],
+  ];
+  kv.forEach((row, i) => {
+    if (dts[i]) dts[i].textContent = row[0];
+    if (dds[i]) dds[i].innerHTML = row[1];
+  });
+}
+
+const content   = document.getElementById("content");
+const bar       = document.getElementById("bar");
+const heroInner = document.getElementById("heroInner");
+const pinWrap   = document.getElementById("pinWrap");
+const pinInner  = document.getElementById("pinInner");
+const track     = document.getElementById("track");
+const plx       = document.getElementById("plx");
+const countWrap = document.getElementById("countWrap");
+const countInner= document.getElementById("countInner");
+const countNum  = document.getElementById("countNum");
+const layers    = [...plx.querySelectorAll(".layer")];
+const reveals   = [...document.querySelectorAll(".reveal")];
+
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+
+let vh = innerHeight;
+let maxScroll = 0;
+let current = 0;   // 平滑后的滚动位置
+let target  = 0;   // 真实滚动位置
+
+// 错开延迟：同一区块内的 .reveal 依次 +80ms
+document.querySelectorAll("section").forEach((sec) => {
+  sec.querySelectorAll(".reveal").forEach((el, i) => {
+    el.style.transitionDelay = (i * 80) + "ms";
+  });
+});
+
+function layout() {
+  vh = innerHeight;
+  // 内容器是 fixed 的，靠 body 高度擑出真实滚动行程
+  document.body.style.height = content.offsetHeight + "px";
+  maxScroll = Math.max(content.offsetHeight - vh, 1);
+}
+
+function render() {
+  // 1) 平滑滚动（这就是 Lenis 干的事）
+  target = window.scrollY;
+  current += (target - current) * (reduced ? 1 : 0.09);
+  if (Math.abs(target - current) < 0.05) current = target;
+  content.style.transform = "translate3d(0," + (-current).toFixed(2) + "px,0)";
+
+  // 2) 进度条
+  bar.style.width = (clamp(current / maxScroll, 0, 1) * 100).toFixed(3) + "%";
+
+  // 3) HERO 退场
+  const hp = clamp(current / vh, 0, 1);
+  heroInner.style.opacity = String(1 - hp);
+  heroInner.style.transform = "translate3d(0," + (-hp * 90).toFixed(1) + "px,0) scale(" + (1 - hp * 0.06).toFixed(4) + ")";
+  heroInner.style.filter = hp > 0.01 ? "blur(" + (hp * 6).toFixed(2) + "px)" : "none";
+
+  // 4) 进场浮现（一次性）
+  for (let i = reveals.length - 1; i >= 0; i--) {
+    const el = reveals[i];
+    if (el.getBoundingClientRect().top < vh * 0.86) {
+      el.classList.add("in");
+      reveals.splice(i, 1);
+    }
+  }
+
+  // 5) 固钉 + 横向
+  pinProgress(pinWrap, pinInner, (p) => {
+    const dist = Math.max(track.scrollWidth - innerWidth + 40, 0);
+    track.style.transform = "translate3d(" + (-p * dist).toFixed(2) + "px,0,0)";
+  });
+
+  // 6) 视差
+  const pr = plx.getBoundingClientRect();
+  const centered = (vh / 2 - (pr.top + pr.height / 2)) / vh; // 大致 -1 → 1
+  layers.forEach((l) => {
+    const sp = parseFloat(l.dataset.speed);
+    l.style.transform = "translate3d(0," + (centered * sp * 180).toFixed(1) + "px,0)";
+  });
+
+  // 7) 数字计数
+  pinProgress(countWrap, countInner, (p) => {
+    countNum.textContent = String(Math.round(p * 100));
+  });
+
+  requestAnimationFrame(render);
+}
+
+// 把一个高容器变成“固钉区”，并把滚动进度 0→1 交给回调
+function pinProgress(wrap, inner, onProgress) {
+  const rect = wrap.getBoundingClientRect();
+  const total = wrap.offsetHeight - vh;
+  const offset = clamp(-rect.top, 0, total);
+  inner.style.transform = "translate3d(0," + offset.toFixed(2) + "px,0)";
+  onProgress(clamp(offset / total, 0, 1));
+}
+
+addEventListener("resize", layout);
+layout();
+requestAnimationFrame(render);
+
+// 供截图/调试使用：直接跳到某个滚动百分比
+window.__jump = (f) => {
+  const y = maxScroll * f;
+  window.scrollTo(0, y);
+  current = y;
+};
+</script>
+</body>
+</html>

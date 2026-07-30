@@ -1,0 +1,134 @@
+---
+author: Duang
+pubDatetime: 2026-07-30T19:00:00+08:00
+title: "Scroll storytelling: smooth scroll, pin, parallax, progress"
+featured: false
+draft: false
+lang: en
+tags:
+  - 前端实验室
+  - Scroll
+  - GSAP
+description: "A zero-dependency demo of four scroll storytelling techniques: smooth scrolling, pinned horizontal travel, parallax layers, and a scroll-driven counter, with a GSAP and Lenis counterpart."
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import ScrollNarrativeDemo from "@/components/ScrollNarrativeDemo.astro";
+
+Many award-style landing pages look complex until you pull them apart. A large share of them reuse a small set of scroll techniques with different art. This post puts four of them on one long page: hero exit, staggered entrance, pinned horizontal travel, parallax, and a scroll-driven number.
+
+The preview below is the zero-dependency version. Scroll inside the frame to see what each screen does.
+
+<ScrollNarrativeDemo
+  title="Scroll storytelling demo"
+  hint="Scroll inside the frame to walk through the four techniques."
+  openLabel="Open the demo in a new page"
+  locale="en"
+/>
+
+The core claim is short:
+
+**Convert real scroll position into progress from 0 to 1, then drive transform and opacity with that progress.**
+
+GSAP ScrollTrigger and Lenis do the same work. The standalone page writes the math out so you can compare.
+
+<Marginalia label="Note">
+  Scrolling stays inside the iframe. It does not move the blog page.
+</Marginalia>
+
+## What smooth scrolling calculates
+
+Native browser scrolling jumps. One wheel step moves the page at once. Smooth scrolling treats the real `scrollY` as a target and eases toward it every frame:
+
+```js
+// public/demos/scroll-narrative.html
+target = window.scrollY;
+current += (target - current) * 0.09;
+content.style.transform = `translate3d(0,${-current}px,0)`;
+```
+
+The content root is `position: fixed`. `document.body.style.height` creates the real scroll distance. The `0.09` coefficient is the feel knob: smaller values feel stickier, and values above `0.15` barely look smoothed.
+
+## Pinning is two steps
+
+Pinning has no special browser API here:
+
+1. Give the outer wrap a tall height, `420vh` in this demo, so it owns scroll distance.
+2. When the wrap top crosses the viewport top, apply an equal reverse offset to the inner layer.
+
+```js
+const rect = wrap.getBoundingClientRect();
+const total = wrap.offsetHeight - vh;
+const offset = clamp(-rect.top, 0, total);
+inner.style.transform = `translate3d(0,${offset}px,0)`;
+const progress = clamp(offset / total, 0, 1);
+```
+
+The inner layer looks fixed, and you get progress from 0 to 1. Horizontal travel is:
+
+```js
+const dist = Math.max(track.scrollWidth - innerWidth + 40, 0);
+track.style.transform = `translate3d(${-progress * dist}px,0,0)`;
+```
+
+The counter uses the same progress: `Math.round(progress * 100)`.
+
+## Parallax uses relative position
+
+Parallax should use the section's position inside the viewport, not global scroll distance, so enter and leave stay symmetric:
+
+```js
+const r = section.getBoundingClientRect();
+const centered = (vh / 2 - (r.top + r.height / 2)) / vh;
+layer.style.transform = `translate3d(0,${centered * speed * 180}px,0)`;
+```
+
+A negative `speed` moves the opposite way. Keep travel under 200px across the whole pass, or the motion looks cheap.
+
+## Entrance needs more than a fade
+
+A plain opacity change from 0 to 1 looks like a slide deck. A steadier stack is motion, opacity, and stagger. In the demo each line waits 80ms longer than the previous one, with `cubic-bezier(.16, 1, .3, 1)` for a fast start and soft landing.
+
+## GSAP + Lenis in a real project
+
+You do not need to hand-roll pinning in production. Wire Lenis into the GSAP ticker so scroll and animation share one clock:
+
+```js
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({ lerp: 0.09 });
+lenis.on("scroll", ScrollTrigger.update);
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+gsap.to(track, {
+  x: () => -(track.scrollWidth - innerWidth + 40),
+  ease: "none",
+  scrollTrigger: {
+    trigger: "#pinWrap",
+    pin: "#pinInner",
+    start: "top top",
+    end: "bottom bottom",
+    scrub: 0.6,
+    invalidateOnRefresh: true,
+  },
+});
+```
+
+Keep `x` as a function and turn on `invalidateOnRefresh`, so a resize recomputes the travel distance. Animate only `transform` and `opacity`. Do not animate `left`, `top`, or `width`.
+
+## Knobs worth changing
+
+| Goal | Where |
+| --- | --- |
+| Scroll viscosity | `lerp` or the `0.09` easing factor |
+| Pin duration | `.pin-wrap` height `420vh` |
+| Card width | `.card` flex-basis |
+| Stagger timing | `80ms` per line |
+| Parallax travel | the `180` in `speed * 180` |
+
+[Open the complete demo in a new page](/demos/scroll-narrative.html?lang=en). Previous Frontend Lab post: [Running 24,000 particles with raw WebGL](/en/posts/webgl-particle-shader/).
