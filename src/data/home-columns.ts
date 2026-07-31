@@ -1,7 +1,12 @@
 import { getTagIntro } from "@/data/tag-intros";
 
 export type HomeColumnScent =
-  "digest" | "backend" | "frontend" | "agent" | "misc";
+  | "digest"
+  | "backend"
+  | "frontend"
+  | "agent"
+  | "pi"
+  | "misc";
 
 export type HomeColumnDef = {
   id: string;
@@ -25,6 +30,7 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     backend: { title: "后端专栏", intro: getTagIntro("后端专栏") },
     frontend: { title: "前端实验室", intro: getTagIntro("前端实验室") },
     agent: { title: "Agent 拆解", intro: getTagIntro("Agent") },
+    pi: { title: "Pi 深度解析", intro: getTagIntro("Pi 深度解析") },
     misc: { title: "随笔与其他", intro: "还没收进大专栏的笔记。" },
   },
   en: {
@@ -43,7 +49,11 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     agent: {
       title: "Agent Breakdowns",
       intro:
-        "Loops, tools, state, and engineering trade-offs in Agent projects.",
+        "Loops, tools, and engineering trade-offs in Agent projects.",
+    },
+    pi: {
+      title: "Pi Deep Dive",
+      intro: "What Pi is, how the packages split, and which trade-offs it made.",
     },
     misc: {
       title: "Notes & Other",
@@ -63,6 +73,7 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const backend = copyFor(locale, "backend");
   const frontend = copyFor(locale, "frontend");
   const agent = copyFor(locale, "agent");
+  const pi = copyFor(locale, "pi");
   return [
     {
       id: "digest",
@@ -99,6 +110,15 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       scent: "agent",
       limit: 2,
       match: tags => tags.includes("Agent") || tags.includes("拆解"),
+    },
+    {
+      id: "pi",
+      title: pi.title,
+      intro: pi.intro,
+      hubSlug: "pi-deep-dive",
+      scent: "pi",
+      limit: 2,
+      match: tags => tags.includes("Pi 深度解析"),
     },
   ];
 }

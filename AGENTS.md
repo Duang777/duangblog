@@ -85,6 +85,15 @@ Every post under the backend mega-column must carry this tag. Hub post: `src/con
 
 Do **not** use a lone vague tag like `专栏`. Do **not** label 请求过境 as "the backend column".
 
+## Pi 深度解析 (standalone column)
+
+**Tag:** `Pi 深度解析`  
+**Hub:** `src/content/posts/pi-deep-dive.md`
+
+Series on the Pi coding agent harness (`earendil-works/pi`): package layers, protocol abstraction, and deliberate non-features. First post is overview only; later posts follow package boundaries (`pi-ai`, `pi-agent-core`, `pi-tui`, `pi-coding-agent`).
+
+Do **not** fold these into a vague `Agent` / `拆解` tag alone. Posts in this series must carry `Pi 深度解析`.
+
 ## 最新速递 (standalone column)
 
 **Tag:** `最新速递`  
@@ -174,6 +183,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Posts: `src/content/posts/*.md`
 - 后端专栏 hub: `src/content/posts/backend-column.md`
 - 请求过境 (sub-column): `src/content/posts/request-crossing.mdx`
+- Pi 深度解析 hub: `src/content/posts/pi-deep-dive.md`
+- Pi 深度解析 (overview): `src/content/posts/pi-overview.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`

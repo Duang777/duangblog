@@ -195,6 +195,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #3f7b78 65%, var(--muted-foreground));
 }
 
+.post-card[data-column="pi"] {
+  --column-tint: color-mix(in oklab, #5a6a8a 65%, var(--muted-foreground));
+}
+
 .post-card[data-column="agent"] {
   --column-tint: color-mix(in oklab, #6f8794 65%, var(--muted-foreground));
 }
@@ -978,6 +982,10 @@ body {
   --column-ink: color-mix(in oklab, #2f6f6c 70%, var(--foreground));
 }
 
+.home-column.is-pi {
+  --column-ink: color-mix(in oklab, #3f4f6e 70%, var(--foreground));
+}
+
 .home-column.is-agent {
   --column-ink: color-mix(in oklab, #3a5c72 70%, var(--foreground));
 }
@@ -1727,6 +1735,34 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   opacity: 1;
   pointer-events: auto;
   transform: none;
+}
+
+/*
+ * Margin notes keep the right gutter. Left rail keeps the reading thread
+ * and its chapter labels. Chapter outline sits further left of that rail
+ * when the gutter is wide enough; otherwise drop the outline only.
+ */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .post-body-wrap:has(.marginalia) .post-chapter-outline {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .post-body-wrap:has(.marginalia) .post-chapter-outline {
+    inset-inline-end: auto;
+    /* Rail is 13.5rem left of prose; keep a gap so labels stay readable. */
+    inset-inline-start: max(
+      0.4rem,
+      calc((100vw - 48rem) / 2 - 13.5rem - 7.75rem)
+    );
+    max-width: 7rem;
+    text-align: end;
+  }
+
+  .post-body-wrap:has(.marginalia) .post-chapter-outline a {
+    text-align: end;
+  }
 }
 
 .post-chapter-outline ol {

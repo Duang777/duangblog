@@ -39,6 +39,16 @@ const COLUMN_JARS: Record<string, ColumnJarSpec> = {
     caption: "拆解瓶",
     hint: "圆底瓶 · 拆开再收拢",
   },
+  "Pi 深度解析": {
+    kind: "flask",
+    caption: "Pi 瓶",
+    hint: "细颈烧瓶 · 从全景灌到包边界",
+  },
+  前端实验室: {
+    kind: "vial",
+    caption: "实验瓶",
+    hint: "小样瓶 · 能直接操作的演示",
+  },
 };
 
 export function resolveColumnJar(tagName: string): ColumnJarSpec {
@@ -59,6 +69,8 @@ export function hasColumnJar(tagName: string | undefined): boolean {
 const COLUMN_JAR_PRIORITY = [
   "最新速递",
   "请求过境",
+  "Pi 深度解析",
+  "前端实验室",
   "后端专栏",
   "Agent",
   "拆解",
