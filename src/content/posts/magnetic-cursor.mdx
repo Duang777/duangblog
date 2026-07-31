@@ -1,0 +1,139 @@
+---
+author: Duang
+pubDatetime: 2026-07-31T20:30:00+08:00
+title: 磁吸按钮与光标跟随：一个公式的四种接法
+featured: false
+draft: false
+tags:
+  - 前端实验室
+  - Interaction
+  - Cursor
+description: 把鼠标与元素中心的距离乘上强度，再用 lerp 平滑到位。同一公式接到位移、双层视差、CSS 高光和 3D 倾斜上。
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import MagneticCursorDemo from "@/components/MagneticCursorDemo.astro";
+
+磁吸按钮看起来像魔法，拆开只剩一行：把鼠标坐标与元素中心的距离，乘一个强度系数。剩下的差别只是把这个偏移接到哪里。
+
+下面的演示是零依赖版。把鼠标移到按钮或卡片附近，就能看到四种接法。触屏设备会自动关掉位移和自定义光标。
+
+<MagneticCursorDemo />
+
+核心主张就一句：
+
+**`offset = (鼠标 - 元素中心) × strength`，再用 lerp 平滑到位。**
+
+<Marginalia>
+  磁吸只适合大尺寸主按钮。强度别调高，并响应 prefers-reduced-motion。导航和表单提交不要用。
+</Marginalia>
+
+## 磁吸按钮
+
+三个关键决策：
+
+感应范围要比按钮大。如果只在 `mouseenter` 时启动，按钮会突然跳一下。把矩形向外扩 90px，鼠标还没碰到，按钮已经迎上来。
+
+必须用 lerp。直接赋值会跟鼠标死死黏住。`0.15` 的阻尼才有被吸过去的手感。
+
+只用一个 `requestAnimationFrame` 循环。不要给每个按钮各绑一个 `mousemove`。全局记录坐标，统一在一个循环里算。
+
+```js
+// public/demos/magnetic-cursor.html
+const lerp = (a, b, t) => a + (b - a) * t;
+const RADIUS = 90;
+
+const inside =
+  Math.abs(dx) < r.width / 2 + RADIUS &&
+  Math.abs(dy) < r.height / 2 + RADIUS;
+
+const tx = inside ? dx * m.strength : 0;
+const ty = inside ? dy * m.strength : 0;
+m.x = lerp(m.x, tx, 0.15);
+m.y = lerp(m.y, ty, 0.15);
+m.el.style.transform = `translate3d(${m.x}px, ${m.y}px, 0)`;
+```
+
+不在范围内时，目标值置 0，让 lerp 自己滑回去。
+
+## 双层磁吸
+
+让内部文字和图标用额外的 strength 再走一点，就会有轻微视差，按钮看起来有厚度：
+
+```html
+<a class="btn magnet" data-strength="0.30">
+  <span class="label" data-inner="0.20">查看案例</span>
+  <span class="arrow" data-inner="0.45">→</span>
+</a>
+```
+
+箭头走得比文字快，方向感会更清楚。
+
+## 高光跟随
+
+这一招完全不动 DOM，只写两个 CSS 变量，渲染交给 `radial-gradient`：
+
+```css
+.glow::before {
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--mx) var(--my),
+    rgba(94, 159, 232, 0.45),
+    transparent 72%
+  );
+}
+```
+
+```js
+glow.style.setProperty("--mx", mx - r.left + "px");
+glow.style.setProperty("--my", my - r.top + "px");
+```
+
+伪元素必须写 `pointer-events: none`，否则高光层会拦住点击。
+
+## 3D 倾斜
+
+把鼠标位置归一化到 `-1` 到 `1`，再乘最大角度。X 轴要取反：鼠标向下时，卡片应该往后仰。
+
+```js
+const nx = clamp((mx - cx) / (r.width / 2), -1, 1);
+const ny = clamp((my - cy) / (r.height / 2), -1, 1);
+const targetRotY = nx * 14;
+const targetRotX = -ny * 14;
+```
+
+父元素必须有 `perspective`，否则旋转看起来是平的。`700px` 比较稳：小于 `500px` 会变形，大于 `1200px` 几乎看不出立体感。内容再用 `translateZ(28px)` 浮起来。
+
+## 自定义光标
+
+两个元素、两个不同的 lerp 系数，拖尾感就出来了：
+
+```js
+dotX = lerp(dotX, mx, 0.40);  // 小点几乎跟手
+ringX = lerp(ringX, mx, 0.14); // 外环明显滞后
+```
+
+隐藏系统光标时，必须加媒体查询，否则触屏设备会很难用：
+
+```css
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+}
+@media (hover: none) {
+  .cursor-dot,
+  .cursor-ring { display: none; }
+}
+```
+
+## 想调手感时动这些数
+
+| 参数 | 当前值 | 说明 |
+| --- | --- | --- |
+| 磁吸强度 | `0.30` 到 `0.35` | 超过 `0.5` 会显得失控 |
+| 感应范围 | `90px` | 小按钮可以给到 `120` |
+| 磁吸阻尼 | `0.15` | 越小越迟钝 |
+| 内层额外位移 | `0.20` / `0.45` | 差值越大层次感越强 |
+| 倾斜最大角 | `14deg` | 超过 `20deg` 会失真 |
+| 光标外环阻尼 | `0.14` | 越小拖尾越长 |
+
+[在新页面打开完整演示](/demos/magnetic-cursor.html)。同专栏上一篇：[滚动叙事长页](/posts/scroll-narrative/)。

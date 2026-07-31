@@ -1,0 +1,146 @@
+---
+author: Duang
+pubDatetime: 2026-07-31T20:30:00+08:00
+title: "Magnetic buttons and cursor follow: one formula, four outputs"
+featured: false
+draft: false
+lang: en
+tags:
+  - 前端实验室
+  - Interaction
+  - Cursor
+description: "Multiply the distance between the pointer and an element's center by a strength factor, then ease it with lerp. The same formula drives magnets, layered parallax, CSS spotlights, and 3D tilt."
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import MagneticCursorDemo from "@/components/MagneticCursorDemo.astro";
+
+Magnetic buttons look like a trick until you pull them apart. The math is one line: multiply the distance between the pointer and the element center by a strength factor. The rest is choosing where that offset goes.
+
+The demo below is zero-dependency. Move the pointer near the buttons and cards to see four outputs. Touch devices turn off motion and the custom cursor automatically.
+
+<MagneticCursorDemo
+  title="Magnetic buttons and cursor follow demo"
+  hint="Move the pointer near the buttons or cards. Touch devices fall back automatically."
+  openLabel="Open the demo in a new page"
+  locale="en"
+/>
+
+The core claim is short:
+
+**`offset = (pointer - center) × strength`, then ease it with lerp.**
+
+<Marginalia label="Note">
+  Magnets belong on large primary CTAs only. Keep strength modest and respect
+  prefers-reduced-motion. Do not use them on nav or form submit buttons.
+</Marginalia>
+
+## Magnetic button
+
+Three decisions matter:
+
+The hit area should be larger than the button. If you wait for `mouseenter`, the button jumps. Expand the rect by 90px so the button starts moving before the pointer touches it.
+
+Lerp is required. Assigning the offset directly sticks the button to the cursor. A damping of `0.15` is what creates the pull.
+
+Use one `requestAnimationFrame` loop. Do not bind `mousemove` on every button. Record the pointer once, then update everything in a shared loop.
+
+```js
+// public/demos/magnetic-cursor.html
+const lerp = (a, b, t) => a + (b - a) * t;
+const RADIUS = 90;
+
+const inside =
+  Math.abs(dx) < r.width / 2 + RADIUS &&
+  Math.abs(dy) < r.height / 2 + RADIUS;
+
+const tx = inside ? dx * m.strength : 0;
+const ty = inside ? dy * m.strength : 0;
+m.x = lerp(m.x, tx, 0.15);
+m.y = lerp(m.y, ty, 0.15);
+m.el.style.transform = `translate3d(${m.x}px, ${m.y}px, 0)`;
+```
+
+When the pointer leaves the expanded area, set the target to 0 and let lerp slide back.
+
+## Dual-layer magnet
+
+Give inner text and icons an extra strength so they travel a little farther. That small parallax makes the button feel thicker:
+
+```html
+<a class="btn magnet" data-strength="0.30">
+  <span class="label" data-inner="0.20">View work</span>
+  <span class="arrow" data-inner="0.45">→</span>
+</a>
+```
+
+The arrow moves faster than the label, so direction reads more clearly.
+
+## Spotlight follow
+
+This variant never moves the DOM. It only writes two CSS variables and lets `radial-gradient` render:
+
+```css
+.glow::before {
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--mx) var(--my),
+    rgba(94, 159, 232, 0.45),
+    transparent 72%
+  );
+}
+```
+
+```js
+glow.style.setProperty("--mx", mx - r.left + "px");
+glow.style.setProperty("--my", my - r.top + "px");
+```
+
+The pseudo-element must use `pointer-events: none`, or it will block clicks.
+
+## 3D tilt
+
+Normalize pointer position to `-1` to `1`, then multiply by a max angle. Invert the X axis so moving the pointer down tilts the card away from you.
+
+```js
+const nx = clamp((mx - cx) / (r.width / 2), -1, 1);
+const ny = clamp((my - cy) / (r.height / 2), -1, 1);
+const targetRotY = nx * 14;
+const targetRotX = -ny * 14;
+```
+
+The parent needs `perspective`, or the rotation looks flat. `700px` is a steady value: below `500px` it warps, and above `1200px` the depth almost disappears. Lift the content with `translateZ(28px)`.
+
+## Custom cursor
+
+Two elements and two lerp rates create the trail:
+
+```js
+dotX = lerp(dotX, mx, 0.40);  // nearly sticks to the hand
+ringX = lerp(ringX, mx, 0.14); // lags enough to trail
+```
+
+When you hide the system cursor, gate it with media queries, or touch devices become painful:
+
+```css
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+}
+@media (hover: none) {
+  .cursor-dot,
+  .cursor-ring { display: none; }
+}
+```
+
+## Knobs worth changing
+
+| Parameter | Current value | Notes |
+| --- | --- | --- |
+| Magnet strength | `0.30` to `0.35` | Above `0.5` feels wild |
+| Hit radius | `90px` | Small buttons can use `120` |
+| Magnet damping | `0.15` | Smaller is slower |
+| Inner extras | `0.20` / `0.45` | Larger gap means more depth |
+| Max tilt | `14deg` | Above `20deg` looks wrong |
+| Ring damping | `0.14` | Smaller means a longer trail |
+
+[Open the complete demo in a new page](/demos/magnetic-cursor.html?lang=en). Previous Frontend Lab post: [Scroll storytelling](/en/posts/scroll-narrative/).
