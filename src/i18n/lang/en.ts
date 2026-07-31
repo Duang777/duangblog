@@ -35,6 +35,7 @@ export default {
     enterColumn: "Enter column",
     scrollToPosts: "Posts",
     columnsEmpty: "Nothing here yet.",
+    columnCount: "{{count}} posts",
   },
   footer: {
     copyright: "Copyright",

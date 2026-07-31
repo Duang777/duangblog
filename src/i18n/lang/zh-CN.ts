@@ -35,6 +35,7 @@ export default {
     enterColumn: "进入专栏",
     scrollToPosts: "文章",
     columnsEmpty: "这一栏还在攒稿。",
+    columnCount: "{{count}} 篇",
   },
   footer: {
     copyright: "版权所有",

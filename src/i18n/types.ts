@@ -33,6 +33,7 @@ export interface UIStrings {
     enterColumn: string;
     scrollToPosts: string;
     columnsEmpty: string;
+    columnCount: string;
   };
   footer: {
     copyright: string;

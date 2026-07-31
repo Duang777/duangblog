@@ -10,6 +10,8 @@ import { useTranslations } from "@/i18n";
 type Props = {
   column: HomeColumnDef;
   posts: CollectionEntry<"posts">[];
+  /** All matching articles in this column, not just the ones shown. */
+  totalCount: number;
   locale: string;
   todayPickId: string | null;
   newestId: string | null;
@@ -20,6 +22,7 @@ type Props = {
 const {
   column,
   posts,
+  totalCount,
   locale,
   todayPickId,
   newestId,
@@ -34,6 +37,11 @@ const hubHref = column.hubSlug
   : column.tagHrefName
     ? getRelativeLocaleUrl(locale, `tags/${slugifyStr(column.tagHrefName)}`)
     : getRelativeLocaleUrl(locale, "posts");
+
+const countLabel = t.home.columnCount.replace(
+  "{{count}}",
+  String(totalCount)
+);
 ---
 
 <section
@@ -42,9 +50,14 @@ const hubHref = column.hubSlug
 >
   <div class="home-column-head">
     <div class="home-column-titles">
-      <h2 id={`home-column-${column.id}`} class="home-column-title font-serif">
-        {column.title}
-      </h2>
+      <div class="home-column-title-row">
+        <h2 id={`home-column-${column.id}`} class="home-column-title font-serif">
+          {column.title}
+        </h2>
+        <span class="home-column-count font-mono" aria-label={countLabel}>
+          {countLabel}
+        </span>
+      </div>
       <p class="home-column-intro">{column.intro}</p>
     </div>
     <a class="home-column-enter font-mono" href={hubHref}>

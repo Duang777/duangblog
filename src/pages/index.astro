@@ -70,23 +70,26 @@ const articlePosts = sortedPosts.filter(p => !hubSlugs.has(postSlug(p)));
 type ColumnBucket = {
   column: HomeColumnDef;
   posts: CollectionEntry<"posts">[];
+  totalCount: number;
 };
 
 const claimed = new Set<string>();
 const columnBuckets: ColumnBucket[] = homeColumns.map(column => {
-  const matched = articlePosts
-    .filter(p => {
-      if (claimed.has(p.id)) return false;
-      return column.match(p.data.tags ?? []);
-    })
-    .slice(0, column.limit);
-  matched.forEach(p => claimed.add(p.id));
-  return { column, posts: matched };
+  // Claim every matching article so overflow does not leak into 随笔.
+  const matchedAll = articlePosts.filter(p => {
+    if (claimed.has(p.id)) return false;
+    return column.match(p.data.tags ?? []);
+  });
+  matchedAll.forEach(p => claimed.add(p.id));
+  return {
+    column,
+    posts: matchedAll.slice(0, column.limit),
+    totalCount: matchedAll.length,
+  };
 });
 
-const miscPosts = articlePosts
-  .filter(p => !claimed.has(p.id))
-  .slice(0, homeMiscColumn.limit);
+const miscAll = articlePosts.filter(p => !claimed.has(p.id));
+const miscPosts = miscAll.slice(0, homeMiscColumn.limit);
 const showMisc = miscPosts.length > 0;
 
 const termPosts: TermPost[] = sortedPosts.map(post => {
@@ -166,10 +169,11 @@ const termIdeas = [
         </div>
 
         {
-          columnBuckets.map(({ column, posts: columnPosts }) => (
+          columnBuckets.map(({ column, posts: columnPosts, totalCount }) => (
             <HomeColumnSection
               column={column}
               posts={columnPosts}
+              totalCount={totalCount}
               locale={locale}
               todayPickId={todayPickId}
               newestId={newestId}
@@ -184,6 +188,7 @@ const termIdeas = [
             <HomeColumnSection
               column={homeMiscColumn}
               posts={miscPosts}
+              totalCount={miscAll.length}
               locale={locale}
               todayPickId={todayPickId}
               newestId={newestId}

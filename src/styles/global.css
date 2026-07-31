@@ -1007,6 +1007,13 @@ body {
   flex: 1;
 }
 
+.home-column-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.7rem;
+}
+
 .home-column-title {
   margin: 0;
   font-size: 1.45rem;
@@ -1014,6 +1021,12 @@ body {
   letter-spacing: 0.04em;
   line-height: 1.25;
   color: var(--column-ink);
+}
+
+.home-column-count {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
 }
 
 .home-column-intro {
