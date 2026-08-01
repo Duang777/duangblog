@@ -9,6 +9,9 @@ description: "关于 Duang，以及这个博客会写什么。"
 
 ## 这里主要分享
 
+<div class="about-share">
+<div class="about-share-main">
+
 - **Agent 项目拆解**：看别人怎么做、自己怎么搭，把链路和取舍讲清楚  
 - **后端专栏**：服务端机制总栏目（标签 `后端专栏`）；小栏目目前有请求过境  
 - **最新速递**：短、快、一事一篇——新工具、长文跟读，或一次线上现象  
@@ -18,6 +21,27 @@ description: "关于 Duang，以及这个博客会写什么。"
 - **日常**：偶尔写一点工作以外的碎片  
 
 不追求更新频率，只尽量写对自己、对读者都有用的内容。
+
+</div>
+<div class="about-share-doodles not-prose" aria-hidden="true">
+  <img
+    class="about-doodle about-doodle--letter-d"
+    src="/images/childlike-sketch-letter-d.png"
+    alt=""
+    width="1024"
+    height="1024"
+    loading="lazy"
+  />
+  <img
+    class="about-doodle about-doodle--letter-p"
+    src="/images/childlike-sketch-letter-p.png"
+    alt=""
+    width="1024"
+    height="1024"
+    loading="lazy"
+  />
+</div>
+</div>
 
 ## 一条时间线
 
