@@ -7,6 +7,7 @@ export default defineAstroPaperConfig({
     description: "Agent 项目拆解、全栈学习与分享、Idea 与日常。",
     author: "Duang",
     profile: "https://github.com/Duang777",
+    landingUrl: "https://duang-landing.pages.dev/",
     ogImage: "default-og.jpg",
     lang: "zh-CN",
     timezone: "Asia/Shanghai",

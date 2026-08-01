@@ -9,6 +9,8 @@ interface SiteConfig {
   author: string;
   /** Author profile URL (used in structured data) */
   profile?: string;
+  /** Personal landing / works site URL (nav bridge) */
+  landingUrl?: string;
   /** Fallback OG image filename in /public, e.g. "og.jpg" */
   ogImage?: string;
   /** HTML lang attribute, defaults to "en" */
@@ -115,7 +117,7 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "googleVerification">;
+  Pick<SiteConfig, "profile" | "googleVerification" | "landingUrl">;
 
 export interface ResolvedAstroPaperConfig {
   site: ResolvedSiteConfig;

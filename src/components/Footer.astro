@@ -38,6 +38,17 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
   >
     <div class="flex flex-col items-center gap-1 sm:items-end">
       <Socials />
+      {
+        config.site.landingUrl && (
+          <a
+            href={config.site.landingUrl}
+            class="footer-rss-note font-mono"
+            rel="noopener"
+          >
+            作品站 · duang-landing
+          </a>
+        )
+      }
       <a href={rssHref} class="footer-rss-note font-mono">可订阅 · 不吵</a>
     </div>
     <div class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:items-baseline sm:gap-0">

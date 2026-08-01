@@ -6,6 +6,8 @@ export interface UIStrings {
     about: string;
     archives: string;
     search: string;
+    /** Link to the personal landing / works site */
+    works: string;
   };
   post: {
     publishedAt: string;
