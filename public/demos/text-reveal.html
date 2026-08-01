@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文字逐字浮现</title>
+<style>
+  :root{
+    --canvas:#191919;
+    --surface:#202020;
+    --border:rgba(255,255,255,.14);
+    --text:#FFFFFF;
+    --dim:rgba(255,255,255,.65);
+    --faint:rgba(255,255,255,.42);
+    --blue:#5E9FE8;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--canvas);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:48px 24px 64px}
+
+  .eyebrow{margin:0 0 12px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  h1{margin:0 0 16px;font-size:clamp(30px,6vw,52px);line-height:1.16;letter-spacing:-.02em;font-weight:650}
+  .sub{margin:0 0 4px;max-width:620px;color:var(--dim);font-size:16px}
+
+  #replay{
+    margin:24px 0 0;padding:9px 18px;
+    border:1px solid var(--border);border-radius:8px;
+    background:transparent;color:var(--text);
+    font:inherit;font-size:14px;cursor:pointer;
+    transition:background-color .25s var(--ease),border-color .25s var(--ease);
+  }
+  #replay:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.32)}
+  #replay:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+  .grid{margin-top:48px;display:grid;gap:16px;grid-template-columns:1fr}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+  .num{display:block;font-size:12px;letter-spacing:.12em;color:var(--faint);margin-bottom:8px}
+  .tile h2{margin:0 0 8px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+  .desc{margin:0 0 20px;font-size:14px;color:var(--dim)}
+  .demo{margin:0;font-size:clamp(19px,2.4vw,24px);line-height:1.3;font-weight:600;letter-spacing:-.01em}
+  .demo + .demo{margin-top:14px}
+  .foot{margin:40px 0 0;font-size:13px;color:var(--faint)}
+
+  /* ---- 拆分后的基础结构 ---- */
+  .w{display:inline-block;white-space:nowrap}
+  .m{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.14em;margin-bottom:-.14em}
+  .c{display:inline-block;will-change:transform,opacity}
+
+  /* 01 遮罩上推（逐字） */
+  .chars .c{transform:translateY(110%);opacity:0;transition:transform .9s var(--ease),opacity .7s var(--ease)}
+  .chars.on .c{transform:translateY(0);opacity:1}
+
+  /* 02 模糊上浮（逐词） */
+  .words .c{transform:translateY(16px);opacity:0;filter:blur(9px);transition:transform .85s var(--ease),opacity .85s var(--ease),filter .85s var(--ease)}
+  .words.on .c{transform:translateY(0);opacity:1;filter:blur(0)}
+
+  /* 04 悬停抬起 */
+  .hover-lift{cursor:default}
+  .hover-lift .c{transform:none;opacity:1;transition:transform .45s var(--ease),color .45s var(--ease)}
+  .hover-lift:hover .c,
+  .hover-lift.forced .c{transform:translateY(-10px);color:var(--blue)}
+
+  .scramble{font-family:"Andale Mono","Courier New",ui-monospace,monospace;font-size:18px;color:var(--blue);min-height:1.3em}
+
+  @media (min-width:720px){
+    .grid{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:520px){
+    .wrap{padding:32px 18px 48px}
+    .grid{margin-top:32px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .chars .c,.words .c,.hover-lift .c{
+      transform:none!important;opacity:1!important;filter:none!important;transition:none!important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Text Reveal</p>
+  <h1 class="chars" data-delay="120">文字逐字浮现</h1>
+  <p class="sub words" data-delay="520">把一行字拆成独立的字或词，错开时间进场。</p>
+  <p class="sub words" data-delay="760">获奖网站的开场，几乎都是这一招。</p>
+
+  <button id="replay" type="button">重播 ↻</button>
+
+  <div class="grid">
+
+    <section class="tile">
+      <span class="num">01</span>
+      <h2>遮罩上推</h2>
+      <p class="desc">每个字外面套一层 overflow:hidden，字从下沿推上来。最经典的开场。</p>
+      <p class="demo chars" data-delay="1050">Design that moves.</p>
+    </section>
+
+    <section class="tile">
+      <span class="num">02</span>
+      <h2>模糊上浮</h2>
+      <p class="desc">按词进场，叠一层 blur 过渡。比逐字更柔和，适合正文。</p>
+      <p class="demo words" data-delay="1350">柔和 缓慢 有呼吸感</p>
+    </section>
+
+    <section class="tile">
+      <span class="num">03</span>
+      <h2>滚动进入</h2>
+      <p class="desc">用 IntersectionObserver 触发，滚到视野里才播，而不是加载就播完了。</p>
+      <p class="demo chars on-scroll">滚到这里才开始。</p>
+    </section>
+
+    <section class="tile">
+      <span class="num">04</span>
+      <h2>悬停与字符滚动</h2>
+      <p class="desc">同一套拆分结果可以复用：悬停逐字抬起，或做 scramble 乱码收敛。</p>
+      <p class="demo hover-lift">HOVER ME</p>
+      <p class="demo scramble" id="scramble" data-final="RANDOM to REAL"></p>
+    </section>
+
+  </div>
+
+  <p class="foot">零依赖，一个 HTML 文件。全部动画尊重 prefers-reduced-motion。</p>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  if (new URLSearchParams(location.search).get("lang") === "en") {
+    document.documentElement.lang = "en";
+    document.title = "Character-by-character text reveal";
+    var setText = function(sel, text){
+      var el = document.querySelector(sel);
+      if (el) el.textContent = text;
+    };
+    setText(".eyebrow", "Text Reveal");
+    setText("h1", "Letter by letter");
+    var subs = document.querySelectorAll(".sub");
+    if (subs[0]) subs[0].textContent = "Split a line into letters or words, then stagger them in.";
+    if (subs[1]) subs[1].textContent = "Award-site openers almost always start here.";
+    setText("#replay", "Replay ↻");
+    var tiles = document.querySelectorAll(".tile");
+    var copy = [
+      ["Mask push-up", "Wrap each letter in overflow:hidden and push it up from the bottom. The classic opener.", "Design that moves."],
+      ["Blur float", "Reveal by word with a blur fade. Softer than letters — good for body copy.", "Soft Slow Breathable"],
+      ["Scroll enter", "Trigger with IntersectionObserver so it plays in view, not on load.", "Scroll here to start."],
+      ["Hover & scramble", "Reuse one split: hover-lift per letter, or scramble into the final string.", "HOVER ME"],
+    ];
+    for (var t = 0; t < tiles.length; t++){
+      if (!copy[t]) continue;
+      var h2 = tiles[t].querySelector("h2");
+      var desc = tiles[t].querySelector(".desc");
+      var demo = tiles[t].querySelector(".demo");
+      if (h2) h2.textContent = copy[t][0];
+      if (desc) desc.textContent = copy[t][1];
+      if (demo && !demo.classList.contains("scramble")) demo.textContent = copy[t][2];
+    }
+    var scr = document.getElementById("scramble");
+    if (scr) scr.dataset.final = "RANDOM to REAL";
+    setText(".foot", "Zero dependencies, one HTML file. All motion respects prefers-reduced-motion.");
+  }
+
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var CHAR_STEP = 26, WORD_STEP = 90;          // 单个间隔上限 ms
+  var CHAR_BUDGET = 620, WORD_BUDGET = 760;    // 总错开时长预算 ms
+
+  // 拉丁单词保持完整（不能从词中间折行），CJK 每字一个单元，空白单独处理
+  function tokenize(text){
+    return text.match(/[A-Za-z0-9'’\-\.]+|\s+|[^\s]/g) || [];
+  }
+
+  function split(el, mode){
+    var text = el.textContent.trim();
+    el.setAttribute("aria-label", text);   // 屏幕阅读器读原句，不读碎片
+    el.textContent = "";
+    el.dataset.split = "1";
+
+    var list = tokenize(text), i = 0, units = 0, k, j;
+
+    // 先数一遍，把总错开时长锁定在预算内：字多就自动缩短间隔
+    for (k = 0; k < list.length; k++){
+      if (/^\s+$/.test(list[k])) continue;
+      units += (mode === "words") ? 1 : Array.from(list[k]).length;
+    }
+    var step = (mode === "words")
+      ? Math.max(30, Math.min(WORD_STEP, WORD_BUDGET / units))
+      : Math.max(12, Math.min(CHAR_STEP, CHAR_BUDGET / units));
+
+    for (k = 0; k < list.length; k++){
+      var tk = list[k];
+      if (/^\s+$/.test(tk)){ el.appendChild(document.createTextNode(" ")); continue; }
+
+      var w = document.createElement("span");
+      w.className = "w";
+
+      if (mode === "words"){
+        var cw = document.createElement("span");
+        cw.className = "c";
+        cw.textContent = tk;
+        cw.style.transitionDelay = Math.round(i * step) + "ms";
+        w.appendChild(cw);
+        i++;
+      } else {
+        var chars = Array.from(tk);
+        for (j = 0; j < chars.length; j++){
+          var c = document.createElement("span");
+          c.className = "c";
+          c.textContent = chars[j];
+          c.style.transitionDelay = Math.round(i * step) + "ms";
+          if (mode === "mask"){
+            var m = document.createElement("span");
+            m.className = "m";
+            m.appendChild(c);
+            w.appendChild(m);
+          } else {
+            w.appendChild(c);
+          }
+          i++;
+        }
+      }
+      el.appendChild(w);
+    }
+  }
+
+  var maskEls  = [].slice.call(document.querySelectorAll(".chars"));
+  var wordEls  = [].slice.call(document.querySelectorAll(".words"));
+  var hoverEls = [].slice.call(document.querySelectorAll(".hover-lift"));
+
+  maskEls.forEach(function(el){ split(el, "mask"); });
+  wordEls.forEach(function(el){ split(el, "words"); });
+  hoverEls.forEach(function(el){ split(el, "plain"); });
+
+  var timers = [];
+  function play(el){
+    var d = parseInt(el.dataset.delay || "0", 10);
+    if (reduce || !d){ el.classList.add("on"); return; }
+    timers.push(setTimeout(function(){ el.classList.add("on"); }, d));
+  }
+
+  // ---- scramble：从左往右逐个定住 ----
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&@";
+  var scrEl = document.getElementById("scramble");
+  var scrTimer = null;
+  function scramble(delay){
+    var final = scrEl.dataset.final, chars = Array.from(final);
+    clearInterval(scrTimer);
+    if (reduce){ scrEl.textContent = final; return; }
+    scrEl.textContent = "";
+    timers.push(setTimeout(function(){
+      var frame = 0;
+      scrTimer = setInterval(function(){
+        var out = "", i, settle;
+        for (i = 0; i < chars.length; i++){
+          if (chars[i] === " "){ out += " "; continue; }
+          settle = i * 3 + 10;
+          out += (frame > settle) ? chars[i] : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        }
+        scrEl.textContent = out;
+        if (++frame > chars.length * 3 + 14){
+          clearInterval(scrTimer);
+          scrEl.textContent = final;
+        }
+      }, 40);
+    }, delay));
+  }
+
+  // ---- 滚动进入 ----
+  var scrollEls = [].slice.call(document.querySelectorAll(".on-scroll"));
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){
+          en.target.classList.add("on");
+          io.unobserve(en.target);              // 只播一次
+        }
+      });
+    }, { threshold: 0.35, rootMargin: "0px 0px -8% 0px" });
+    scrollEls.forEach(function(el){ io.observe(el); });
+  } else {
+    scrollEls.forEach(function(el){ el.classList.add("on"); });
+  }
+
+  function start(){
+    maskEls.concat(wordEls).forEach(function(el){
+      if (!el.classList.contains("on-scroll")) play(el);
+    });
+    scramble(1650);
+  }
+  start();
+
+  document.getElementById("replay").addEventListener("click", function(){
+    timers.forEach(clearTimeout);
+    timers = [];
+    clearInterval(scrTimer);
+    maskEls.concat(wordEls).forEach(function(el){
+      if (!el.classList.contains("on-scroll")) el.classList.remove("on");
+    });
+    void document.body.offsetWidth;             // 强制回流，不然不会重放
+    start();
+  });
+
+  // ---- 截图 / 调试钩子 ----
+  window.__revealAll = function(){
+    timers.forEach(clearTimeout);
+    clearInterval(scrTimer);
+    document.querySelectorAll("[data-split]").forEach(function(el){ el.classList.add("on"); });
+    scrEl.textContent = scrEl.dataset.final;
+  };
+  window.__hover = function(on){
+    hoverEls.forEach(function(el){ el.classList.toggle("forced", on !== false); });
+  };
+  window.__midway = function(){
+    timers.forEach(clearTimeout);
+    maskEls.concat(wordEls).forEach(function(el){ el.classList.remove("on"); });
+    void document.body.offsetWidth;
+    maskEls.concat(wordEls).forEach(function(el){ el.classList.add("on"); });
+  };
+})();
+</script>
+</body>
+</html>

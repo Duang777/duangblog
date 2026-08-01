@@ -1,0 +1,263 @@
+---
+author: Duang
+pubDatetime: 2026-08-01T21:30:00+08:00
+title: "Text reveal: complete runnable code"
+featured: false
+draft: false
+lang: en
+tags:
+  - 前端实验室
+  - Typography
+  - Animation
+description: "Split a line into independent elements, then give each one an increasing delay. Every variant builds on that. Zero dependencies."
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import TextRevealDemo from "@/components/TextRevealDemo.astro";
+
+Effect four. One step does it: **split the line into independent elements**, then give each one an increasing delay.
+Mask, blur, scroll trigger, hover, scramble — all sit on that. Zero dependencies.
+
+Hit Replay to watch the opener again.
+
+<TextRevealDemo
+  title="Text reveal demo"
+  hint="Hit Replay to rewatch the opener. Scroll to the third tile to trigger again."
+  openLabel="Open the demo in a new page"
+  locale="en"
+/>
+
+## 1. Splitting: the easiest step to mess up
+
+Lots of tutorials write `text.split("").map(...)`. **That is wrong.** Three problems:
+
+1. **English words wrap mid-word** — every letter is its own inline-block, so the browser can break anywhere.
+2. **Spaces disappear** — spaces from `split("")` collapse inside a span.
+3. **Screen readers read fragments** — letter by letter. Accessibility is gone.
+
+Do a **two-layer structure**: wrap words in a `nowrap` container, then split letters inside.
+
+```js
+// public/demos/text-reveal.html
+// Keep Latin words whole, one unit per CJK character, spaces as real text nodes
+function tokenize(text){
+  return text.match(/[A-Za-z0-9'’\-\.]+|\s+|[^\s]/g) || [];
+}
+
+function split(el, mode){
+  const text = el.textContent.trim();
+  el.setAttribute("aria-label", text);   // keep the original sentence for AT
+  el.textContent = "";
+
+  for (const tk of tokenize(text)) {
+    if (/^\s+$/.test(tk)) {              // restore spaces as real text nodes
+      el.appendChild(document.createTextNode(" "));
+      continue;
+    }
+    const w = document.createElement("span");
+    w.className = "w";                   // .w { display:inline-block; white-space:nowrap }
+    for (const ch of Array.from(tk)) {   // Array.from, not split(""), or emoji tears
+      // ...wrap ch in .c, set transitionDelay
+    }
+    el.appendChild(w);
+  }
+}
+```
+
+<Marginalia label="Note">
+  Use `Array.from(str)` or `[...str]`. Do not use `str.split("")`. That splits UTF-16 code units and can tear emoji and some rare characters.
+</Marginalia>
+
+## 2. Budget total time. Do not hardcode the gap.
+
+Real bug from this demo. I started with `delay = index * 90ms`. Short English looked fine. Chinese treats every character as a unit — 17 characters means 1530ms of stagger, and the last ones feel stuck.
+
+Fix: **lock a total stagger budget, derive the step**. More units → tighter gaps.
+
+```js
+const CHAR_STEP = 26,  WORD_STEP = 90;    // per-unit step caps
+const CHAR_BUDGET = 620, WORD_BUDGET = 760; // total stagger budgets
+
+const step = (mode === "words")
+  ? Math.max(30, Math.min(WORD_STEP, WORD_BUDGET / units))
+  : Math.max(12, Math.min(CHAR_STEP, CHAR_BUDGET / units));
+
+c.style.transitionDelay = Math.round(i * step) + "ms";
+```
+
+| Length | Fixed 90ms | Budgeted |
+| --- | --- | --- |
+| 4 words | 360ms ✅ | 360ms ✅ |
+| 17 characters | 1530ms ❌ sluggish | 760ms ✅ |
+
+## 3. Mask push-up (classic opener)
+
+Wrap each letter in `overflow:hidden`, push it up from the bottom. Short CSS:
+
+```css
+.m{
+  display:inline-block;
+  overflow:hidden;
+  vertical-align:bottom;
+  padding-bottom:.14em;      /* room for g j y descenders */
+  margin-bottom:-.14em;      /* cancel so line-height stays put */
+}
+.chars .c{
+  display:inline-block;
+  transform:translateY(110%);
+  opacity:0;
+  transition:transform .9s cubic-bezier(.16,1,.3,1),
+             opacity   .7s cubic-bezier(.16,1,.3,1);
+}
+.chars.on .c{ transform:translateY(0); opacity:1 }
+```
+
+Three details:
+
+- **`110%`, not `100%`** — at 100% the tip still kisses the mask and leaves a fringe.
+- **`padding-bottom` + negative `margin-bottom`** — without this pair, `g` / `j` / `y` get clipped. Most common bug.
+- **opacity finishes 0.2s before transform** — letter feels solid before it fully lands.
+
+## 4. Blur float (for body copy)
+
+By word, not by letter. Small travel plus blur. Softer. Use this for paragraphs.
+
+```css
+.words .c{
+  transform:translateY(16px);
+  opacity:0;
+  filter:blur(9px);
+  transition:transform .85s var(--ease),
+             opacity   .85s var(--ease),
+             filter    .85s var(--ease);
+}
+.words.on .c{ transform:translateY(0); opacity:1; filter:blur(0) }
+```
+
+<Marginalia label="Note">
+  `filter:blur()` re-rasters every frame. Most expensive of these. Fine on titles; hundreds of blurs at once will drop frames.
+</Marginalia>
+
+## 5. Scroll enter: IntersectionObserver, not scroll events
+
+```js
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((en) => {
+    if (en.isIntersecting) {
+      en.target.classList.add("on");
+      io.unobserve(en.target);        // play once, then detach
+    }
+  });
+}, {
+  threshold: 0.35,                   // wait until 35% is visible
+  rootMargin: "0px 0px -8% 0px"      // pull bottom in so it does not fire too early
+});
+
+document.querySelectorAll(".on-scroll").forEach((el) => io.observe(el));
+```
+
+`unobserve` matters. Without it, scrolling back and forth retriggers, and the observer keeps hanging around.
+
+## 6. Reuse one split
+
+Splitting is the expensive step (lots of DOM + forced reflow). Do not waste it. Same structure, other effects:
+
+```css
+/* hover lift reuses transitionDelay → wave for free */
+.hover-lift .c{
+  transform:none; opacity:1;
+  transition:transform .45s var(--ease), color .45s var(--ease);
+}
+.hover-lift:hover .c{ transform:translateY(-10px); color:#5E9FE8 }
+```
+
+Scramble rewrites `textContent` each frame and settles left to right:
+
+```js
+const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&@";
+
+let frame = 0;
+const timer = setInterval(() => {
+  let out = "";
+  for (let i = 0; i < chars.length; i++) {
+    if (chars[i] === " ") { out += " "; continue; }
+    const settle = i * 3 + 10;                 // frame when character i locks
+    out += (frame > settle)
+      ? chars[i]
+      : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  }
+  el.textContent = out;
+  if (++frame > chars.length * 3 + 14) { clearInterval(timer); el.textContent = final; }
+}, 40);
+```
+
+Use monospace for scramble. Variable widths make the line jitter every frame.
+
+## 7. Why Replay does nothing
+
+Remove `.on` and add it back immediately — browser coalesces both changes, nothing animates. Force a reflow between them:
+
+```js
+el.classList.remove("on");
+void document.body.offsetWidth;   // read layout → force sync reflow
+el.classList.add("on");
+```
+
+## Pitfalls
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| English wraps mid-word | Every letter can break | Wrap words in `.w { white-space:nowrap }` |
+| Spaces gone | Spaces collapse in spans | Restore real text nodes |
+| `g` `j` `y` clipped | No descender room in mask | `padding-bottom:.14em` · matching negative margin |
+| Emoji corrupted | Used `split("")` | Use `Array.from(str)` |
+| Long Chinese drags | Fixed gap scales with length | Budget total time, derive step |
+| Screen reader spells letters | Original sentence destroyed | `aria-label` on the container |
+| Replay does nothing | Class toggles coalesced | Forced reflow in between |
+| First paint flashes then moves | Browser painted raw text before JS | Start at `opacity:0`, reveal after split |
+
+## Tuning
+
+| Param | Current | Notes |
+| --- | --- | --- |
+| Per-letter step | `26ms` cap | Above 40ms feels like pop-pop-pop |
+| Per-word step | `90ms` cap | Fewer units, larger gap is fine |
+| Stagger budget | `620 / 760ms` | Keep the whole line under ~1s |
+| Per-letter duration | `0.9s` | With expo easing; shorter feels stiff |
+| Mask start | `110%` | Do not use 100% |
+| Blur start | `9px` | Past 14px you cannot tell it is a letter |
+
+## When to switch to GSAP SplitText
+
+This hand-rolled version is enough — about 60 lines. Library is easier when:
+
+- **You need line splits** (`lines`) — measure wraps, recompute on resize. Painful by hand.
+- **You need a scrubbed scroll timeline** — `ScrollTrigger` + `stagger` is one line.
+- **You need `onSplit` / `revert`** — responsive re-splits, re-split after fonts load.
+
+GSAP plugins including SplitText have been free since April 2025, so you do not need to hand-roll to save money. For one opener, native still wins: no dependency, no CDN.
+
+<Marginalia label="A11y">
+  Three must-haves: 1) `aria-label` on the container; 2) under `prefers-reduced-motion`, show the final state with no travel or blur; 3) do not leave critical copy unreadable until after ~1s.
+</Marginalia>
+
+## Reproduction prompt
+
+Paste this into Claude / ChatGPT / Cursor for a single HTML file you can open with a double-click.
+
+```
+Write a single-file HTML text-reveal demo. Zero dependencies, open with a double-click, correct for mixed Chinese and English.
+
+1. Split in two layers: wrap words in an inline-block with white-space: nowrap, then split letters inside. Tokenize with /[A-Za-z0-9'’\-\.]+|\s+|[^\s]/g so Latin words stay whole, CJK is one unit per character, and spaces become real text nodes. Iterate with Array.from, not split(""), or emoji will tear. Set aria-label on the container before splitting.
+2. Budget total stagger time instead of a fixed gap: per-letter step = clamp(620ms / units, 12ms, 26ms), per-word step = clamp(760ms / units, 30ms, 90ms). Long Chinese lines must not drag.
+3. Mask push-up: wrap each letter in overflow: hidden inline-block, start at translateY(110%) (not 100%, fringe), and add padding-bottom: .14em with a matching negative margin-bottom so g j y descenders are not clipped. Opacity transition finishes 0.2s before transform.
+4. Blur float: by word, 16px travel, start at filter: blur(9px). Good for body copy.
+5. Scroll enter: IntersectionObserver, threshold 0.35, rootMargin "0px 0px -8% 0px", unobserve immediately after trigger so it plays once.
+6. Reuse one split for hover lift (existing transitionDelay makes the wave) and scramble (rewrite textContent each frame, lock character i at frame i*3+10, monospace to avoid jitter).
+7. Replay: after removing the class, void document.body.offsetWidth before adding it back, or the animation will not run.
+8. First-paint flash: start containers at opacity: 0, then reveal after the split.
+9. Dark theme: background #0f1114, text #eaf0f0, accent #5E9FE8, highlight #EAC26B, easing cubic-bezier(.16, 1, .3, 1). Chip buttons to switch variants with aria-pressed and :focus-visible.
+10. Under prefers-reduced-motion, show the final state with no travel or blur. Keep everything in one HTML file.
+```
+
+[Open the full demo](/demos/text-reveal.html?lang=en). Previous in this column: [Magnetic buttons and cursor follow](/posts/magnetic-cursor/).

@@ -1,0 +1,257 @@
+---
+author: Duang
+pubDatetime: 2026-08-01T21:30:00+08:00
+title: 文字逐字浮现：完整可运行代码
+featured: false
+draft: false
+tags:
+  - 前端实验室
+  - Typography
+  - Animation
+description: 把整行文字拆成一个个独立元素，然后给每个元素一个递增的 delay。后面所有变体都建立在这一步上。零依赖。
+---
+
+import Marginalia from "@/components/Marginalia.astro";
+import TextRevealDemo from "@/components/TextRevealDemo.astro";
+
+效果四。核心只有一步：**把整行文字拆成一个个独立元素**，然后给每个元素一个递增的 delay。
+后面所有变体（遮罩、模糊、滚动触发、悬停、乱码）都建立在这一步上。零依赖。
+
+点「重播」可以重看开场。
+
+<TextRevealDemo />
+
+## 一、拆分：最容易做砸的一步
+
+网上大量教程直接写 `text.split("").map(...)`。**这是错的**，会带来三个问题：
+
+1. **英文单词会在中间折行** —— 每个字母都是独立 inline-block，浏览器可以在任意字母后换行。
+2. **空格被吃掉** —— `split("")` 出来的空格塞进 span 后被 HTML 折叠。
+3. **屏幕阅读器读出一堆碎片** —— 逐字母朗读，无障碍直接报废。
+
+正确做法是**两层结构**：外层按「词」包一个 `nowrap` 容器，内层才是逐字。
+
+```js
+// public/demos/text-reveal.html
+// 拉丁单词保持完整，CJK 每字一个单元，空白单独处理
+function tokenize(text){
+  return text.match(/[A-Za-z0-9'’\-\.]+|\s+|[^\s]/g) || [];
+}
+
+function split(el, mode){
+  const text = el.textContent.trim();
+  el.setAttribute("aria-label", text);   // 关键：让读屏软件读原句
+  el.textContent = "";
+
+  for (const tk of tokenize(text)) {
+    if (/^\s+$/.test(tk)) {              // 空格还原成真正的文本节点
+      el.appendChild(document.createTextNode(" "));
+      continue;
+    }
+    const w = document.createElement("span");
+    w.className = "w";                   // .w { display:inline-block; white-space:nowrap }
+    for (const ch of Array.from(tk)) {   // Array.from 而不是 split("")，emoji 才不会裂开
+      // ...把 ch 包进 .c，写入 transitionDelay
+    }
+    el.appendChild(w);
+  }
+}
+```
+
+<Marginalia>
+  用 `Array.from(str)` 或 `[...str]` 遍历，不要用 `str.split("")`。后者按 UTF-16 码元切，emoji 和部分生僻字会被切成两半变成乱码。
+</Marginalia>
+
+## 二、错开时间：给「总时长」定预算，而不是给「间隔」定死值
+
+这是我在这个 demo 里踩到的真坑。一开始写死 `delay = index * 90ms`，英文短句很好看，但中文句子每个字都是一个单元 —— 17 个字就是 1530ms 的错开，最后几个字迟迟不出来，整句看起来像卡住了。
+
+解法：**固定总错开时长，间隔反过来算**。字多就自动变密。
+
+```js
+const CHAR_STEP = 26,  WORD_STEP = 90;    // 单个间隔的上限
+const CHAR_BUDGET = 620, WORD_BUDGET = 760; // 总错开时长预算
+
+const step = (mode === "words")
+  ? Math.max(30, Math.min(WORD_STEP, WORD_BUDGET / units))
+  : Math.max(12, Math.min(CHAR_STEP, CHAR_BUDGET / units));
+
+c.style.transitionDelay = Math.round(i * step) + "ms";
+```
+
+| 文本长度 | 写死 90ms | 按预算 |
+| --- | --- | --- |
+| 4 个词 | 360ms ✅ | 360ms ✅ |
+| 17 个字 | 1530ms ❌ 拖沓 | 760ms ✅ |
+
+## 三、遮罩上推（最经典的开场）
+
+每个字外面套一层 `overflow:hidden`，字从遮罩下沿推上来。CSS 只有几行：
+
+```css
+.m{
+  display:inline-block;
+  overflow:hidden;
+  vertical-align:bottom;
+  padding-bottom:.14em;      /* 给 g j y 的下伸部留空间 */
+  margin-bottom:-.14em;      /* 再抵消掉，不影响行高 */
+}
+.chars .c{
+  display:inline-block;
+  transform:translateY(110%);
+  opacity:0;
+  transition:transform .9s cubic-bezier(.16,1,.3,1),
+             opacity   .7s cubic-bezier(.16,1,.3,1);
+}
+.chars.on .c{ transform:translateY(0); opacity:1 }
+```
+
+三个细节：
+
+- **`110%` 而不是 `100%`** —— 100% 时字的顶端还贴着遮罩边缘，能看到一条毛边。
+- **`padding-bottom` + 负 `margin-bottom`** —— 不加这一对，`g`、`j`、`y` 的下伸部会被遮罩切掉。这是最常见的 bug。
+- **opacity 比 transform 短 0.2s** —— 让字在还没完全到位前就已经不透明，观感更「实」。
+
+## 四、模糊上浮（适合正文）
+
+逐词而非逐字，位移小，叠一层 blur。比逐字柔和很多，正文段落用这个。
+
+```css
+.words .c{
+  transform:translateY(16px);
+  opacity:0;
+  filter:blur(9px);
+  transition:transform .85s var(--ease),
+             opacity   .85s var(--ease),
+             filter    .85s var(--ease);
+}
+.words.on .c{ transform:translateY(0); opacity:1; filter:blur(0) }
+```
+
+<Marginalia>
+  `filter:blur()` 每帧都要重新光栅化，是这几种做法里最贵的。标题、短句可以用；整页几百个元素同时 blur 会掉帧。
+</Marginalia>
+
+## 五、滚动进入：用 IntersectionObserver，别用 scroll 事件
+
+```js
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((en) => {
+    if (en.isIntersecting) {
+      en.target.classList.add("on");
+      io.unobserve(en.target);        // 只播一次，播完就摘掉
+    }
+  });
+}, {
+  threshold: 0.35,                   // 露出 35% 才算进场
+  rootMargin: "0px 0px -8% 0px"      // 底部收进来一点，避免刚露头就触发
+});
+
+document.querySelectorAll(".on-scroll").forEach((el) => io.observe(el));
+```
+
+`unobserve` 那行很重要。不摘掉的话，用户来回滚动会反复触发，而且观察者一直挂着白耗性能。
+
+## 六、复用同一套拆分结果
+
+拆分是最贵的一步（大量 DOM 操作 + 强制回流）。做完之后不要浪费，同一份结构可以接不同的效果：
+
+```css
+/* 悬停逐字抬起：沿用已有的 transitionDelay，自动就是波浪式 */
+.hover-lift .c{
+  transform:none; opacity:1;
+  transition:transform .45s var(--ease), color .45s var(--ease);
+}
+.hover-lift:hover .c{ transform:translateY(-10px); color:#5E9FE8 }
+```
+
+scramble（乱码收敛）则是逐帧改 `textContent`，从左往右逐个定住：
+
+```js
+const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&@";
+
+let frame = 0;
+const timer = setInterval(() => {
+  let out = "";
+  for (let i = 0; i < chars.length; i++) {
+    if (chars[i] === " ") { out += " "; continue; }
+    const settle = i * 3 + 10;                 // 第 i 个字符在第几帧定住
+    out += (frame > settle)
+      ? chars[i]
+      : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  }
+  el.textContent = out;
+  if (++frame > chars.length * 3 + 14) { clearInterval(timer); el.textContent = final; }
+}, 40);
+```
+
+scramble 建议用等宽字体，否则每帧宽度都在变，整行会左右抽动。
+
+## 七、重播为什么不生效
+
+移除 `.on` 再立刻加回去，浏览器会把两次样式变更合并，动画根本不播。需要强制一次回流把状态「落地」：
+
+```js
+el.classList.remove("on");
+void document.body.offsetWidth;   // 读取布局属性 → 强制同步回流
+el.classList.add("on");
+```
+
+## 踩坑清单
+
+| 症状 | 原因 | 解法 |
+| --- | --- | --- |
+| 英文单词从中间断行 | 每个字母都能独立换行 | 外层按词包 `.w { white-space:nowrap }` |
+| 空格全没了 | 空格被塞进 span 后折叠 | 空格还原成真正的文本节点 |
+| `g` `j` `y` 底部被切 | 遮罩没留下伸部空间 | `padding-bottom:.14em` · 等量负 margin |
+| emoji 变乱码 | 用了 `split("")` | 改用 `Array.from(str)` |
+| 中文长句进场拖沓 | 间隔写死，字数一多就超长 | 固定总时长预算，反算间隔 |
+| 读屏软件逐字母念 | 原文被拆没了 | 容器加 `aria-label` 保留原句 |
+| 重播没反应 | 两次 class 变更被合并 | 中间插一次强制回流 |
+| 首屏文字闪一下才动 | JS 执行前浏览器已经画了原文 | 容器先 `opacity:0`，拆分完再放开 |
+
+## 调参建议
+
+| 参数 | 当前值 | 说明 |
+| --- | --- | --- |
+| 逐字间隔 | `26ms`（上限） | 超过 40ms 会有明显的「一个一个蹦」感 |
+| 逐词间隔 | `90ms`（上限） | 词比字少，可以给大一点 |
+| 总错开预算 | `620 / 760ms` | 整句进场别超过 1s |
+| 单字时长 | `0.9s` | 配 expo 缓动，短了会显得生硬 |
+| 遮罩起始位移 | `110%` | 不要用 100%，会露毛边 |
+| blur 起始值 | `9px` | 超过 14px 就糊得看不出是字了 |
+
+## 什么时候该换成 GSAP SplitText
+
+上面这套自己写完全够用，而且只有 60 行。但下面几种情况库更省事：
+
+- **要按「行」拆**（`lines`）—— 需要测量换行位置，窗口 resize 后还得重算，自己写很麻烦。
+- **要和滚动时间轴精确绑定** —— `ScrollTrigger` 的 `scrub` 配 `stagger` 一行搞定。
+- **要 `onSplit` / `revert`** —— 响应式重拆、字体加载完重拆。
+
+GSAP 全部插件（含 SplitText）从 2025 年 4 月起免费，所以不用再为省钱手写。但只做一个开场动画的话，原生方案没有依赖、没有 CDN 请求，更划算。
+
+<Marginalia label="无障碍">
+  无障碍三件套，缺一不可：1）容器写 `aria-label` 保留原句；2）`prefers-reduced-motion` 下直接显示最终状态、不做位移和 blur；3）别让文字在动画完成前无法阅读 —— 关键信息不要拖到 1s 之后才出现。
+</Marginalia>
+
+## 复现提示词
+
+把下面整段复制给 Claude / ChatGPT / Cursor，就能得到一个可直接双击运行的单文件版本。
+
+```
+写一个单文件 HTML 的文字逐字浮现演示，零依赖、双击就能跑，中英文混排都要正确。
+
+1. 拆分必须是两层结构：外层按「词」包一个 white-space: nowrap 的 inline-block，内层才逐字。分词用正则 /[A-Za-z0-9'’\-\.]+|\s+|[^\s]/g，拉丁单词保持完整、CJK 每字一个单元、空白还原成真正的文本节点。遍历字符用 Array.from 而不是 split("")，否则 emoji 会裂开。拆分前给容器写 aria-label 保留原句。
+2. 错开时间给「总时长预算」而不是写死间隔：逐字 step = clamp(总预算 620ms / 单元数, 12ms, 26ms)，逐词 step = clamp(760ms / 单元数, 30ms, 90ms)。中文长句才不会拖沓。
+3. 遮罩上推变体：每个字外套 overflow: hidden 的 inline-block，起始 translateY(110%)（不要用 100%，会露毛边），并加 padding-bottom: .14em 配等量负 margin-bottom，否则 g j y 的下伸部会被切掉。opacity 过渡比 transform 短 0.2s。
+4. 模糊上浮变体：逐词、位移 16px、起始 filter: blur(9px)，适合正文。
+5. 滚动进入：用 IntersectionObserver，threshold 0.35、rootMargin "0px 0px -8% 0px"，触发后立刻 unobserve 只播一次。
+6. 复用同一份拆分结果做悬停逐字抬起（沿用已有的 transitionDelay 自动形成波浪）和 scramble 乱码收敛（逐帧改 textContent，第 i 个字符在第 i*3+10 帧定住，用等宽字体避免抽动）。
+7. 重播按钮：移除类后必须 void document.body.offsetWidth 强制回流再加回来，否则动画不播。
+8. 首屏防闪：容器先 opacity: 0，拆分完成后再放开。
+9. 深色主题：背景 #0f1114，文字 #eaf0f0，主色 #5E9FE8，点缀 #EAC26B，缓动统一 cubic-bezier(.16, 1, .3, 1)。顶部一排 chip 按钮切换变体，带 aria-pressed 和 :focus-visible。
+10. prefers-reduced-motion 下直接显示最终状态，不做位移和 blur。全部写在一个 HTML 文件里。
+```
+
+[在新页面打开完整演示](/demos/text-reveal.html)。同专栏上一篇：[磁吸按钮与光标跟随](/posts/magnetic-cursor/)。
