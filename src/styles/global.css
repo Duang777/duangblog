@@ -1803,7 +1803,8 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 .post-chapter-outline {
   position: fixed;
   top: 28vh;
-  inset-inline-end: max(1rem, calc((100vw - 48rem) / 2 - 9rem));
+  /* Closer to the viewport edge = farther from the prose. */
+  inset-inline-end: max(0.75rem, calc((100vw - 48rem) / 2 - 12.5rem));
   z-index: 5;
   max-width: 7rem;
   opacity: 0;
@@ -1821,9 +1822,10 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 }
 
 /*
- * Margin notes keep the right gutter. Left rail keeps the reading thread
- * and its chapter labels. Chapter outline sits further left of that rail
- * when the gutter is wide enough; otherwise drop the outline only.
+ * Left rail: reading thread + chapter label.
+ * Right gutter: chapter outline (always). With margin notes, park the
+ * outline a bit farther out so it does not sit on top of the notes.
+ * Mid-wide screens: drop the outline only — notes keep the right side.
  */
 @media (min-width: 1280px) and (max-width: 1439px) {
   .post-body-wrap:has(.marginalia) .post-chapter-outline {
@@ -1833,18 +1835,17 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 
 @media (min-width: 1440px) {
   .post-body-wrap:has(.marginalia) .post-chapter-outline {
-    inset-inline-end: auto;
-    /* Rail is 13.5rem left of prose; keep a gap so labels stay readable. */
-    inset-inline-start: max(
-      0.4rem,
-      calc((100vw - 48rem) / 2 - 13.5rem - 7.75rem)
+    inset-inline-start: auto;
+    inset-inline-end: max(
+      0.5rem,
+      calc((100vw - 48rem) / 2 - 11.5rem)
     );
     max-width: 7rem;
-    text-align: end;
+    text-align: start;
   }
 
   .post-body-wrap:has(.marginalia) .post-chapter-outline a {
-    text-align: end;
+    text-align: start;
   }
 }
 
