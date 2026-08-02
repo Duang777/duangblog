@@ -20,13 +20,22 @@
     }
 
     p,
-    strong,
     ol,
     ul,
     figcaption,
     table,
     code {
       @apply text-foreground;
+    }
+
+    /*
+     * CJK bold faces are often weak; mark emphasis with a lighter accent ink
+     * instead of fake weight.
+     */
+    strong,
+    b {
+      font-weight: inherit;
+      color: color-mix(in oklab, var(--accent) 62%, var(--foreground));
     }
 
     a {

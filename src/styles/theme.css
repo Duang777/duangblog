@@ -67,6 +67,10 @@ html[data-theme="dark"] .app-prose :where(pre, pre code) {
   opacity: 0.9;
 }
 
+html[data-theme="dark"] .app-prose :is(strong, b) {
+  color: color-mix(in oklab, var(--accent) 55%, var(--foreground));
+}
+
 [data-theme="dark"][data-tod="morning"] {
   --background: #121314;
 }

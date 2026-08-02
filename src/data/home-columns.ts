@@ -5,6 +5,7 @@ export type HomeColumnScent =
   | "backend"
   | "frontend"
   | "agent"
+  | "agent-arch"
   | "pi"
   | "misc";
 
@@ -30,6 +31,10 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     backend: { title: "后端专栏", intro: getTagIntro("后端专栏") },
     frontend: { title: "前端实验室", intro: getTagIntro("前端实验室") },
     agent: { title: "Agent 拆解", intro: getTagIntro("Agent") },
+    "agent-arch": {
+      title: "Agent 系统架构设计",
+      intro: getTagIntro("Agent 系统架构设计"),
+    },
     pi: { title: "Pi 深度解析", intro: getTagIntro("Pi 深度解析") },
     misc: { title: "随笔与其他", intro: "还没收进大专栏的笔记。" },
   },
@@ -50,6 +55,11 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       title: "Agent Breakdowns",
       intro:
         "Loops, tools, and engineering trade-offs in Agent projects.",
+    },
+    "agent-arch": {
+      title: "Agent System Architecture",
+      intro:
+        "Define the boundary, climb the spectrum, and design without a framework first.",
     },
     pi: {
       title: "Pi Deep Dive",
@@ -73,6 +83,7 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const backend = copyFor(locale, "backend");
   const frontend = copyFor(locale, "frontend");
   const agent = copyFor(locale, "agent");
+  const agentArch = copyFor(locale, "agent-arch");
   const pi = copyFor(locale, "pi");
   return [
     {
@@ -91,7 +102,18 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       tagHrefName: "Agent",
       scent: "agent",
       limit: 2,
-      match: tags => tags.includes("Agent") || tags.includes("拆解"),
+      match: tags =>
+        (tags.includes("Agent") || tags.includes("拆解")) &&
+        !tags.includes("Agent 系统架构设计"),
+    },
+    {
+      id: "agent-arch",
+      title: agentArch.title,
+      intro: agentArch.intro,
+      hubSlug: "agent-system-architecture",
+      scent: "agent-arch",
+      limit: 2,
+      match: tags => tags.includes("Agent 系统架构设计"),
     },
     {
       id: "pi",

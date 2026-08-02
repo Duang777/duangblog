@@ -44,6 +44,11 @@ const COLUMN_JARS: Record<string, ColumnJarSpec> = {
     caption: "Pi 瓶",
     hint: "细颈烧瓶 · 从全景灌到包边界",
   },
+  "Agent 系统架构设计": {
+    kind: "wide",
+    caption: "架构瓶",
+    hint: "广口罐 · 从定义灌到可靠性",
+  },
   前端实验室: {
     kind: "vial",
     caption: "实验瓶",
@@ -69,6 +74,7 @@ export function hasColumnJar(tagName: string | undefined): boolean {
 const COLUMN_JAR_PRIORITY = [
   "最新速递",
   "请求过境",
+  "Agent 系统架构设计",
   "Pi 深度解析",
   "前端实验室",
   "后端专栏",

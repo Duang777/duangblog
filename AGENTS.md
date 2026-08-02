@@ -94,6 +94,15 @@ Series on the Pi coding agent harness (`earendil-works/pi`): package layers, pro
 
 Do **not** fold these into a vague `Agent` / `拆解` tag alone. Posts in this series must carry `Pi 深度解析`.
 
+## Agent 系统架构设计 (standalone column)
+
+**Tag:** `Agent 系统架构设计`  
+**Hub:** `src/content/posts/agent-system-architecture.md`
+
+Six-part teaching series on designing Agent systems without tying to one framework: definition & spectrum → context → tools/ACI → memory → multi-agent → reliability.
+
+Do **not** fold into `Agent` / `拆解` alone. Do **not** confuse with the Orloj-style project breakdown column.
+
 ## 最新速递 (standalone column)
 
 **Tag:** `最新速递`  
@@ -185,6 +194,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 - 请求过境 (sub-column): `src/content/posts/request-crossing.mdx`
 - Pi 深度解析 hub: `src/content/posts/pi-deep-dive.md`
 - Pi 深度解析 (overview): `src/content/posts/pi-overview.md`
+- Agent 系统架构设计 hub: `src/content/posts/agent-system-architecture.md`
+- Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`
