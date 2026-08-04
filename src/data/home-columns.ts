@@ -41,7 +41,7 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
   en: {
     digest: {
       title: "Latest Digest",
-      intro: "Short notes: tools, follow-ups, or one production symptom.",
+      intro: "What I've been reading lately.",
     },
     backend: {
       title: "Backend Notes",

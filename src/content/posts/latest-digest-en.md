@@ -7,14 +7,12 @@ draft: false
 lang: en
 tags:
   - 最新速递
-description: Short, one-thing notes. A new tool, a long read, or a production symptom — the entry hub.
+description: What I've been reading lately.
 ---
 
-**Latest digest** is for something I just ran into: a new tool, a long piece worth following, or a production symptom. Short and fast — deep mechanism walks stay in [Request Crossing](/en/posts/request-crossing/) and [Backend notes](/en/posts/backend-column/).
+What I've been reading lately. Tag: [Latest digest](/en/tags/最新速递/).
 
-Tag: [Latest digest](/en/tags/最新速递/). Formal pieces will keep landing here.
-
-Prefer one thing per post: what I saw, what I think, whether I'll follow up. Not a weekly roundup, not a link dump.
+Formal pieces will keep landing here.
 
 Already filed:
 
