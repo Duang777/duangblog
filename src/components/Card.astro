@@ -39,6 +39,7 @@ let column:
   | "frontend"
   | "agent"
   | "agent-arch"
+  | "mysql"
   | "pi"
   | "digest"
   | null = null;
@@ -50,6 +51,8 @@ if (tags.some(tag => tag.includes("最新速递"))) {
   column = "frontend";
 } else if (tags.some(tag => tag.includes("agent 系统架构设计"))) {
   column = "agent-arch";
+} else if (tags.some(tag => tag === "mysql" || tag.includes("mysql"))) {
+  column = "mysql";
 } else if (tags.some(tag => tag.includes("pi 深度解析") || tag === "pi")) {
   column = "pi";
 } else if (tags.some(tag => tag.includes("agent") || tag.includes("拆解"))) {

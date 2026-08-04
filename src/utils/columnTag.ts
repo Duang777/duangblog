@@ -5,6 +5,7 @@
 const COLUMN_PRIORITY = [
   "最新速递",
   "请求过境",
+  "MySQL",
   "后端专栏",
   "Agent",
   "拆解",

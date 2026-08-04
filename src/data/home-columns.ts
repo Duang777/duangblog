@@ -6,6 +6,7 @@ export type HomeColumnScent =
   | "frontend"
   | "agent"
   | "agent-arch"
+  | "mysql"
   | "pi"
   | "misc";
 
@@ -35,6 +36,7 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       title: "Agent 系统架构设计",
       intro: getTagIntro("Agent 系统架构设计"),
     },
+    mysql: { title: "MySQL", intro: getTagIntro("MySQL") },
     pi: { title: "Pi 深度解析", intro: getTagIntro("Pi 深度解析") },
     misc: { title: "随笔与其他", intro: "还没收进大专栏的笔记。" },
   },
@@ -61,6 +63,10 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       intro:
         "Define the boundary, climb the spectrum, and design without a framework first.",
     },
+    mysql: {
+      title: "MySQL",
+      intro: "Walk one SQL through architecture, engine, indexes, and transactions.",
+    },
     pi: {
       title: "Pi Deep Dive",
       intro: "What Pi is, how the packages split, and which trade-offs it made.",
@@ -84,6 +90,7 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const frontend = copyFor(locale, "frontend");
   const agent = copyFor(locale, "agent");
   const agentArch = copyFor(locale, "agent-arch");
+  const mysql = copyFor(locale, "mysql");
   const pi = copyFor(locale, "pi");
   return [
     {
@@ -123,6 +130,15 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       scent: "pi",
       limit: 2,
       match: tags => tags.includes("Pi 深度解析"),
+    },
+    {
+      id: "mysql",
+      title: mysql.title,
+      intro: mysql.intro,
+      hubSlug: "mysql-column",
+      scent: "mysql",
+      limit: 2,
+      match: tags => tags.includes("MySQL"),
     },
     {
       id: "backend",

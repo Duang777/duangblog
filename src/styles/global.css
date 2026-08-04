@@ -207,6 +207,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #7a6a58 65%, var(--muted-foreground));
 }
 
+.post-card[data-column="mysql"] {
+  --column-tint: color-mix(in oklab, #3d6b8a 60%, var(--muted-foreground));
+}
+
 .post-card[data-column="digest"] {
   --column-tint: color-mix(in oklab, #8a7a4a 55%, var(--accent));
 }
@@ -1066,6 +1070,10 @@ html[data-theme="dark"] .about-doodle--letter-p {
 
 .home-column.is-agent-arch {
   --column-ink: color-mix(in oklab, #5a4a3a 70%, var(--foreground));
+}
+
+.home-column.is-mysql {
+  --column-ink: color-mix(in oklab, #2f5a72 70%, var(--foreground));
 }
 
 .home-column.is-misc {

@@ -103,6 +103,15 @@ Six-part teaching series on designing Agent systems without tying to one framewo
 
 Do **not** fold into `Agent` / `拆解` alone. Do **not** confuse with the Orloj-style project breakdown column.
 
+## MySQL (standalone column)
+
+**Tag:** `MySQL`  
+**Hub:** `src/content/posts/mysql-column.md`
+
+Ten-part teaching series: architecture & one SQL journey → InnoDB → indexes → MVCC → locks → logs → EXPLAIN → tuning → HA → backup/sharding.
+
+Do **not** fold into `后端专栏` alone unless the post is also a backend mechanism note with that parent tag.
+
 ## 最新速递 (standalone column)
 
 **Tag:** `最新速递`  
@@ -196,6 +205,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Pi 深度解析 (overview): `src/content/posts/pi-overview.md`
 - Agent 系统架构设计 hub: `src/content/posts/agent-system-architecture.md`
 - Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
+- MySQL hub: `src/content/posts/mysql-column.md`
+- MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`
