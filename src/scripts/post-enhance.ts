@@ -14,6 +14,7 @@ import {
   markJarPourPending,
 } from "@/scripts/read-state";
 import { JAR_POUR_EVENT, type JarPourDetail } from "@/scripts/idea-jar";
+import { LINGO_TERMS, type LingoTerm } from "@/data/lingo-terms";
 
 const SITE_NAME = "duangblog";
 const EXT_SEEN_KEY = "post-ext-seen";
@@ -737,6 +738,195 @@ function initFootnotePreviews(article: HTMLElement) {
   pop.addEventListener("mouseleave", hide);
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildLingoMatchers(terms: LingoTerm[]) {
+  const rows: { term: LingoTerm; alias: string }[] = [];
+  for (const term of terms) {
+    for (const alias of term.aliases) {
+      if (alias.trim()) rows.push({ term, alias });
+    }
+  }
+  rows.sort((a, b) => b.alias.length - a.alias.length);
+  return rows;
+}
+
+function shouldSkipLingoNode(node: Node) {
+  const parent = node.parentElement;
+  if (!parent) return true;
+  return Boolean(
+    parent.closest(
+      "pre, code, kbd, samp, a, button, .lingo-term, .marginalia, script, style, textarea"
+    )
+  );
+}
+
+function wrapFirstLingoMatch(
+  root: HTMLElement,
+  term: LingoTerm,
+  alias: string
+): boolean {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    if (shouldSkipLingoNode(node)) {
+      node = walker.nextNode();
+      continue;
+    }
+    const text = node.textContent ?? "";
+    const ascii = /^[A-Za-z0-9]/.test(alias) && /[A-Za-z0-9_+-]$/.test(alias);
+    const re = ascii
+      ? new RegExp(
+          `(?<![A-Za-z0-9_+-])${escapeRegExp(alias)}(?![A-Za-z0-9_+-])`
+        )
+      : new RegExp(escapeRegExp(alias));
+    const match = re.exec(text);
+    if (!match || match.index < 0) {
+      node = walker.nextNode();
+      continue;
+    }
+
+    const start = match.index;
+    const textNode = node as Text;
+    const before = textNode.splitText(start);
+    before.splitText(match[0].length);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "lingo-term";
+    btn.dataset.lingoId = term.id;
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute(
+      "aria-label",
+      `术语：${term.title}${term.subtitle ? `，${term.subtitle}` : ""}`
+    );
+    btn.textContent = match[0];
+    before.parentNode?.replaceChild(btn, before);
+    return true;
+  }
+  return false;
+}
+
+function initLingoCards(article: HTMLElement) {
+  if (article.dataset.lingoBound === "1") return;
+  if (LINGO_TERMS.length === 0) return;
+  article.dataset.lingoBound = "1";
+
+  const matched = new Set<string>();
+  for (const { term, alias } of buildLingoMatchers(LINGO_TERMS)) {
+    if (matched.has(term.id)) continue;
+    if (wrapFirstLingoMatch(article, term, alias)) matched.add(term.id);
+  }
+  if (matched.size === 0) return;
+
+  const byId = new Map(LINGO_TERMS.map(term => [term.id, term]));
+  const card = document.createElement("div");
+  card.className = "lingo-card";
+  card.setAttribute("role", "dialog");
+  card.setAttribute("aria-modal", "false");
+  card.innerHTML = `
+    <div class="lingo-card-head">
+      <p class="lingo-card-title"></p>
+      <p class="lingo-card-sub" hidden></p>
+    </div>
+    <div class="lingo-card-body"><p></p></div>
+    <div class="lingo-card-foot"><span>术语</span><span class="lingo-card-esc">Esc 关闭</span></div>
+  `;
+  document.body.appendChild(card);
+  document.addEventListener("astro:before-swap", () => card.remove(), {
+    once: true,
+  });
+
+  const titleEl = card.querySelector(".lingo-card-title") as HTMLElement;
+  const subEl = card.querySelector(".lingo-card-sub") as HTMLElement;
+  const bodyEl = card.querySelector(".lingo-card-body p") as HTMLElement;
+  let active: HTMLButtonElement | null = null;
+
+  const hide = () => {
+    card.classList.remove("is-shown");
+    if (active) active.setAttribute("aria-expanded", "false");
+    active = null;
+  };
+
+  const place = (anchor: HTMLElement) => {
+    const rect = anchor.getBoundingClientRect();
+    card.classList.add("is-shown");
+    const width = card.offsetWidth || 320;
+    const height = card.offsetHeight || 180;
+    const left = Math.max(
+      12,
+      Math.min(
+        window.scrollX + rect.left,
+        window.scrollX + window.innerWidth - width - 12
+      )
+    );
+    let top = window.scrollY + rect.bottom + 10;
+    if (rect.bottom + height + 16 > window.innerHeight && rect.top > height + 16) {
+      top = window.scrollY + rect.top - height - 10;
+    }
+    card.style.left = `${left}px`;
+    card.style.top = `${top}px`;
+  };
+
+  const show = (btn: HTMLButtonElement) => {
+    const term = byId.get(btn.dataset.lingoId ?? "");
+    if (!term) return;
+    if (active === btn && card.classList.contains("is-shown")) {
+      hide();
+      return;
+    }
+    if (active) active.setAttribute("aria-expanded", "false");
+    active = btn;
+    btn.setAttribute("aria-expanded", "true");
+    titleEl.textContent = term.title;
+    if (term.subtitle) {
+      subEl.hidden = false;
+      subEl.textContent = term.subtitle;
+    } else {
+      subEl.hidden = true;
+      subEl.textContent = "";
+    }
+    bodyEl.textContent = term.definition;
+    place(btn);
+  };
+
+  article.addEventListener("click", event => {
+    const btn = (event.target as HTMLElement | null)?.closest?.(
+      ".lingo-term"
+    ) as HTMLButtonElement | null;
+    if (!btn || !article.contains(btn)) return;
+    event.preventDefault();
+    show(btn);
+  });
+
+  document.addEventListener(
+    "click",
+    event => {
+      if (!card.classList.contains("is-shown")) return;
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (card.contains(target)) return;
+      if (active && active.contains(target)) return;
+      hide();
+    },
+    true
+  );
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") hide();
+  });
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (active && card.classList.contains("is-shown")) place(active);
+    },
+    { passive: true }
+  );
+}
+
 function initExcerptPick(article: HTMLElement) {
   if (article.dataset.excerptBound === "1") return;
   article.dataset.excerptBound = "1";
@@ -1240,6 +1430,7 @@ export function initPostEnhancements() {
     initPrintFootnotes(article);
     initJarPourHint(article);
     initFootnotePreviews(article);
+    initLingoCards(article);
     initMidCrease(article);
     initExcerptPick(article);
     initParagraphMarks(article);
