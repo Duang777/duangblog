@@ -20,7 +20,8 @@ export function mergeLingoPacks(...packs: LingoTerm[][]): LingoTerm[] {
       for (const alias of term.aliases) {
         const key = alias.toLowerCase();
         const owner = aliasOwner.get(key);
-        if (owner) {
+        // Same term may list "Redo Log" and "redo log"; only cross-term clashes fail.
+        if (owner && owner !== term.id) {
           throw new Error(
             `Duplicate lingo alias "${alias}" shared by ${owner} and ${term.id}`
           );

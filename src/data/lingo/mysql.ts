@@ -148,7 +148,7 @@ export const MYSQL_LINGO: LingoTerm[] = [
     subtitle: "二级索引写缓冲",
     definition:
       "InnoDB 用来缓存对二级索引页修改的内存结构。如果这次更新要改的二级索引页还不在 Buffer Pool 里，可以把变更先记在 Change Buffer，稍后再 merge 进真正的索引页，减少立刻打磁盘的随机读。\n\n它对非唯一二级索引更有价值；唯一索引往往要马上判断是否冲突，不能随便延期。Change Buffer 不改变 SQL 语义，只改变物理 IO 形态和合并时机。",
-    aliases: ["Change Buffer"],
+    aliases: ["Change Buffer", "写缓冲"],
   },
   {
     id: "log-buffer",
@@ -156,6 +156,94 @@ export const MYSQL_LINGO: LingoTerm[] = [
     subtitle: "redo 日志缓冲",
     definition:
       "InnoDB 在内存里暂存 redo 记录的缓冲区。事务产生的 redo 先写入 Log Buffer，再按规则刷到 redo 日志文件（例如提交时、缓冲区将满时，或后台周期性刷盘）。\n\n它让日志写入可以批量进行，避免每条变更都同步打文件。Log Buffer 服务的是 redo 通路，和缓存数据页的 Buffer Pool 不是同一块内存；调缓冲大小和 flush 策略，影响的是提交延迟与耐久强度的权衡。",
-    aliases: ["Log Buffer"],
+    aliases: ["Log Buffer", "日志缓冲"],
+  },
+  {
+    id: "adaptive-hash-index",
+    title: "Adaptive Hash Index",
+    subtitle: "自适应哈希索引 · AHI",
+    definition:
+      "InnoDB 在内存里为热点等值查询自动维护的哈希索引。访问模式稳定时，可以把部分 B+Tree 定位从 O(log n) 压到接近 O(1)。它只服务等值查找，由引擎自动创建与失效，可用 innodb_adaptive_hash_index 开关。\n\n高并发写入、访问模式抖动时，AHI 自身的维护和锁争用可能变成瓶颈；不少写入向基准会关掉它换更稳的吞吐。自适应不等于永远该开。",
+    aliases: ["Adaptive Hash Index", "自适应哈希索引", "AHI"],
+  },
+  {
+    id: "doublewrite",
+    title: "Doublewrite Buffer",
+    subtitle: "双写缓冲",
+    definition:
+      "InnoDB 防止“写断裂页”的安全垫：脏页刷回数据文件前，先顺序写入系统表空间里的 Doublewrite 区域；写成功后再写真正的 .ibd 页。若刷盘中途断电导致 16KB 页只写了一半，崩溃恢复可用 Doublewrite 里的完整副本覆盖坏页。\n\nredo 记录的是页内偏移修改，前提是页本身完整，所以救不了半写坏页。默认开启更稳；只有底层存储能保证页原子写时，才值得评估关掉它的收益。",
+    aliases: ["Doublewrite Buffer", "Doublewrite", "双写缓冲"],
+  },
+  {
+    id: "clustered-index",
+    title: "聚簇索引",
+    subtitle: "Clustered Index",
+    definition:
+      "InnoDB 里按主键组织的那棵 B+Tree：叶子节点存放整行数据，行的物理顺序就是主键顺序。一张表有且只有一个聚簇索引。\n\n没有显式主键时，InnoDB 会选第一个非空唯一索引；再没有就隐式生成 row_id。主键越短、越顺序（如自增 BIGINT），树越紧凑、写入越友好；随机 UUID 主键容易引发页分裂与碎片。",
+    aliases: ["聚簇索引", "Clustered Index"],
+  },
+  {
+    id: "secondary-index",
+    title: "二级索引",
+    subtitle: "Secondary Index",
+    definition:
+      "InnoDB 里除聚簇索引以外的索引。二级索引的 B+Tree 叶子通常存“索引键 + 主键值”，而不是整行。用二级索引定位后，若还要取叶子里没有的列，需要拿主键再回聚簇索引查一次。\n\n回表次数和覆盖情况，往往直接决定二级索引查询快不快。",
+    aliases: ["二级索引", "Secondary Index"],
+  },
+  {
+    id: "table-lookup",
+    title: "回表",
+    subtitle: "二级索引 → 聚簇索引",
+    definition:
+      "通过二级索引找到主键后，再回到聚簇索引取完整行（或取二级索引叶子里没有的列）的过程。每多一次回表，就多一次 B+Tree 定位，慢查询里很常见。\n\n若查询所需列都已出现在二级索引叶子上，就可以避免回表，这就是覆盖索引要解决的问题。",
+    aliases: ["回表"],
+  },
+  {
+    id: "covering-index",
+    title: "覆盖索引",
+    subtitle: "Covering Index",
+    definition:
+      "一次查询所需的列全部落在某个索引里，优化器可以只读该索引就返回结果，不必再回表。对 InnoDB 二级索引而言，叶子已带主键，所以“索引列 + 主键列”的查询常常天然可覆盖。\n\n覆盖索引减少的是随机回表 I/O，是建联合索引和改写 SELECT 列表时的常用手段。",
+    aliases: ["覆盖索引", "索引覆盖"],
+  },
+  {
+    id: "lru",
+    title: "LRU",
+    subtitle: "Buffer Pool 淘汰策略",
+    definition:
+      "Least Recently Used：优先淘汰最久未被访问的缓存页。InnoDB 的 Buffer Pool 不用朴素 LRU，而是拆成 young / old 区：新页先进入 old 区，只有停留超过 innodb_old_blocks_time 后再被访问，才晋升到 young 区。\n\n这样全表扫描带来的一次性页很难挤掉真正热点，避免缓冲池被冷数据污染。",
+    aliases: ["LRU", "改良 LRU"],
+  },
+  {
+    id: "page-directory",
+    title: "页目录",
+    subtitle: "Page Directory",
+    definition:
+      "InnoDB 数据页尾部的槽（slot）数组，把页内记录分成若干组，并记下每组边界记录的位置。页内查找先在页目录上二分，定位到组，再沿组内记录链表线性扫描。\n\n它和页间双向链表、页内单向链表一起，构成“按主键在页里精确定位”的骨架。",
+    aliases: ["页目录", "Page Directory"],
+  },
+  {
+    id: "innodb-page",
+    title: "页",
+    subtitle: "Page · 默认 16KB",
+    definition:
+      "InnoDB 在内存与磁盘之间交换的最小 I/O 单位，默认 16KB。Buffer Pool 按页缓存，脏页按页刷盘；B+Tree 的一个节点通常对应一个页。\n\n即使只改一行，也要读写整页。行有多长、一页能装多少行，会直接影响缓存利用率和树的高度。",
+    aliases: ["数据页", "索引页", "16KB"],
+  },
+  {
+    id: "extent",
+    title: "区",
+    subtitle: "Extent · 1MB / 64 页",
+    definition:
+      "InnoDB 磁盘组织里，页之上的连续分配单位。一个区固定 1MB，在默认 16KB 页大小下正好包含 64 个页。段向表空间要空间时，常按区批量申请，让一次磁盘读取更容易拿到连续页。",
+    aliases: ["区（Extent）", "Extent"],
+  },
+  {
+    id: "segment",
+    title: "段",
+    subtitle: "Segment",
+    definition:
+      "InnoDB 里一组区的逻辑集合，对应一类数据对象的空间：例如聚簇索引一个段、每个二级索引各一个段。段下面是区，区下面是页，页里才是行。\n\n看懂段，是为了把“一张表/一个索引占用的空间”落到可观察的物理层级上。",
+    aliases: ["段（Segment）", "Segment"],
   },
 ];

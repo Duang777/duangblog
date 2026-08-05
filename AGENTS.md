@@ -208,6 +208,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
 - MySQL hub: `src/content/posts/mysql-column.md`
 - MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
+- MySQL (二): `src/content/posts/mysql-innodb-core.md`
 - Glossary (lingo): `src/data/lingo/` (`mysql.ts` pack + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
