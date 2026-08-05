@@ -560,6 +560,18 @@ body {
       color-mix(in oklab, var(--accent) 45%, var(--border));
   }
 
+  .app-prose .marginalia.interview {
+    border-inline-start-style: solid;
+    border-inline-start-color: color-mix(in oklab, var(--accent) 70%, var(--border));
+    color: color-mix(in oklab, var(--foreground) 72%, var(--muted-foreground));
+  }
+
+  .app-prose .marginalia.interview .marginalia-body::before {
+    content: "面试重点 · ";
+    color: color-mix(in oklab, var(--accent) 75%, var(--muted-foreground));
+    font-weight: 600;
+  }
+
   .app-prose .marginalia summary {
     display: none;
   }
@@ -594,6 +606,14 @@ body {
 
   .app-prose .marginalia[open] summary::before {
     content: "- 边注";
+  }
+
+  .app-prose .marginalia.interview summary::before {
+    content: "+ 面试重点";
+  }
+
+  .app-prose .marginalia.interview[open] summary::before {
+    content: "- 面试重点";
   }
 
   .app-prose .marginalia:not([open]) .marginalia-body {

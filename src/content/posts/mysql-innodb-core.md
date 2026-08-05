@@ -76,6 +76,13 @@ Buffer Pool 是 InnoDB 内存里最大、最重要的一块，默认值在 5.7 �
 
 朴素的 LRU（最近最少使用）算法有个致命问题：一次全表扫描或逻辑备份会把大量只访问一次的页塞进缓冲池，把真正的热点数据挤出去，等会儿业务再查就全 miss 了。InnoDB 改良了 LRU：把缓冲池逻辑上分成 young 区（约 5/8，热点）和 old 区（约 3/8，冷数据）。新读进来的页先放在 old 区头部；只有当它在 old 区停留超过 `innodb_old_blocks_time`（默认 1 秒）后再次被访问，才会晋升到 young 区。这样全表扫描的页几乎马上就被淘汰，不会污染热点。这个点面试和调优都常考，务必记住。
 
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    Buffer Pool 不是朴素 LRU：新页进 old 区，停留够久再被访问才进 young，防全表扫描污染热点。
+  </div>
+</details>
+
 ### 2.4 三张链表：free / LRU / flush
 
 光知道 young/old 还不够，Buffer Pool 内部实际用三条链表管理页，理解它们才真正懂"内存页怎么流动"：
@@ -131,6 +138,13 @@ Change Buffer 是 InnoDB 用来减少随机读、提升写性能的关键设计�
 ### 3.2 一个重要限制：只对非唯一二级索引有效
 
 Change Buffer 只对**非唯一二级索引** 有效。原因很直接：唯一索引（UNIQUE）每次插入或更新都必须立刻校验"这个键值是否已经存在"，这步校验必然要把对应页读进内存，既然页都已经读进来了，就谈不上"先不读盘攒着"了，所以唯一索引用不了 Change Buffer。这带来一个实战启示：在高频写入、且写入前不需要即时唯一性校验的场景，盲目给每个字段都加唯一索引，反而会因为绕过了 Change Buffer 而拖累写入性能。是否要唯一约束，应权衡业务正确性与写入吞吐。
+
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    Change Buffer 只对非唯一二级索引有效：唯一索引要当场查重，页已经进内存，没法“先攒着”。
+  </div>
+</details>
 
 ### 3.3 合并时机与怎么观测
 
@@ -228,9 +242,23 @@ ALTER TABLE user ROW_FORMAT = DYNAMIC;
 
 在 InnoDB 里，一个 16KB 的页，假设每行约 1KB，一个叶子页能放约 16 行；非叶子节点存主键+指针（一条记录约十几字节），一页能放上千个条目。算下来，三层 B+Tree 完全能容纳几千万行的表，而查询只要 3 次 I/O 左右。这就是它成为标配的根本原因。
 
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    为何用 B+Tree：非叶只存键+指针、扇出大、树矮；叶子有序串联，范围查快。
+  </div>
+</details>
+
 ### 6.2 聚簇索引（Clustered Index）：数据即索引
 
 InnoDB 的表本身就是按主键建的一棵 B+Tree，这叫**聚簇索引**。它的叶子节点存的不是指针，而是**整行数据**。也就是说，数据行的物理存储顺序就是主键顺序。由于一个表只能有一种物理排序，一张表**有且只有一个** 聚簇索引。
+
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    聚簇索引：叶子存整行，一张表有且只有一个；主键越短越顺序，树越矮、写入越稳。
+  </div>
+</details>
 
 主键的选择直接影响这棵树的形态：
 
@@ -242,6 +270,13 @@ InnoDB 的表本身就是按主键建的一棵 B+Tree，这叫**聚簇索引**�
 ### 6.3 二级索引（Secondary Index）：叶子存主键
 
 除了聚簇索引，你建的其它索引都是二级索引。二级索引的 B+Tree 叶子节点不存整行，而是存**主键值**。当用二级索引查到目标后，还要拿主键回聚簇索引再查一次，把整行取出来——这个动作叫**回表**。回表意味着多一次 B+Tree 查找，是很多慢查询的根源，也是第③篇讲"覆盖索引"要消灭的对象。
+
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    二级索引叶子存主键，不是整行；`SELECT *` 常要回表。能画清“二级索引 → 主键 → 聚簇索引”。
+  </div>
+</details>
 
 ```sql
 -- name 上建了二级索引，查 * 需要回表
@@ -296,6 +331,13 @@ WHERE table_name = 'user' AND stat_name = 'n_diff_pfx01' OR stat_name = 'btr_hei
 ### 7.1 Doublewrite Buffer（双写缓冲）
 
 脏页刷回磁盘时，一次写 16KB 在操作系统层面未必是原子的：可能写了 4KB 就断电，导致一页只有一半被写完，变成"写断裂页（partial page）"。这种损坏的页连 redo log 都救不了，因为 redo 记录的是"对某页的某个偏移做修改"，前提是页本身完整。Doublewrite 的解法：脏页先顺序写进 Doublewrite Buffer（在系统表空间，连续两块各 1MB），写成功后再往真正的数据文件写。崩溃恢复时，若发现数据文件页损坏，就从 Doublewrite Buffer 里取完整副本覆盖。它用一点点顺序写开销，换来了页级完整性保障。想知道它是否开启，敲：
+
+<details class="marginalia interview" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    半写坏页 redo 救不了；Doublewrite 先写完整副本再写数据页，换页级完整性。
+  </div>
+</details>
 
 ```sql
 SHOW VARIABLES LIKE 'innodb_doublewrite';
