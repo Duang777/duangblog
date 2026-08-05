@@ -14,7 +14,7 @@ import {
   markJarPourPending,
 } from "@/scripts/read-state";
 import { JAR_POUR_EVENT, type JarPourDetail } from "@/scripts/idea-jar";
-import { LINGO_TERMS, type LingoTerm } from "@/data/lingo-terms";
+import { LINGO_TERMS, type LingoTerm } from "@/data/lingo";
 
 const SITE_NAME = "duangblog";
 const EXT_SEEN_KEY = "post-ext-seen";
@@ -832,7 +832,10 @@ function initLingoCards(article: HTMLElement) {
       <p class="lingo-card-sub" hidden></p>
     </div>
     <div class="lingo-card-body"><p></p></div>
-    <div class="lingo-card-foot"><span>术语</span><span class="lingo-card-esc">Esc 关闭</span></div>
+    <div class="lingo-card-foot">
+      <a class="lingo-card-source" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
+      <span class="lingo-card-esc">Esc 关闭</span>
+    </div>
   `;
   document.body.appendChild(card);
   document.addEventListener("astro:before-swap", () => card.remove(), {
@@ -841,7 +844,8 @@ function initLingoCards(article: HTMLElement) {
 
   const titleEl = card.querySelector(".lingo-card-title") as HTMLElement;
   const subEl = card.querySelector(".lingo-card-sub") as HTMLElement;
-  const bodyEl = card.querySelector(".lingo-card-body p") as HTMLElement;
+  const bodyEl = card.querySelector(".lingo-card-body") as HTMLElement;
+  const sourceEl = card.querySelector(".lingo-card-source") as HTMLAnchorElement;
   let active: HTMLButtonElement | null = null;
 
   const hide = () => {
@@ -870,6 +874,19 @@ function initLingoCards(article: HTMLElement) {
     card.style.top = `${top}px`;
   };
 
+  const fillBody = (definition: string) => {
+    bodyEl.replaceChildren();
+    const parts = definition
+      .split(/\n\s*\n/)
+      .map(part => part.trim())
+      .filter(Boolean);
+    for (const part of parts.length ? parts : [definition.trim()]) {
+      const p = document.createElement("p");
+      p.textContent = part;
+      bodyEl.appendChild(p);
+    }
+  };
+
   const show = (btn: HTMLButtonElement) => {
     const term = byId.get(btn.dataset.lingoId ?? "");
     if (!term) return;
@@ -888,7 +905,16 @@ function initLingoCards(article: HTMLElement) {
       subEl.hidden = true;
       subEl.textContent = "";
     }
-    bodyEl.textContent = term.definition;
+    fillBody(term.definition);
+    if (term.source) {
+      sourceEl.hidden = false;
+      sourceEl.href = term.source.url;
+      sourceEl.textContent = term.source.label;
+    } else {
+      sourceEl.hidden = true;
+      sourceEl.removeAttribute("href");
+      sourceEl.textContent = "";
+    }
     place(btn);
   };
 

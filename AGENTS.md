@@ -71,6 +71,7 @@ When a post talks about process topology, request paths, agent loops, graph rout
 - **Show core code**: paste short excerpts from a real repo or minimal repro (trimmed with `// ...`), citing path or version. Prefer the loop / SQL / handler / config that proves the claim. Do not paste entire files.
 - Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
 - Add at least one right-side marginal note per post using the `marginalia` pattern from `notes/怎么写博客.md` unless the post is extremely short.
+- **Inline term cards (词库):** definitions live only in `src/data/lingo/` (domain packs merged by `mergeLingoPacks`). One `id` = one site-wide `definition`. Do not invent per-article card copy. Wikipedia when there is a real matching entry; otherwise write a precise own gloss and omit a fake wiki link. Full rules: `notes/怎么写博客.md` §9.8.
 
 ## Backend: 后端专栏 (parent) and sub-columns
 
@@ -207,6 +208,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
 - MySQL hub: `src/content/posts/mysql-column.md`
 - MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
+- Glossary (lingo): `src/data/lingo/` (`mysql.ts` pack + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`
