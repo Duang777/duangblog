@@ -91,6 +91,85 @@ description: 覆盖索引、最左前缀、ICP 与 EXPLAIN：把索引怎么用�
   </div>
 </details>
 
+用一张小表把两棵树的叶子画清楚。建表如下，`id` 是主键（聚簇索引），`name` 上建二级索引：
+
+```sql
+CREATE TABLE user (
+  id   BIGINT PRIMARY KEY,
+  name VARCHAR(50),
+  age  INT,
+  KEY idx_name (name)
+) ENGINE=InnoDB;
+```
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：两棵真树长什么样</p>
+  <p class="article-embed-note-lead">同一张 <code>user</code> 表。左边聚簇：叶子挂整行；右边二级：叶子只挂 name + 主键。滚到这里会自动演示，也可手动再播。</p>
+  <figure class="btree-scene" data-btree-demo="compare">
+    <svg class="btree-svg" viewBox="0 0 760 360" role="img" aria-label="聚簇索引与二级索引两棵 B 加树对比">
+      <g data-btree-stage="title" data-btree-start-hidden="1">
+        <text class="btree-label" x="175" y="28" text-anchor="middle">聚簇索引 PRIMARY</text>
+        <text class="btree-caption" x="175" y="46" text-anchor="middle">按 id 排序 · 数据即索引</text>
+        <text class="btree-label" x="560" y="28" text-anchor="middle">二级索引 idx_name</text>
+        <text class="btree-caption" x="560" y="46" text-anchor="middle">按 name 排序 · 叶子不存整行</text>
+      </g>
+      <g data-btree-stage="cluster" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="140" y="62" width="70" height="28" rx="6" />
+        <text class="btree-mono" x="175" y="80" text-anchor="middle">id</text>
+        <path class="btree-ink" d="M175 90 V108 H95 V130" />
+        <path class="btree-ink" d="M175 108 H255 V130" />
+        <rect class="btree-node" x="55" y="130" width="80" height="28" rx="6" />
+        <text class="btree-mono" x="95" y="148" text-anchor="middle">1 · 2</text>
+        <rect class="btree-node" x="215" y="130" width="80" height="28" rx="6" />
+        <text class="btree-mono" x="255" y="148" text-anchor="middle">3</text>
+        <path class="btree-ink" d="M95 158 V178 H57 V200" />
+        <path class="btree-ink" d="M95 178 H147 V200" />
+        <path class="btree-ink" d="M255 158 V200" />
+        <rect class="btree-node is-cluster-leaf" data-role="fat-leaf" x="18" y="200" width="78" height="72" rx="8" />
+        <text class="btree-mono" x="57" y="222" text-anchor="middle">id=1</text>
+        <text class="btree-sub" x="57" y="240" text-anchor="middle">张三</text>
+        <text class="btree-sub" x="57" y="256" text-anchor="middle">age=20</text>
+        <rect class="btree-node is-cluster-leaf" data-role="fat-leaf" x="108" y="200" width="78" height="72" rx="8" />
+        <text class="btree-mono" x="147" y="222" text-anchor="middle">id=2</text>
+        <text class="btree-sub" x="147" y="240" text-anchor="middle">李四</text>
+        <text class="btree-sub" x="147" y="256" text-anchor="middle">age=25</text>
+        <rect class="btree-node is-cluster-leaf" data-role="fat-leaf" x="216" y="200" width="78" height="72" rx="8" />
+        <text class="btree-mono" x="255" y="222" text-anchor="middle">id=3</text>
+        <text class="btree-sub" x="255" y="240" text-anchor="middle">王五</text>
+        <text class="btree-sub" x="255" y="256" text-anchor="middle">age=30</text>
+        <path class="btree-leaf-link" d="M96 236 H108" />
+        <path class="btree-leaf-link" d="M186 236 H216" />
+        <text class="btree-caption" x="175" y="298" text-anchor="middle">叶子双向链表 · 每片叶子 = 一整行</text>
+        <text class="btree-caption" x="175" y="316" text-anchor="middle">一张表只有这一棵聚簇树</text>
+      </g>
+      <g data-btree-stage="secondary" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="525" y="62" width="70" height="28" rx="6" />
+        <text class="btree-mono" x="560" y="80" text-anchor="middle">name</text>
+        <path class="btree-ink" d="M560 90 V120 H470 V150" />
+        <path class="btree-ink" d="M560 120 H560 V150" />
+        <path class="btree-ink" d="M560 120 H650 V150" />
+        <rect class="btree-node is-sec-leaf" x="430" y="150" width="80" height="54" rx="8" />
+        <text class="btree-mono" x="470" y="172" text-anchor="middle">李四</text>
+        <text class="btree-sub" x="470" y="190" text-anchor="middle">主键 id=2</text>
+        <rect class="btree-node is-sec-leaf" x="520" y="150" width="80" height="54" rx="8" />
+        <text class="btree-mono" x="560" y="172" text-anchor="middle">王五</text>
+        <text class="btree-sub" x="560" y="190" text-anchor="middle">主键 id=3</text>
+        <rect class="btree-node is-sec-leaf" x="610" y="150" width="80" height="54" rx="8" />
+        <text class="btree-mono" x="650" y="172" text-anchor="middle">张三</text>
+        <text class="btree-sub" x="650" y="190" text-anchor="middle">主键 id=1</text>
+        <path class="btree-leaf-link" d="M510 177 H520" />
+        <path class="btree-leaf-link" d="M600 177 H610" />
+        <text class="btree-caption" x="560" y="240" text-anchor="middle">叶子更瘦：只有 name + 主键</text>
+        <text class="btree-caption" x="560" y="258" text-anchor="middle">name 按拼音示意排序 · 要 age 就得回左边</text>
+      </g>
+      <g data-btree-stage="badge" data-btree-start-hidden="1">
+        <rect class="btree-badge" x="430" y="280" width="260" height="28" rx="8" />
+        <text class="btree-badge-text" x="560" y="298" text-anchor="middle">胖叶子存数据 · 瘦叶子存钥匙</text>
+      </g>
+    </svg>
+  </figure>
+</section>
+
 ### 2.3 按逻辑/功能分
 
 | 类型 | 含义 |
@@ -113,6 +192,69 @@ description: 覆盖索引、最左前缀、ICP 与 EXPLAIN：把索引怎么用�
 1. 在二级索引的 B+Tree 上找到匹配的记录，拿到主键值；
 2. 拿着主键值，回到聚簇索引的 B+Tree 再查一次，取出完整的行数据；
 3. 把最终需要的列返回给服务层。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：一次回表怎么跳</p>
+  <p class="article-embed-note-lead"><code>SELECT * FROM user WHERE name='张三'</code>：演示会先命中瘦叶子，再让光点跳回胖树取整行。</p>
+  <figure class="btree-scene" data-btree-demo="lookup">
+    <svg class="btree-svg" viewBox="0 0 760 300" role="img" aria-label="从二级索引回表到聚簇索引的路径">
+      <defs>
+        <marker id="btree-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" class="btree-path-dot" />
+        </marker>
+      </defs>
+      <g data-btree-stage="title" data-btree-start-hidden="1">
+        <text class="btree-label" x="160" y="26" text-anchor="middle">① 二级索引 idx_name</text>
+        <text class="btree-label" x="560" y="26" text-anchor="middle">② 聚簇索引 PRIMARY</text>
+      </g>
+      <g data-btree-stage="sec-tree" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="125" y="42" width="70" height="26" rx="6" />
+        <text class="btree-mono" x="160" y="59" text-anchor="middle">name</text>
+        <path class="btree-ink" d="M160 68 V88 H65 V110" />
+        <path class="btree-ink" d="M160 88 H160 V110" />
+        <path class="btree-ink" d="M160 88 H255 V110" />
+        <rect class="btree-node is-sec-leaf" data-role="sec-other" x="25" y="110" width="80" height="50" rx="8" />
+        <text class="btree-mono" x="65" y="131" text-anchor="middle">李四</text>
+        <text class="btree-sub" x="65" y="147" text-anchor="middle">id=2</text>
+        <rect class="btree-node is-sec-leaf" data-role="sec-other" x="120" y="110" width="80" height="50" rx="8" />
+        <text class="btree-mono" x="160" y="131" text-anchor="middle">王五</text>
+        <text class="btree-sub" x="160" y="147" text-anchor="middle">id=3</text>
+        <rect class="btree-node is-sec-leaf" data-role="sec-hit" x="215" y="110" width="80" height="50" rx="8" />
+        <text class="btree-mono" x="255" y="131" text-anchor="middle">张三</text>
+        <text class="btree-sub" x="255" y="147" text-anchor="middle">id=1</text>
+        <path class="btree-leaf-link" d="M105 135 H120" />
+        <path class="btree-leaf-link" d="M200 135 H215" />
+      </g>
+      <path class="btree-path" data-role="lookup-path" d="M295 135 C 345 135, 370 90, 410 90 C 418 90, 420 120, 422 148" marker-end="url(#btree-arrowhead)" />
+      <circle class="btree-traveler" data-role="traveler" cx="295" cy="135" r="5.5" />
+      <rect class="btree-badge btree-demo-hide" data-btree-start-hidden="1" x="310" y="58" width="88" height="24" rx="8" />
+      <text class="btree-badge-text btree-demo-hide" data-btree-start-hidden="1" x="354" y="74" text-anchor="middle">回表 id=1</text>
+      <g data-btree-stage="cluster-tree" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="525" y="42" width="70" height="26" rx="6" />
+        <text class="btree-mono" x="560" y="59" text-anchor="middle">id</text>
+        <path class="btree-ink" d="M560 68 V92 H470 V120" />
+        <path class="btree-ink" d="M560 92 H560 V120" />
+        <path class="btree-ink" d="M560 92 H650 V120" />
+        <rect class="btree-node is-cluster-leaf" data-role="cluster-hit" x="430" y="120" width="80" height="72" rx="8" />
+        <text class="btree-mono" x="470" y="142" text-anchor="middle">id=1</text>
+        <text class="btree-sub" x="470" y="160" text-anchor="middle">张三</text>
+        <text class="btree-sub" x="470" y="176" text-anchor="middle">age=20</text>
+        <rect class="btree-node is-cluster-leaf" data-role="cluster-other" x="520" y="120" width="80" height="72" rx="8" />
+        <text class="btree-mono" x="560" y="142" text-anchor="middle">id=2</text>
+        <text class="btree-sub" x="560" y="160" text-anchor="middle">李四</text>
+        <text class="btree-sub" x="560" y="176" text-anchor="middle">age=25</text>
+        <rect class="btree-node is-cluster-leaf" data-role="cluster-other" x="610" y="120" width="80" height="72" rx="8" />
+        <text class="btree-mono" x="650" y="142" text-anchor="middle">id=3</text>
+        <text class="btree-sub" x="650" y="160" text-anchor="middle">王五</text>
+        <text class="btree-sub" x="650" y="176" text-anchor="middle">age=30</text>
+        <path class="btree-leaf-link" d="M510 156 H520" />
+        <path class="btree-leaf-link" d="M600 156 H610" />
+      </g>
+      <text class="btree-caption" x="380" y="240" text-anchor="middle">瘦叶子只给钥匙（主键），胖叶子才有整行。</text>
+      <text class="btree-caption" x="380" y="260" text-anchor="middle">页不在 Buffer Pool 时，这一跳还可能变成一次磁盘读。</text>
+    </svg>
+  </figure>
+</section>
 
 这一次"回到聚簇索引再查一次"的动作，就叫回表。它意味着多一次 B+Tree 查找（理想情况多一次 IO）。为什么是"理想情况"？因为如果聚簇索引那次查询的页不在 Buffer Pool，就又要去磁盘读，回表代价就不止一次内存查找了。可以用下面这条命令直观感受回表的存在：
 
@@ -140,6 +282,73 @@ EXPLAIN SELECT id, name FROM users WHERE age = 25;
 ### 4.1 组合索引长什么样
 
 组合索引 (a, b, c) 在 B+Tree 里，是按照 a、b、c 的顺序拼成联合键来排序的。也就是说，它先按 a 排，a 相同再按 b 排，b 相同再按 c 排。可以把 (a,b,c) 想象成一个"复合字符串"来排序。这也意味着：这个索引天然能服务"按 a 查""按 a,b 查"，但单独"按 b 查"是无序的。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：最左前缀，就看命中挤不挤在一起</p>
+  <p class="article-embed-note-lead">联合索引按 (a,b,c) 排序。能用索引的条件，命中会挤成叶子链上的一段；缺最左时，命中东一块西一块。</p>
+  <figure class="btree-scene" data-btree-demo="prefix">
+    <svg class="btree-svg" viewBox="0 0 760 360" role="img" aria-label="最左前缀：连续命中对照散落命中">
+      <g data-btree-stage="title">
+        <text class="btree-label" x="380" y="22" text-anchor="middle">idx (a,b,c) 叶子按字典序排成一条链</text>
+        <text class="btree-caption" x="380" y="40" text-anchor="middle">先比 a，再比 b，再比 c · 像按字典查词条</text>
+      </g>
+      <g data-btree-stage="leaves">
+        <rect class="btree-node is-sec-leaf" data-role="range-hit" x="28" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="78" y="78" text-anchor="middle">(1,2,3)</text>
+        <text class="btree-sub" x="78" y="94" text-anchor="middle">叶1</text>
+        <rect class="btree-node is-sec-leaf" data-role="range-hit" x="144" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="194" y="78" text-anchor="middle">(1,2,9)</text>
+        <text class="btree-sub" x="194" y="94" text-anchor="middle">叶2</text>
+        <rect class="btree-node is-sec-leaf" x="260" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="310" y="78" text-anchor="middle">(1,5,1)</text>
+        <text class="btree-sub" x="310" y="94" text-anchor="middle">叶3</text>
+        <rect class="btree-node is-sec-leaf" x="376" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="426" y="78" text-anchor="middle">(2,1,1)</text>
+        <text class="btree-sub" x="426" y="94" text-anchor="middle">叶4</text>
+        <rect class="btree-node is-sec-leaf" data-role="scatter-hit" x="492" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="542" y="78" text-anchor="middle">(2,2,4)</text>
+        <text class="btree-sub" x="542" y="94" text-anchor="middle">叶5</text>
+        <rect class="btree-node is-sec-leaf" data-role="scatter-hit" x="608" y="58" width="100" height="48" rx="8" />
+        <text class="btree-mono" x="658" y="78" text-anchor="middle">(3,2,1)</text>
+        <text class="btree-sub" x="658" y="94" text-anchor="middle">叶6</text>
+        <path class="btree-leaf-link" d="M128 82 H144" />
+        <path class="btree-leaf-link" d="M244 82 H260" />
+        <path class="btree-leaf-link" d="M360 82 H376" />
+        <path class="btree-leaf-link" d="M476 82 H492" />
+        <path class="btree-leaf-link" d="M592 82 H608" />
+      </g>
+      <g data-btree-stage="range-ok">
+        <rect class="btree-badge" x="28" y="128" width="52" height="22" rx="8" />
+        <text class="btree-badge-text" x="54" y="143" text-anchor="middle">能用</text>
+        <text class="btree-label" x="92" y="143">WHERE a=1 AND b=2</text>
+        <rect class="btree-range-band" data-role="range-band" x="24" y="158" width="224" height="40" rx="10" />
+        <text class="btree-mono" x="136" y="176" text-anchor="middle">叶1 + 叶2 紧挨着</text>
+        <text class="btree-caption" x="136" y="190" text-anchor="middle">一次定位，顺着链表扫完</text>
+        <text class="btree-caption" x="380" y="176">因为先写了最左列 a，再写 b，命中挤成一段。</text>
+      </g>
+      <g data-btree-stage="range-bad">
+        <rect class="btree-badge" x="28" y="230" width="52" height="22" rx="8" />
+        <text class="btree-badge-text" x="54" y="245" text-anchor="middle">不能</text>
+        <text class="btree-label" x="92" y="245">WHERE b=2（缺最左 a）</text>
+        <path class="btree-scatter" d="M78 214 V206" />
+        <path class="btree-scatter" d="M194 214 V206" />
+        <path class="btree-scatter" d="M542 214 V206" />
+        <path class="btree-scatter" d="M658 214 V206" />
+        <circle class="btree-path-dot" cx="78" cy="214" r="3.4" />
+        <circle class="btree-path-dot" cx="194" cy="214" r="3.4" />
+        <circle class="btree-path-dot" cx="542" cy="214" r="3.4" />
+        <circle class="btree-path-dot" cx="658" cy="214" r="3.4" />
+        <path class="btree-scatter" d="M78 214 C 180 250, 420 250, 542 214" />
+        <path class="btree-scatter" d="M542 214 C 590 200, 640 230, 658 214" />
+        <text class="btree-caption" x="380" y="278" text-anchor="middle">b=2 落在叶1、叶2、叶5、叶6，中间夹着别的值</text>
+        <text class="btree-caption" x="380" y="298" text-anchor="middle">树没法跳到“所有 b=2”，只能整链/整表扫</text>
+        <rect class="btree-badge" x="230" y="318" width="300" height="28" rx="8" />
+        <text class="btree-badge-text" x="380" y="336" text-anchor="middle">口诀：从最左列开始，连续写，才能挤成一段</text>
+      </g>
+    </svg>
+  </figure>
+  <p class="article-embed-note-foot">把 (a,b,c) 想成字典排序：先按 a 分册，册内再按 b。你只说 b，等于没告诉它在哪一册，当然找不到连续页码。</p>
+</section>
 
 ### 4.2 最左前缀原则
 
@@ -228,6 +437,61 @@ SELECT * FROM t WHERE a = 1 AND b LIKE '%x%' AND c = 3;
 SELECT id, age, name FROM users WHERE age = 25;
 -- EXPLAIN 的 Extra 会显示：Using index
 ```
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：回表 vs 覆盖，一眼看懂</p>
+  <p class="article-embed-note-lead">左边查整行要再跳一次；右边列齐了就停在瘦叶子。演示会左右对照播放。</p>
+  <figure class="btree-scene" data-btree-demo="cover">
+    <svg class="btree-svg" viewBox="0 0 760 280" role="img" aria-label="回表与覆盖索引两条路径对比">
+      <defs>
+        <marker id="btree-arrowhead-cover" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" class="btree-path-dot" />
+        </marker>
+      </defs>
+      <g data-btree-stage="title" data-btree-start-hidden="1">
+        <text class="btree-label" x="190" y="24" text-anchor="middle">要回表 · SELECT *</text>
+        <text class="btree-label" x="560" y="24" text-anchor="middle">覆盖 · SELECT id, name</text>
+      </g>
+      <g data-btree-stage="need-back" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="70" y="44" width="64" height="24" rx="6" />
+        <text class="btree-mono" x="102" y="60" text-anchor="middle">name</text>
+        <path class="btree-ink" d="M102 68 L102 96" />
+        <rect class="btree-node is-sec-leaf is-hit" x="62" y="96" width="80" height="44" rx="8" />
+        <text class="btree-mono" x="102" y="114" text-anchor="middle">张三</text>
+        <text class="btree-sub" x="102" y="130" text-anchor="middle">只有 id=1</text>
+        <rect class="btree-node is-root" x="230" y="44" width="64" height="24" rx="6" />
+        <text class="btree-mono" x="262" y="60" text-anchor="middle">id</text>
+        <path class="btree-ink" d="M262 68 L262 96" />
+        <rect class="btree-node is-cluster-leaf" data-role="need-cluster" x="222" y="96" width="80" height="58" rx="8" />
+        <text class="btree-mono" x="262" y="116" text-anchor="middle">id=1</text>
+        <text class="btree-sub" x="262" y="132" text-anchor="middle">整行取出</text>
+        <text class="btree-sub" x="262" y="146" text-anchor="middle">含 age</text>
+        <path class="btree-path" data-role="cover-path" d="M142 118 C 170 118, 190 118, 222 118" marker-end="url(#btree-arrowhead-cover)" />
+        <rect class="btree-badge" x="152" y="78" width="56" height="22" rx="8" />
+        <text class="btree-badge-text" x="180" y="93" text-anchor="middle">回表</text>
+        <text class="btree-caption" x="190" y="186" text-anchor="middle">缺列，必须再跳一次</text>
+      </g>
+      <g data-btree-stage="covered" data-btree-start-hidden="1">
+        <rect class="btree-node is-root" x="528" y="44" width="64" height="24" rx="6" />
+        <text class="btree-mono" x="560" y="60" text-anchor="middle">name</text>
+        <path class="btree-ink" d="M560 68 L560 96" />
+        <rect class="btree-node is-sec-leaf" data-role="cover-leaf" x="500" y="96" width="120" height="58" rx="8" />
+        <text class="btree-mono" x="560" y="116" text-anchor="middle">张三 · id=1</text>
+        <text class="btree-sub" x="560" y="134" text-anchor="middle">所需列齐了</text>
+        <text class="btree-sub" x="560" y="148" text-anchor="middle">停！不用回表</text>
+        <rect class="btree-node is-cluster-leaf is-dim" x="650" y="96" width="70" height="58" rx="8" />
+        <text class="btree-sub" x="685" y="122" text-anchor="middle">聚簇</text>
+        <text class="btree-sub" x="685" y="138" text-anchor="middle">没动</text>
+        <path class="btree-ink-soft" d="M620 125 H650" />
+      </g>
+      <g data-btree-stage="cover-badge" data-btree-start-hidden="1">
+        <rect class="btree-badge" x="500" y="172" width="120" height="24" rx="8" />
+        <text class="btree-badge-text" x="560" y="188" text-anchor="middle">Using index</text>
+        <text class="btree-caption" x="560" y="220" text-anchor="middle">覆盖 = 这次查询被瘦叶子盖住</text>
+      </g>
+    </svg>
+  </figure>
+</section>
 
 覆盖索引是性能优化里性价比极高的一招。很多"慢查询"之所以慢，就是因为差一个列导致无法覆盖，被迫回表几万次。一个常见技巧是：把查询中高频出现的列，纳入组合索引（但要注意索引变宽带来的写放大，见维护代价节）。
 

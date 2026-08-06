@@ -1419,6 +1419,277 @@ function initTimelineReveal(article: HTMLElement) {
   }
 }
 
+type BtreeDemoKind = "compare" | "lookup" | "prefix" | "cover";
+
+function sleep(ms: number, signal?: { cancelled: boolean }) {
+  return new Promise<void>(resolve => {
+    window.setTimeout(() => {
+      if (signal?.cancelled) return;
+      resolve();
+    }, ms);
+  });
+}
+
+function initBtreeDemos(article: HTMLElement) {
+  const scenes = Array.from(
+    article.querySelectorAll<HTMLElement>(".btree-scene[data-btree-demo]")
+  );
+  if (!scenes.length) return;
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  for (const scene of scenes) {
+    if (scene.dataset.demoBound === "1") continue;
+    scene.dataset.demoBound = "1";
+
+    const kind = (scene.dataset.btreeDemo || "compare") as BtreeDemoKind;
+    const svg = scene.querySelector<SVGSVGElement>(".btree-svg");
+    if (!svg) continue;
+
+    const bar = document.createElement("div");
+    bar.className = "btree-demo-bar";
+    const play = document.createElement("button");
+    play.type = "button";
+    play.className = "btree-demo-play";
+    play.textContent = "播放演示";
+    const status = document.createElement("p");
+    status.className = "btree-demo-status";
+    status.innerHTML = "点播放，看索引怎么走。";
+    bar.append(play, status);
+    scene.insertAdjacentElement("afterend", bar);
+
+    if (reduced) {
+      scene.classList.add("is-static");
+      svg.classList.add("is-ready");
+      status.textContent = "已开启减少动态效果，直接展示完整图。";
+      play.disabled = true;
+      continue;
+    }
+
+    const q = <T extends Element>(sel: string) =>
+      Array.from(svg.querySelectorAll<T>(sel));
+
+    const setStatus = (html: string) => {
+      status.innerHTML = html;
+    };
+
+    const resetVisual = () => {
+      scene.classList.add("is-playing");
+      for (const el of q<SVGElement>("[data-btree-stage]")) {
+        el.classList.remove("is-live", "is-hidden");
+      }
+      for (const el of q<SVGElement>(".btree-node")) {
+        el.classList.remove("is-hit", "is-dim", "is-pulse");
+      }
+      for (const el of q<SVGElement>(
+        ".btree-path, .btree-range-band, .btree-scatter, .btree-traveler"
+      )) {
+        el.classList.remove("is-on", "is-animate");
+      }
+    };
+
+    const showStage = async (
+      stage: string,
+      label: string,
+      wait = 520,
+      signal: { cancelled: boolean }
+    ) => {
+      if (signal.cancelled) return;
+      for (const el of q<SVGElement>(`[data-btree-stage="${stage}"]`)) {
+        el.classList.add("is-live");
+      }
+      setStatus(label);
+      await sleep(wait, signal);
+    };
+
+    let runToken = 0;
+    const playDemo = async () => {
+      const token = ++runToken;
+      const signal = { cancelled: false };
+      const alive = () => token === runToken && !signal.cancelled;
+
+      play.disabled = true;
+      play.textContent = "演示中…";
+      resetVisual();
+
+      try {
+        if (kind === "compare") {
+          await showStage("title", "<strong>两棵树</strong>，同一张 user 表。", 420, signal);
+          if (!alive()) return;
+          await showStage("cluster", "左边是<strong>聚簇</strong>：叶子挂整行。", 700, signal);
+          if (!alive()) return;
+          await showStage("secondary", "右边是<strong>二级</strong>：叶子只挂 name + 主键。", 700, signal);
+          if (!alive()) return;
+          for (const el of q<SVGElement>('[data-role="fat-leaf"]')) el.classList.add("is-pulse");
+          setStatus("胖叶子 = 数据；瘦叶子 = 钥匙。");
+          await sleep(900, signal);
+          if (!alive()) return;
+          await showStage("badge", "<strong>记住这句</strong>：胖叶子存数据，瘦叶子存钥匙。", 800, signal);
+        } else if (kind === "lookup") {
+          await showStage("title", "查询：WHERE name='张三'，要整行。", 450, signal);
+          if (!alive()) return;
+          await showStage("sec-tree", "先走<strong>二级索引</strong>。", 500, signal);
+          if (!alive()) return;
+          for (const el of q<SVGElement>('[data-role="sec-other"]')) el.classList.add("is-dim");
+          const hit = svg.querySelector<SVGElement>('[data-role="sec-hit"]');
+          hit?.classList.add("is-hit", "is-pulse");
+          setStatus("命中瘦叶子：拿到主键 <strong>id=1</strong>。");
+          await sleep(750, signal);
+          if (!alive()) return;
+
+          const path = svg.querySelector<SVGElement>('[data-role="lookup-path"]');
+          const traveler = svg.querySelector<SVGCircleElement>('[data-role="traveler"]');
+          path?.classList.add("is-on", "is-animate");
+          setStatus("带着主键，<strong>回表</strong>跳向聚簇索引…");
+          if (traveler && path && "getTotalLength" in path) {
+            const len = (path as SVGPathElement).getTotalLength();
+            traveler.classList.add("is-on");
+            const start = performance.now();
+            const duration = 900;
+            await new Promise<void>(resolve => {
+              const tick = (now: number) => {
+                if (!alive()) {
+                  resolve();
+                  return;
+                }
+                const t = Math.min(1, (now - start) / duration);
+                // Stop short of the tip so the traveler never sits on the leaf edge.
+                const pt = (path as SVGPathElement).getPointAtLength(len * t * 0.92);
+                traveler.setAttribute("cx", String(pt.x));
+                traveler.setAttribute("cy", String(pt.y));
+                if (t < 1) requestAnimationFrame(tick);
+                else resolve();
+              };
+              requestAnimationFrame(tick);
+            });
+            traveler.classList.remove("is-on");
+          } else {
+            await sleep(700, signal);
+          }
+          if (!alive()) return;
+
+          await showStage("cluster-tree", "跳进<strong>聚簇索引</strong>。", 450, signal);
+          if (!alive()) return;
+          for (const el of q<SVGElement>('[data-role="cluster-other"]')) el.classList.add("is-dim");
+          svg
+            .querySelector<SVGElement>('[data-role="cluster-hit"]')
+            ?.classList.add("is-hit", "is-pulse");
+          setStatus("取出整行：张三 · age=20。<strong>这一跳就是回表。</strong>");
+          await sleep(1000, signal);
+        } else if (kind === "prefix") {
+          await showStage(
+            "title",
+            "联合索引叶子按 (a,b,c) 排序，像查字典。",
+            450,
+            signal
+          );
+          if (!alive()) return;
+          await showStage("leaves", "先看整条叶子链，谁挨着谁一目了然。", 550, signal);
+          if (!alive()) return;
+
+          await showStage(
+            "range-ok",
+            "<strong>能用</strong>：a=1 AND b=2，命中挤在叶1、叶2。",
+            250,
+            signal
+          );
+          for (const el of q<SVGElement>('[data-role="range-hit"]')) {
+            el.classList.add("is-hit", "is-pulse");
+          }
+          svg.querySelector<SVGElement>('[data-role="range-band"]')?.classList.add("is-on");
+          await sleep(1100, signal);
+          if (!alive()) return;
+
+          for (const el of q<SVGElement>(".btree-node")) {
+            el.classList.remove("is-pulse");
+          }
+          await showStage(
+            "range-bad",
+            "<strong>不能用</strong>：只写 b=2，命中散落四处，只能全扫。",
+            250,
+            signal
+          );
+          for (const el of q<SVGElement>('[data-role="range-hit"], [data-role="scatter-hit"]')) {
+            el.classList.add("is-hit");
+          }
+          for (const el of q<SVGElement>(".btree-scatter")) el.classList.add("is-on");
+          await sleep(1200, signal);
+        } else if (kind === "cover") {
+          await showStage("title", "同一次索引命中，查的列不同，代价就不同。", 450, signal);
+          if (!alive()) return;
+          await showStage("need-back", "左边 <strong>SELECT *</strong>：瘦叶子不够。", 600, signal);
+          if (!alive()) return;
+          const path = svg.querySelector<SVGElement>('[data-role="cover-path"]');
+          path?.classList.add("is-on", "is-animate");
+          svg
+            .querySelector<SVGElement>('[data-role="need-cluster"]')
+            ?.classList.add("is-hit", "is-pulse");
+          setStatus("还得<strong>回表</strong>去聚簇取整行。");
+          await sleep(900, signal);
+          if (!alive()) return;
+          await showStage("covered", "右边只查 id, name：瘦叶子<strong>列齐了</strong>。", 700, signal);
+          if (!alive()) return;
+          svg
+            .querySelector<SVGElement>('[data-role="cover-leaf"]')
+            ?.classList.add("is-hit", "is-pulse");
+          await showStage(
+            "cover-badge",
+            "停！Extra 显示 <strong>Using index</strong>，零回表。",
+            1000,
+            signal
+          );
+        }
+
+        if (!alive()) return;
+        setStatus("演示结束。可再点播放。");
+      } finally {
+        if (token === runToken) {
+          for (const el of q<SVGElement>("[data-btree-stage]")) {
+            el.classList.add("is-live");
+          }
+          for (const el of q<SVGElement>(
+            ".btree-path, .btree-range-band, .btree-scatter"
+          )) {
+            el.classList.add("is-on");
+          }
+          for (const el of q<SVGElement>(".btree-traveler")) {
+            el.classList.remove("is-on");
+          }
+          if (kind === "prefix") {
+            for (const el of q<SVGElement>(".btree-node")) {
+              el.classList.remove("is-pulse");
+            }
+            for (const el of q<SVGElement>('[data-role="range-hit"], [data-role="scatter-hit"]')) {
+              el.classList.add("is-hit");
+            }
+          }
+          scene.classList.remove("is-playing");
+          play.disabled = false;
+          play.textContent = "再播一次";
+        }
+      }
+    };
+
+    play.addEventListener("click", () => {
+      void playDemo();
+    });
+
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            void playDemo();
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.35 }
+    );
+    observer.observe(scene);
+  }
+}
+
 function whenIdle(fn: () => void, timeout = 1500) {
   if (typeof requestIdleCallback === "function") {
     requestIdleCallback(() => fn(), { timeout });
@@ -1467,6 +1738,7 @@ export function initPostEnhancements() {
     initQuoteLinkNotes(article);
     initQuoteCopy(article);
     initTimelineReveal(article);
+    initBtreeDemos(article);
     initHubSeriesDots(article);
     initPrintSheetHead();
   });
