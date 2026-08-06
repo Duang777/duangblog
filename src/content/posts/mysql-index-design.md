@@ -18,6 +18,23 @@ description: 覆盖索引、最左前缀、ICP 与 EXPLAIN：把索引怎么用�
 
 上一篇（二）我们把 InnoDB 的存储底座彻底摸透了：数据在磁盘上按 B+Tree 组织，聚簇索引的叶子节点直接存整行数据、二级索引的叶子节点只存主键值（要拿完整行还得回表），页内靠页目录做二分定位，Doublewrite 兜住写断裂。换句话说，InnoDB 已经为你准备好了一棵能高效检索的 B+Tree——但光有这棵树还不够：你得知道怎么"用"它，才能让一条查询从全表扫描变成毫秒级定位。这正是索引要解决的问题。
 
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-jar.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">瓶子在看了</span>
+  </div>
+  <p class="duang-whisper-body">有人跟我说 AI coding 起飞了。我说那基本功的降落伞呢。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
 这正是第②篇结尾留给我们的待解问题：在 B+Tree 这块地基之上，索引到底该怎么用，才能让一条查询从全表扫描变成毫秒级定位？当时那篇的收尾预告里，已经把本篇要讲透的七个点列了出来，这里直接把它们变成"本篇要回答的问题"：
 
 - 覆盖索引：为什么有时候"只查索引就够了"，连回表都不用；

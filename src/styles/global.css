@@ -548,6 +548,93 @@ body {
   color: var(--muted-foreground);
 }
 
+/* Author joke in the margin — not part of the reading column. */
+.app-prose .duang-whisper {
+  margin: 0.8rem 0;
+  padding: 0;
+  max-width: 11.5rem;
+  border: 0;
+}
+
+.app-prose .duang-whisper-jar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  margin: 0 0 0.4rem;
+}
+
+.app-prose .duang-whisper-jar {
+  display: block;
+  width: 4.6rem;
+  height: auto;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  user-select: none;
+  opacity: 0.82;
+  mix-blend-mode: multiply;
+  flex-shrink: 0;
+}
+
+.app-prose .duang-whisper-jar-note {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, var(--accent));
+  padding-bottom: 0.2rem;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .app-prose .duang-whisper-jar {
+  filter: invert(1);
+  opacity: 0.7;
+  mix-blend-mode: normal;
+}
+
+.app-prose .duang-whisper-body {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.app-prose .duang-whisper-sign {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: 0.8rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--foreground));
+}
+
+@media (min-width: 1280px) {
+  .app-prose .duang-whisper {
+    float: inline-end;
+    clear: inline-end;
+    width: 11.5rem;
+    margin-inline-end: -13.5rem;
+    margin-block: 0.15rem 0.8rem;
+    padding-inline-start: 0.7rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--accent) 40%, var(--border));
+  }
+}
+
+@media (max-width: 1279px) {
+  .app-prose .duang-whisper {
+    max-width: none;
+    margin: 0.85rem 0;
+    padding-inline-start: 0.7rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--accent) 40%, var(--border));
+  }
+
+  .app-prose .duang-whisper-jar {
+    width: 3.8rem;
+  }
+}
+
 @media (min-width: 1280px) {
   .app-prose .marginalia {
     float: inline-end;
