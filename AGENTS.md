@@ -209,6 +209,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 - MySQL hub: `src/content/posts/mysql-column.md`
 - MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
 - MySQL (二): `src/content/posts/mysql-innodb-core.md`
+- MySQL (三): `src/content/posts/mysql-index-design.md`
 - Glossary (lingo): `src/data/lingo/` (`mysql.ts` pack + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
