@@ -7,6 +7,7 @@ export type HomeColumnScent =
   | "agent"
   | "agent-arch"
   | "mysql"
+  | "perf"
   | "pi"
   | "misc";
 
@@ -37,6 +38,10 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       intro: getTagIntro("Agent 系统架构设计"),
     },
     mysql: { title: "MySQL", intro: getTagIntro("MySQL") },
+    perf: {
+      title: "高性能后端实战",
+      intro: getTagIntro("高性能后端实战"),
+    },
     pi: { title: "Pi 深度解析", intro: getTagIntro("Pi 深度解析") },
     misc: { title: "随笔与其他", intro: "还没收进大专栏的笔记。" },
   },
@@ -67,6 +72,11 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       title: "MySQL",
       intro: "Walk one SQL through architecture, engine, indexes, and transactions.",
     },
+    perf: {
+      title: "High-Performance Backend",
+      intro:
+        "Measure first, then dig into CPU, memory, concurrency, and I/O — Python and Go side by side.",
+    },
     pi: {
       title: "Pi Deep Dive",
       intro: "What Pi is, how the packages split, and which trade-offs it made.",
@@ -91,6 +101,7 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const agent = copyFor(locale, "agent");
   const agentArch = copyFor(locale, "agent-arch");
   const mysql = copyFor(locale, "mysql");
+  const perf = copyFor(locale, "perf");
   const pi = copyFor(locale, "pi");
   return [
     {
@@ -139,6 +150,15 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       scent: "mysql",
       limit: 2,
       match: tags => tags.includes("MySQL"),
+    },
+    {
+      id: "perf",
+      title: perf.title,
+      intro: perf.intro,
+      hubSlug: "perf-backend",
+      scent: "perf",
+      limit: 2,
+      match: tags => tags.includes("高性能后端实战"),
     },
     {
       id: "backend",

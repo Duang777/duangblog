@@ -139,6 +139,179 @@ function markCodeCopied(pre: HTMLElement) {
   pre.classList.add("is-code-copied");
 }
 
+const CODE_LANG_PREF_KEY = "blog-code-lang-pref";
+
+function codeBlockLang(pre: HTMLElement): string {
+  let lang = pre.dataset.language ?? "";
+  if (!lang) {
+    const code = pre.querySelector("code");
+    const match = code?.className.match(/language-([\w-]+)/);
+    lang = match?.[1] ?? "";
+  }
+  return lang.toLowerCase();
+}
+
+function displayLangLabel(lang: string): string {
+  const map: Record<string, string> = {
+    python: "Python",
+    py: "Python",
+    go: "Go",
+    golang: "Go",
+    typescript: "TypeScript",
+    javascript: "JavaScript",
+    rust: "Rust",
+    java: "Java",
+  };
+  return map[lang] ?? (lang ? lang.charAt(0).toUpperCase() + lang.slice(1) : "Code");
+}
+
+/**
+ * Merge consecutive code blocks after a `.js-code-lang-tabs` marker into
+ * a single tabbed panel (default language from data-default, usually python).
+ */
+function initCodeLangTabs(article: HTMLElement) {
+  const markers = Array.from(
+    article.querySelectorAll<HTMLElement>(".js-code-lang-tabs")
+  );
+  if (!markers.length) return;
+
+  let preferred = "";
+  try {
+    preferred = localStorage.getItem(CODE_LANG_PREF_KEY) ?? "";
+  } catch {
+    // ignore
+  }
+
+  for (const marker of markers) {
+    if (marker.dataset.tabsBound === "1") continue;
+    marker.dataset.tabsBound = "1";
+
+    const defaultLang = (marker.dataset.default || "python").toLowerCase();
+    const wantLangs = (marker.dataset.langs || "python,go")
+      .split(",")
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    const panels: { lang: string; wrap: HTMLElement }[] = [];
+    let node: ChildNode | null = marker.nextSibling;
+    while (node && panels.length < Math.max(wantLangs.length, 2)) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if ((node.textContent ?? "").trim()) break;
+        node = node.nextSibling;
+        continue;
+      }
+      if (!(node instanceof HTMLElement)) break;
+
+      let wrap: HTMLElement | null = null;
+      let pre: HTMLElement | null = null;
+      if (node.classList.contains("code-block-wrap")) {
+        wrap = node;
+        pre = node.querySelector("pre");
+      } else if (node.tagName === "PRE" && !node.classList.contains("mermaid")) {
+        pre = node;
+        wrap = document.createElement("div");
+        wrap.className = "code-block-wrap";
+        node.parentNode?.insertBefore(wrap, node);
+        wrap.appendChild(node);
+      } else if (
+        node.classList.contains("js-code-lang-tabs") ||
+        node.matches("p,h1,h2,h3,h4,h5,h6,ul,ol,blockquote,table,hr,figure")
+      ) {
+        break;
+      } else {
+        break;
+      }
+
+      if (!wrap || !pre) break;
+      const rawLang = codeBlockLang(pre);
+      if (!rawLang) break;
+      const lang = rawLang === "golang" ? "go" : rawLang === "py" ? "python" : rawLang;
+      if (wantLangs.length && !wantLangs.includes(lang)) break;
+      panels.push({ lang, wrap });
+      node = wrap.nextSibling;
+    }
+
+    if (panels.length < 2) continue;
+
+    const shell = document.createElement("div");
+    shell.className = "code-lang-tabs";
+    shell.dataset.default = defaultLang;
+
+    const bar = document.createElement("div");
+    bar.className = "code-lang-tabs-bar";
+    bar.setAttribute("role", "tablist");
+    bar.setAttribute("aria-label", "代码语言");
+
+    const panelHost = document.createElement("div");
+    panelHost.className = "code-lang-tabs-panels";
+
+    const initial =
+      (preferred && panels.some(p => p.lang === preferred)
+        ? preferred
+        : null) ||
+      (panels.some(p => p.lang === defaultLang) ? defaultLang : panels[0]!.lang);
+
+    marker.parentNode?.insertBefore(shell, marker);
+    shell.append(bar, panelHost);
+
+    for (const panel of panels) {
+      const tabId = `code-tab-${panel.lang}-${Math.random().toString(36).slice(2, 7)}`;
+      const panelId = `${tabId}-panel`;
+
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "code-lang-tabs-tab font-mono";
+      tab.id = tabId;
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-controls", panelId);
+      tab.textContent = displayLangLabel(panel.lang);
+      tab.dataset.lang = panel.lang;
+
+      const pane = document.createElement("div");
+      pane.className = "code-lang-tabs-panel";
+      pane.id = panelId;
+      pane.setAttribute("role", "tabpanel");
+      pane.setAttribute("aria-labelledby", tabId);
+      pane.dataset.lang = panel.lang;
+      panel.wrap.classList.add("is-in-lang-tabs");
+      // Drop outer margin; shell owns spacing.
+      pane.appendChild(panel.wrap);
+
+      const select = () => {
+        for (const btn of bar.querySelectorAll<HTMLElement>(".code-lang-tabs-tab")) {
+          const on = btn.dataset.lang === panel.lang;
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+          btn.tabIndex = on ? 0 : -1;
+          btn.classList.toggle("is-active", on);
+        }
+        for (const p of panelHost.querySelectorAll<HTMLElement>(".code-lang-tabs-panel")) {
+          const on = p.dataset.lang === panel.lang;
+          p.hidden = !on;
+          p.classList.toggle("is-active", on);
+        }
+        try {
+          localStorage.setItem(CODE_LANG_PREF_KEY, panel.lang);
+          preferred = panel.lang;
+        } catch {
+          // ignore
+        }
+      };
+
+      tab.addEventListener("click", select);
+      bar.appendChild(tab);
+      panelHost.appendChild(pane);
+      if (panel.lang === initial) select();
+      else {
+        pane.hidden = true;
+        tab.setAttribute("aria-selected", "false");
+        tab.tabIndex = -1;
+      }
+    }
+
+    marker.remove();
+  }
+}
+
 function initCodeStamps(article: HTMLElement) {
   const copied = getCopiedCodeKeys();
   const blocks = Array.from(
@@ -758,7 +931,7 @@ function shouldSkipLingoNode(node: Node) {
   if (!parent) return true;
   return Boolean(
     parent.closest(
-      "pre, code, kbd, samp, a, button, .lingo-term, .marginalia, script, style, textarea"
+      "pre, code, kbd, samp, a, button, .lingo-term, .marginalia, script, style, textarea, svg, .article-embed-note-title"
     )
   );
 }
@@ -1709,6 +1882,8 @@ export function initPostEnhancements() {
   initMermaidStamps(article);
   initCopyWithSource(article);
   initCodeStamps(article);
+  // After inline copy-wraps exist; rAF covers first paint race with is:inline script.
+  requestAnimationFrame(() => initCodeLangTabs(article));
   initChapterTrail(article);
   initChapterOutline(article);
   initHashFlash(article);

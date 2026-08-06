@@ -54,6 +54,11 @@ const COLUMN_JARS: Record<string, ColumnJarSpec> = {
     caption: "MySQL 瓶",
     hint: "细颈烧瓶 · 从一条 SQL 往下灌",
   },
+  高性能后端实战: {
+    kind: "wide",
+    caption: "性能瓶",
+    hint: "广口罐 · 先度量再往下灌",
+  },
   前端实验室: {
     kind: "vial",
     caption: "实验瓶",
@@ -81,6 +86,7 @@ const COLUMN_JAR_PRIORITY = [
   "请求过境",
   "Agent 系统架构设计",
   "MySQL",
+  "高性能后端实战",
   "Pi 深度解析",
   "前端实验室",
   "后端专栏",

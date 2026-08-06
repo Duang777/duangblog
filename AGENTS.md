@@ -113,6 +113,15 @@ Ten-part teaching series: architecture & one SQL journey → InnoDB → indexes 
 
 Do **not** fold into `后端专栏` alone unless the post is also a backend mechanism note with that parent tag.
 
+## 高性能后端实战 (standalone column)
+
+**Tag:** `高性能后端实战`  
+**Hub:** `src/content/posts/perf-backend.md`
+
+Fourteen-part series: measure first (latency / throughput / percentiles) → CPU cache & memory → concurrency → I/O → storage / cache / tuning / architecture. Dual examples in Python and Go (tabbed code blocks, default Python).
+
+Do **not** fold into `后端专栏` alone unless the post also carries that parent tag.
+
 ## 最新速递 (standalone column)
 
 **Tag:** `最新速递`  
@@ -210,7 +219,9 @@ End without a corporate-sounding checklist if the body already made the points. 
 - MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
 - MySQL (二): `src/content/posts/mysql-innodb-core.md`
 - MySQL (三): `src/content/posts/mysql-index-design.md`
-- Glossary (lingo): `src/data/lingo/` (`mysql.ts` pack + `index.ts` merge)
+- 高性能后端实战 hub: `src/content/posts/perf-backend.md`
+- 高性能后端实战 (一): `src/content/posts/perf-backend-metrics.md`
+- Glossary (lingo): `src/data/lingo/` (`mysql.ts`, `perf.ts` packs + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`

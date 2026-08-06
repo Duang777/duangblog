@@ -40,11 +40,14 @@ let column:
   | "agent"
   | "agent-arch"
   | "mysql"
+  | "perf"
   | "pi"
   | "digest"
   | null = null;
 if (tags.some(tag => tag.includes("最新速递"))) {
   column = "digest";
+} else if (tags.some(tag => tag.includes("高性能后端实战"))) {
+  column = "perf";
 } else if (tags.some(tag => tag.includes("后端") || tag.includes("请求过境"))) {
   column = "backend";
 } else if (tags.some(tag => tag.includes("前端实验室"))) {

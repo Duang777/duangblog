@@ -211,6 +211,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #3d6b8a 60%, var(--muted-foreground));
 }
 
+.post-card[data-column="perf"] {
+  --column-tint: color-mix(in oklab, #6a5a3a 60%, var(--muted-foreground));
+}
+
 .post-card[data-column="digest"] {
   --column-tint: color-mix(in oklab, #8a7a4a 55%, var(--accent));
 }
@@ -464,6 +468,223 @@ body {
 
 .code-block-wrap.has-file > .code-snippet-note {
   top: 2.1rem;
+}
+
+/* Python / Go (etc.) switchable code panels — notebook tab, not pill chrome. */
+.code-lang-tabs {
+  margin-block: 1.714em;
+}
+
+.code-lang-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: color-mix(in oklab, var(--muted) 55%, var(--background));
+}
+
+.code-lang-tabs-tab {
+  appearance: none;
+  margin: 0;
+  padding: 0.42rem 0.9rem;
+  border: none;
+  border-inline-end: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: transparent;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, var(--foreground));
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.code-lang-tabs-tab:last-child {
+  border-inline-end: none;
+}
+
+.code-lang-tabs-tab:hover,
+.code-lang-tabs-tab:focus-visible {
+  color: var(--foreground);
+  outline: none;
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+}
+
+.code-lang-tabs-tab.is-active,
+.code-lang-tabs-tab[aria-selected="true"] {
+  color: var(--foreground);
+  background: var(--background);
+  box-shadow: inset 0 -1px 0 var(--background);
+}
+
+.code-lang-tabs-panels {
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+
+.code-lang-tabs-panel.is-active {
+  display: block;
+}
+
+.code-lang-tabs .code-block-wrap {
+  margin-block: 0;
+}
+
+.code-lang-tabs .code-block-wrap > pre {
+  border: none;
+  border-radius: 0;
+}
+
+/* Series overview card on column posts */
+.series-nav-card {
+  margin: 1.1rem 0 1.4rem;
+  padding: 0.15rem 0.9rem 0.2rem;
+  border: 1px solid color-mix(in oklab, var(--border) 88%, transparent);
+  border-inline-start: 3px solid color-mix(in oklab, #6a5a3a 55%, var(--border));
+  background: color-mix(in oklab, var(--muted) 42%, var(--background));
+}
+
+.series-nav-card > blockquote {
+  margin: 0.65rem 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.series-nav-card > blockquote p,
+.series-nav-card > blockquote ul {
+  margin-block: 0.35rem;
+}
+
+/* Perf column: quiet metric diagrams */
+.perf-figure .perf-scene {
+  margin: 0;
+  padding: 0.35rem 0.15rem 0.1rem;
+  overflow-x: auto;
+}
+
+.perf-svg {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  height: auto;
+  margin-inline: auto;
+  color: color-mix(in oklab, var(--foreground) 88%, #6a5a3a);
+}
+
+.perf-chip,
+.perf-panel {
+  fill: color-mix(in oklab, var(--background) 88%, var(--muted));
+  stroke: color-mix(in oklab, var(--border) 90%, #6a5a3a);
+  stroke-width: 1.2;
+}
+
+.perf-chip-title,
+.perf-panel-title {
+  fill: var(--foreground);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-source-serif), serif;
+}
+
+.perf-chip-sub,
+.perf-panel-sub,
+.perf-caption,
+.perf-label {
+  fill: color-mix(in oklab, var(--muted-foreground) 92%, var(--foreground));
+  font-size: 12px;
+  font-family: var(--font-google-sans-code), ui-monospace, monospace;
+}
+
+.perf-axis {
+  stroke: color-mix(in oklab, var(--border) 85%, transparent);
+  stroke-width: 1.2;
+}
+
+.perf-bar,
+.perf-hbar {
+  fill: color-mix(in oklab, #6a5a3a 42%, var(--muted));
+}
+
+.perf-bar.is-tail,
+.perf-hbar.is-tail {
+  fill: color-mix(in oklab, #8a4a3a 58%, var(--accent));
+}
+
+.perf-avg-line {
+  stroke: color-mix(in oklab, var(--foreground) 55%, transparent);
+  stroke-width: 1.2;
+}
+
+.perf-label.is-tail {
+  fill: color-mix(in oklab, #8a4a3a 70%, var(--foreground));
+  font-weight: 600;
+}
+
+.perf-dot {
+  fill: color-mix(in oklab, #6a5a3a 50%, var(--muted));
+}
+
+.perf-dot.is-live {
+  fill: color-mix(in oklab, #3d6b4a 65%, var(--accent));
+}
+
+.perf-dot.is-wait {
+  fill: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+  opacity: 0.55;
+}
+
+.perf-batch {
+  fill: color-mix(in oklab, #6a5a3a 35%, var(--muted));
+  stroke: color-mix(in oklab, var(--border) 80%, #6a5a3a);
+  stroke-width: 1;
+}
+
+.perf-swatch.is-live {
+  fill: color-mix(in oklab, #3d6b4a 65%, var(--accent));
+}
+
+.perf-swatch.is-wait {
+  fill: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .perf-figure .perf-hbar,
+  .perf-figure .perf-bar.is-tail {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: perf-bar-in 0.7s ease-out both;
+  }
+
+  .perf-figure .perf-bar.is-tail {
+    transform-origin: bottom center;
+  }
+}
+
+@keyframes perf-bar-in {
+  from {
+    transform: scaleX(0.15);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .perf-figure .perf-bar.is-tail {
+    animation-name: perf-bar-in-y;
+  }
+}
+
+@keyframes perf-bar-in-y {
+  from {
+    transform: scaleY(0.15);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 /* Copy button sits on the wrap (outside <pre>) so overflow never clips it. */
@@ -1318,6 +1539,10 @@ html[data-theme="dark"] .about-doodle--letter-p {
 
 .home-column.is-mysql {
   --column-ink: color-mix(in oklab, #2f5a72 70%, var(--foreground));
+}
+
+.home-column.is-perf {
+  --column-ink: color-mix(in oklab, #5a4a2a 70%, var(--foreground));
 }
 
 .home-column.is-misc {

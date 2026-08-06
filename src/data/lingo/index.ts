@@ -1,5 +1,6 @@
 import type { LingoTerm } from "./types";
 import { MYSQL_LINGO } from "./mysql";
+import { PERF_LINGO } from "./perf";
 
 export type { LingoTerm } from "./types";
 
@@ -36,4 +37,4 @@ export function mergeLingoPacks(...packs: LingoTerm[][]): LingoTerm[] {
 }
 
 /** Canonical site glossary. Add new domain packs here as the bank grows. */
-export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(MYSQL_LINGO);
+export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(MYSQL_LINGO, PERF_LINGO);
