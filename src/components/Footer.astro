@@ -50,6 +50,13 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
         )
       }
       <a href={rssHref} class="footer-rss-note font-mono">可订阅 · 不吵</a>
+      <a
+        href={getRelativeLocaleUrl(locale, "bottles")}
+        class="footer-rss-note font-mono"
+        title="瓶子彩蛋"
+      >
+        收藏柜 · 彩蛋
+      </a>
     </div>
     <div class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:items-baseline sm:gap-0">
       <button

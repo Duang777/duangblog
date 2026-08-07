@@ -1,0 +1,81 @@
+/**
+ * Collectible bottle catalog for the easter-egg shelf & cabinet.
+ * Images live under /public/images/.
+ */
+export type BottleDef = {
+  id: string;
+  /** Display name on shelf / cabinet. */
+  name: string;
+  /** One-line flavor text. */
+  note: string;
+  /** Path under site root, e.g. /images/….png */
+  src: string;
+  /** Where a careful reader might have seen it. */
+  foundIn?: string;
+};
+
+export const BOTTLES: BottleDef[] = [
+  {
+    id: "jar",
+    name: "念头瓶",
+    note: "首页那只老伙计。点子泡久了会起泡。",
+    src: "/images/childlike-sketch-jar.png",
+    foundIn: "首页念头瓶 / MySQL 边注",
+  },
+  {
+    id: "flask-gil",
+    name: "GIL 瓶",
+    note: "细颈烧瓶，瓶口挂着一把小锁。排队的热闹装在这里。",
+    src: "/images/childlike-sketch-flask-gil.png",
+    foundIn: "进程文 · Python 视角",
+  },
+  {
+    id: "jar-swarm",
+    name: "swarm 瓶",
+    note: "圆罐里挤满弯线。goroutine 多了也不嫌挤。",
+    src: "/images/childlike-sketch-jar-swarm.png",
+    foundIn: "进程文 · Go 视角",
+  },
+  {
+    id: "channel",
+    name: "管道瓶",
+    note: "瓶身穿了一根管子。水从这边进，从那边出。",
+    src: "/images/childlike-sketch-channel-bottle.png",
+    foundIn: "进程文 · Go · channel",
+  },
+  {
+    id: "three",
+    name: "三瓶组",
+    note: "进程、线程、协程并排站着，别灌混了。",
+    src: "/images/childlike-sketch-three-bottles.png",
+    foundIn: "进程文 · Python",
+  },
+  {
+    id: "warm",
+    name: "热瓶",
+    note: "冒着小气。热着也得排队，GIL 懂的。",
+    src: "/images/childlike-sketch-warm-bottle.png",
+    foundIn: "进程文 · Python",
+  },
+  {
+    id: "runtime",
+    name: "调度瓶",
+    note: "贴着小标签的运行时瓶。你写 go，它写 GMP。",
+    src: "/images/childlike-sketch-runtime-bottle.png",
+    foundIn: "进程文 · Go · GMP",
+  },
+];
+
+export function getBottle(id: string): BottleDef | undefined {
+  return BOTTLES.find(b => b.id === id);
+}
+
+/** Match a whisper / doodle image URL to a catalog bottle. */
+export function findBottleBySrc(src: string): BottleDef | undefined {
+  const path = src.split("?")[0]?.split("#")[0] ?? "";
+  return BOTTLES.find(
+    b => path === b.src || path.endsWith(b.src) || path.endsWith(b.src.slice(1))
+  );
+}
+
+export const BOTTLE_COLLECTION_KEY = "duang-bottle-collection-v1";

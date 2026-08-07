@@ -207,6 +207,7 @@ export function bindIdeaJarRoot(root: HTMLElement, opts: BindOpts = {}) {
     else delete root.dataset.hoverWhisper;
     syncIdeaJarRoot(root);
     root.classList.add("is-tip-shown");
+    void import("@/scripts/bottle-discover").then(m => m.unlockHomeIdeaJar());
   };
   const hide = () => {
     delete root.dataset.hoverWhisper;

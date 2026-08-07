@@ -157,9 +157,11 @@ const searchHref =
       import { bindSearchHotkey } from "@/scripts/search-hotkey";
       import { bindPostHotkeys } from "@/scripts/post-hotkeys";
       import { bindPostEnhancements } from "@/scripts/post-enhance";
+      import { bindBottleDiscover } from "@/scripts/bottle-discover";
       bindSearchHotkey();
       bindPostHotkeys();
       bindPostEnhancements();
+      bindBottleDiscover();
 
       // Mark soft ClientRouter navigations so pages can skip entrance delays.
       const w = window as unknown as { __softNavBound?: boolean };

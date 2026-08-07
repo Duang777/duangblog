@@ -960,11 +960,30 @@ body {
   border: 0;
   background: transparent;
   user-select: none;
-  pointer-events: none;
-  cursor: default;
+  pointer-events: auto;
+  cursor: pointer;
   opacity: 0.82;
   mix-blend-mode: multiply;
   flex-shrink: 0;
+  border-radius: 0.2rem;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.app-prose .duang-whisper-jar:hover,
+.app-prose .duang-whisper-jar:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px) rotate(-1.5deg);
+}
+
+.app-prose .duang-whisper-jar:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 70%, transparent);
+  outline-offset: 3px;
+}
+
+.app-prose .duang-whisper-jar.is-collected {
+  opacity: 1;
 }
 
 .app-prose .duang-whisper-jar-note {
@@ -3655,3 +3674,349 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   }
 }
 
+
+/* —— Bottle shelf / cabinet easter egg —— */
+.bottle-shelf-page,
+.bottle-cabinet-page {
+  padding-top: 0.5rem;
+}
+
+.bottle-shelf-head {
+  margin-bottom: 1.5rem;
+}
+
+.bottle-shelf-intro {
+  margin: 0.55rem 0 0;
+  max-width: 36rem;
+  color: color-mix(in oklab, var(--muted-foreground) 92%, var(--foreground));
+  line-height: 1.6;
+}
+
+.bottle-shelf-howto {
+  margin: 0.45rem 0 0;
+  max-width: 36rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--muted-foreground) 78%, var(--accent));
+}
+
+.bottle-shelf-progress {
+  margin: 0.7rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, var(--accent));
+}
+
+.bottle-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.85rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bottle-shelf-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.85rem 0.55rem 0.7rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 0.55rem;
+  background: color-mix(in oklab, var(--muted) 28%, var(--background));
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.bottle-shelf-card:hover,
+.bottle-shelf-card:focus-visible {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+  background: color-mix(in oklab, var(--muted) 40%, var(--background));
+  transform: translateY(-2px);
+}
+
+.bottle-shelf-card:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 50%, transparent);
+  outline-offset: 3px;
+}
+
+.bottle-shelf-art-wrap {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+}
+
+.bottle-shelf-art {
+  display: block;
+  max-width: 5.2rem;
+  max-height: 5.2rem;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  user-select: none;
+  opacity: 0.55;
+  filter: grayscale(0.35);
+  mix-blend-mode: multiply;
+  transition:
+    opacity 160ms ease,
+    filter 160ms ease;
+}
+
+.bottle-shelf-card.is-unlocked .bottle-shelf-art {
+  opacity: 0.9;
+  filter: none;
+}
+
+html[data-theme="dark"] .bottle-shelf-art,
+html[data-theme="dark"] .bottle-collect-art,
+html[data-theme="dark"] .bottle-cabinet-art {
+  filter: invert(1);
+  mix-blend-mode: normal;
+  opacity: 0.72;
+}
+
+html[data-theme="dark"] .bottle-shelf-card.is-unlocked .bottle-shelf-art {
+  opacity: 0.88;
+  filter: invert(1);
+}
+
+.bottle-shelf-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.bottle-shelf-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+}
+
+.bottle-shelf-card.is-unlocked .bottle-shelf-badge {
+  color: color-mix(in oklab, #3f5a3a 70%, var(--foreground));
+}
+
+.bottle-shelf-foot {
+  margin-top: 1.75rem;
+  font-size: 0.82rem;
+}
+
+.bottle-shelf-foot a {
+  color: color-mix(in oklab, var(--muted-foreground) 80%, var(--accent));
+  text-decoration: none;
+}
+
+.bottle-shelf-foot a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bottle-collect-dialog {
+  /* Tailwind preflight zeros margin; native dialog needs auto to center. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  max-width: min(22rem, calc(100vw - 2rem));
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.bottle-collect-dialog::backdrop {
+  background: color-mix(in oklab, #141413 55%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.bottle-collect-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 1.35rem 1.25rem 1.15rem;
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius: 0.75rem;
+  background: var(--background);
+  box-shadow: 0 12px 40px color-mix(in oklab, #141413 18%, transparent);
+}
+
+.bottle-collect-art {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+  margin: 0.2rem 0 0.35rem;
+  border: 0;
+  background: transparent;
+  mix-blend-mode: multiply;
+  user-select: none;
+  pointer-events: none;
+}
+
+.bottle-collect-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.bottle-collect-note {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--muted-foreground) 94%, var(--foreground));
+}
+
+.bottle-collect-found,
+.bottle-collect-status {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, var(--accent));
+}
+
+.bottle-collect-actions {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.bottle-collect-btn {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.bottle-collect-btn.is-primary {
+  background: color-mix(in oklab, #3f5a3a 18%, var(--background));
+  border-color: color-mix(in oklab, #3f5a3a 40%, var(--border));
+}
+
+.bottle-collect-btn.is-primary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.bottle-collect-btn.is-ghost:hover,
+.bottle-collect-btn.is-primary:not(:disabled):hover {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+}
+
+.bottle-cabinet-empty {
+  margin: 1.25rem 0;
+  font-size: 0.88rem;
+  color: var(--muted-foreground);
+}
+
+.bottle-cabinet-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bottle-cabinet-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0.95rem;
+  border: 1px dashed color-mix(in oklab, var(--border) 78%, transparent);
+  border-radius: 0.6rem;
+  background: color-mix(in oklab, var(--muted) 26%, var(--background));
+}
+
+.bottle-cabinet-art {
+  display: block;
+  width: 5.5rem;
+  height: auto;
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  mix-blend-mode: multiply;
+  user-select: none;
+  pointer-events: none;
+}
+
+.bottle-cabinet-copy {
+  min-width: 0;
+}
+
+.bottle-cabinet-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 650;
+}
+
+.bottle-cabinet-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--muted-foreground) 94%, var(--foreground));
+}
+
+.bottle-cabinet-found {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, var(--accent));
+}
+
+@media (max-width: 520px) {
+  .bottle-cabinet-item {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.bottle-discover-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 80;
+  translate: -50% 0;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.65rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius: 0.55rem;
+  background: var(--background);
+  box-shadow: 0 10px 28px color-mix(in oklab, #141413 16%, transparent);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--foreground);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.4rem);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.bottle-discover-toast.is-shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.bottle-discover-toast a {
+  margin-left: 0.35rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

@@ -1,0 +1,119 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import { BOTTLES } from "@/data/bottles";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const mixupHref = getRelativeLocaleUrl(locale, "tags/易混专栏");
+const mysqlHref = getRelativeLocaleUrl(
+  locale,
+  "posts/mysql-index-design"
+);
+---
+
+<Layout
+  title={`收藏柜 | ${config.site.title}`}
+  description="点过的边注瓶子，才会出现在这里。"
+>
+  <Header />
+  <Breadcrumb />
+
+  <main id="main-content" class="app-layout bottle-cabinet-page pb-12">
+    <header class="bottle-shelf-head">
+      <h1 class="font-serif text-2xl font-semibold sm:text-3xl">收藏柜</h1>
+      <p class="bottle-shelf-intro">
+        瓶子藏在文章边注里。点到了才会出现在这里，不会提前摊开整架。
+      </p>
+      <p class="bottle-shelf-howto font-mono">
+        入口在页脚的「收藏柜 · 彩蛋」。收瓶时弹的提示里也能点进来。
+      </p>
+      <p class="bottle-shelf-progress font-mono" data-cabinet-progress>
+        还空着
+      </p>
+    </header>
+
+    <p class="bottle-cabinet-empty font-mono" data-cabinet-empty>
+      还没有收过。<a href={mysqlHref}>MySQL 索引</a>
+      或
+      <a href={mixupHref}>易混专栏</a>
+      里的边注小瓶，点一下就能收。
+    </p>
+
+    <ul class="bottle-cabinet-grid" data-cabinet-grid></ul>
+  </main>
+
+  <template id="bottle-cabinet-item">
+    <li class="bottle-cabinet-item">
+      <img class="bottle-cabinet-art" alt="" width="140" height="140" />
+      <div class="bottle-cabinet-copy">
+        <h2 class="bottle-cabinet-name font-serif"></h2>
+        <p class="bottle-cabinet-note"></p>
+        <p class="bottle-cabinet-found font-mono"></p>
+      </div>
+    </li>
+  </template>
+
+  <Footer />
+</Layout>
+
+<script>
+  import { BOTTLES } from "@/data/bottles";
+  import { listUnlockedBottles } from "@/scripts/bottle-collection";
+
+  function progressLabel(have: number, total: number) {
+    if (have <= 0) return "还空着";
+    if (have >= total) return `收齐了 · ${have} 只`;
+    return `已收 ${have} 只 · 别处还藏着`;
+  }
+
+  function renderCabinet() {
+    const grid = document.querySelector<HTMLUListElement>("[data-cabinet-grid]");
+    const empty = document.querySelector<HTMLElement>("[data-cabinet-empty]");
+    const progress = document.querySelector<HTMLElement>(
+      "[data-cabinet-progress]"
+    );
+    const tpl = document.querySelector<HTMLTemplateElement>(
+      "#bottle-cabinet-item"
+    );
+    if (!grid || !tpl) return;
+
+    const unlocked = listUnlockedBottles();
+    if (progress) {
+      progress.textContent = progressLabel(unlocked.length, BOTTLES.length);
+    }
+
+    grid.replaceChildren();
+    if (empty) empty.hidden = unlocked.length > 0;
+
+    for (const bottle of unlocked) {
+      const node = tpl.content.cloneNode(true) as DocumentFragment;
+      const img = node.querySelector<HTMLImageElement>(".bottle-cabinet-art");
+      const name = node.querySelector<HTMLElement>(".bottle-cabinet-name");
+      const note = node.querySelector<HTMLElement>(".bottle-cabinet-note");
+      const found = node.querySelector<HTMLElement>(".bottle-cabinet-found");
+      if (img) {
+        img.src = bottle.src;
+        img.alt = bottle.name;
+      }
+      if (name) name.textContent = bottle.name;
+      if (note) note.textContent = bottle.note;
+      if (found) {
+        found.textContent = bottle.foundIn ? `出处 · ${bottle.foundIn}` : "";
+        found.hidden = !bottle.foundIn;
+      }
+      grid.append(node);
+    }
+  }
+
+  function init() {
+    if (!document.querySelector("[data-cabinet-grid]")) return;
+    renderCabinet();
+  }
+
+  document.addEventListener("astro:page-load", init);
+  init();
+</script>
