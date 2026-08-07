@@ -51,6 +51,7 @@ Go 官方有句名言值得记住：不要通过共享内存来通信，而要�
 Go 自己很少去"开进程"，因为 goroutine 已经够轻够快，绝大多数并发需求在进程内部就能解决。但有些事必须靠外部进程：调用 shell 命令或者别的语言写的程序、需要强隔离（崩了不影响主程序）、或者需要借助操作系统级别的能力时，进程就是绕不开的。
 
 os/exec 的用法分几个层次。exec.Command 构造一条命令，.Output() 一次性执行并拿到标准输出的全部内容，.Run() 只执行不关心输出，.Start() 加 .Wait() 把启动和等待分开，方便你边干别的边等它结束。如果要做流式交互（比如像管道一样一行行读写），用 StdinPipe / StdoutPipe / StderrPipe 拿到读写器自己操作。工程上最该记住的是用 context 控制超时和取消：一个卡死的子进程如果不设截止时间，会一直挂着占资源，context 能让你在超时之后干净地杀掉它。
+
 ```go
 package main
 
@@ -66,7 +67,6 @@ func main() {
     }
     fmt.Println(string(out))
 }
-
 ```
 
 本机实测启动一个 /bin/true 这样的空进程大约 2.6 毫秒——比 goroutine 贵了好几个数量级。所以进程在 Go 里只用于"不得不隔离 / 调外部"的场景，不是常规并发手段；真正的高并发永远在 goroutine 这一层解决。
@@ -83,11 +83,11 @@ func main() {
 Go 里几乎不直接操作 OS 线程，因为运行时替你管了。那个"OS 线程"在 Go 的调度模型里叫 M（machine），而你日常写的 go func() 创建的是 goroutine（G），并不是 OS 线程。
 
 运行时会把海量的 G 多路复用到少量的 M 上去跑。M 的数量默认等于 GOMAXPROCS（也就是机器核数），需要更多 M 时运行时自动加。那么什么情况下才会真正用到 OS 线程？最常见的是阻塞的系统调用：当你在 goroutine 里做读写文件、某些网络 syscall 这类会卡住系统调用的操作时，当前这个 M 会被阻塞调用占住，运行时就会把这个 M 暂时脱离调度、再开一个新的 M 顶上来继续跑别的 G，核不会浪费。其次是 cgo，C 代码直接跑在 OS 线程上，不受 Go 调度器控制。最后是 runtime.LockOSThread，它把一个 goroutine 钉死在某个 OS 线程上，只在少数场景需要——比如 cgo 的回调函数要求在同一线程执行，或者某些依赖线程本地状态的系统调用。所以准确地说，"Go 的线程"是运行时托管的 OS 线程池，日常开发基本不用管，理解它的存在是为了看懂调度，而不是为了直接操作它。
+
 ```go
 runtime.LockOSThread()
 defer runtime.UnlockOSThread()
 // 必须绑定 OS 线程的场景：cgo 回调、某些依赖线程本地状态的系统调用
-
 ```
 
 ## 四、协程：goroutine + channel + sync + context
@@ -118,6 +118,7 @@ channel 是 goroutine 之间传数据的管道，也是 Go"通过通信共享内
   <p class="duang-whisper-body">close 是发送方的事。接收方负责读完，别抢着关闸门。</p>
   <p class="duang-whisper-sign">Duang</p>
 </aside>
+
 ```go
 func worker(id int, jobs <-chan int, wg *sync.WaitGroup) {
     defer wg.Done()
@@ -139,8 +140,10 @@ func main() {
     close(jobs)
     wg.Wait()
 }
-
 ```
+
+超时也可以直接写在 `select` 里：
+
 ```go
 select {
 case res := <-ch:
@@ -148,7 +151,6 @@ case res := <-ch:
 case <-time.After(100 * time.Millisecond):
     fmt.Println("timeout")
 }
-
 ```
 
 ### sync 与原子操作

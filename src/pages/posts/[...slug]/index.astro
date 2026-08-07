@@ -505,6 +505,14 @@ const ogImage = ogImageUrl
     const prefersReducedMotion = () =>
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    /** Decorative doodles / whisper jars — show only, never zoom. */
+    function isLightboxExcluded(image) {
+      return Boolean(
+        image.classList.contains("duang-whisper-jar") ||
+          image.closest(".duang-whisper")
+      );
+    }
+
     let overlay = null;
     let lastFocused = null;
 
@@ -513,7 +521,7 @@ const ogImage = ogImageUrl
     requestAnimationFrame(() => {
       const images = Array.from(article.querySelectorAll("img"));
       for (const image of images) {
-        if (image.closest("a")) continue;
+        if (image.closest("a") || isLightboxExcluded(image)) continue;
         image.setAttribute("role", "button");
         image.setAttribute("tabindex", "0");
         image.setAttribute("aria-haspopup", "dialog");
@@ -731,7 +739,14 @@ const ogImage = ogImageUrl
 
     function triggerFromEvent(e) {
       const image = e.target.closest("img");
-      if (!image || !article.contains(image) || image.closest("a")) return null;
+      if (
+        !image ||
+        !article.contains(image) ||
+        image.closest("a") ||
+        isLightboxExcluded(image)
+      ) {
+        return null;
+      }
       return image;
     }
 

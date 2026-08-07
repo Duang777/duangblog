@@ -960,6 +960,8 @@ body {
   border: 0;
   background: transparent;
   user-select: none;
+  pointer-events: none;
+  cursor: default;
   opacity: 0.82;
   mix-blend-mode: multiply;
   flex-shrink: 0;
