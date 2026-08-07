@@ -239,7 +239,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 - 易混专栏 hub: `src/content/posts/dont-mix.md`
 - 进程 (Python): `src/content/posts/process-thread-coroutine-python.md`
 - 进程 (Go): `src/content/posts/process-thread-coroutine-go.md`
-- Glossary (lingo): `src/data/lingo/` (`mysql.ts`, `perf.ts` packs + `index.ts` merge)
+- Glossary (lingo): `src/data/lingo/` (`mysql.ts`, `perf.ts`, `mixup.ts` packs + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`
 - **How to write (human guide, not published):** `notes/怎么写博客.md`
