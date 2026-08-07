@@ -59,6 +59,16 @@ const COLUMN_JARS: Record<string, ColumnJarSpec> = {
     caption: "性能瓶",
     hint: "广口罐 · 先度量再往下灌",
   },
+  易混专栏: {
+    kind: "flask",
+    caption: "辨析瓶",
+    hint: "细颈烧瓶 · 把搅在一起的概念分开灌",
+  },
+  进程: {
+    kind: "flask",
+    caption: "并发瓶",
+    hint: "细颈烧瓶 · 进程线程协程三条线",
+  },
   前端实验室: {
     kind: "vial",
     caption: "实验瓶",
@@ -87,6 +97,8 @@ const COLUMN_JAR_PRIORITY = [
   "Agent 系统架构设计",
   "MySQL",
   "高性能后端实战",
+  "进程",
+  "易混专栏",
   "Pi 深度解析",
   "前端实验室",
   "后端专栏",

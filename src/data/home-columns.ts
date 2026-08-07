@@ -8,8 +8,20 @@ export type HomeColumnScent =
   | "agent-arch"
   | "mysql"
   | "perf"
+  | "mixup"
   | "pi"
   | "misc";
+
+/** A topic cluster shown on the homepage instead of raw posts. */
+export type HomeSubTopic = {
+  /** Short label on the homepage (e.g. 进程). */
+  title: string;
+  intro: string;
+  /** Tag page to open. */
+  tagHrefName: string;
+  /** How many articles currently sit under this topic (for the count chip). */
+  count?: number;
+};
 
 export type HomeColumnDef = {
   id: string;
@@ -23,6 +35,11 @@ export type HomeColumnDef = {
   /** How many latest posts to show under the column. */
   limit: number;
   match: (tags: string[]) => boolean;
+  /**
+   * When set, the homepage lists these topic entries instead of article cards.
+   * Matching posts are still claimed so they do not leak into 随笔.
+   */
+  subTopics?: HomeSubTopic[];
 };
 
 type ColumnCopy = { title: string; intro: string };
@@ -41,6 +58,10 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     perf: {
       title: "高性能后端实战",
       intro: getTagIntro("高性能后端实战"),
+    },
+    mixup: {
+      title: "易混专栏",
+      intro: getTagIntro("易混专栏"),
     },
     pi: { title: "Pi 深度解析", intro: getTagIntro("Pi 深度解析") },
     misc: { title: "随笔与其他", intro: "还没收进大专栏的笔记。" },
@@ -77,6 +98,11 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
       intro:
         "Measure first, then dig into CPU, memory, concurrency, and I/O — Python and Go side by side.",
     },
+    mixup: {
+      title: "Easy-to-Mix Notes",
+      intro:
+        "Split concepts that get tangled: process, thread, coroutine, and more.",
+    },
     pi: {
       title: "Pi Deep Dive",
       intro: "What Pi is, how the packages split, and which trade-offs it made.",
@@ -102,7 +128,12 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const agentArch = copyFor(locale, "agent-arch");
   const mysql = copyFor(locale, "mysql");
   const perf = copyFor(locale, "perf");
+  const mixup = copyFor(locale, "mixup");
   const pi = copyFor(locale, "pi");
+  const processIntro =
+    locale === "en"
+      ? "Process, thread, and coroutine — Python and Go side by side."
+      : getTagIntro("进程");
   return [
     {
       id: "digest",
@@ -159,6 +190,22 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       scent: "perf",
       limit: 2,
       match: tags => tags.includes("高性能后端实战"),
+    },
+    {
+      id: "mixup",
+      title: mixup.title,
+      intro: mixup.intro,
+      hubSlug: "dont-mix",
+      scent: "mixup",
+      limit: 2,
+      match: tags => tags.includes("易混专栏") || tags.includes("进程"),
+      subTopics: [
+        {
+          title: locale === "en" ? "Process" : "进程",
+          intro: processIntro,
+          tagHrefName: "进程",
+        },
+      ],
     },
     {
       id: "backend",

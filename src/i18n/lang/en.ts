@@ -37,6 +37,7 @@ export default {
     scrollToPosts: "Posts",
     columnsEmpty: "Nothing here yet.",
     columnCount: "{{count}} posts",
+    topicCount: "{{count}} topics",
   },
   footer: {
     copyright: "Copyright",

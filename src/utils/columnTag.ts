@@ -5,6 +5,8 @@
 const COLUMN_PRIORITY = [
   "最新速递",
   "请求过境",
+  "进程",
+  "易混专栏",
   "MySQL",
   "高性能后端实战",
   "Agent 系统架构设计",

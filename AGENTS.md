@@ -122,6 +122,21 @@ Fourteen-part series: measure first (latency / throughput / percentiles) → CPU
 
 Do **not** fold into `后端专栏` alone unless the post also carries that parent tag.
 
+## 易混专栏 (standalone column)
+
+**Parent tag:** `易混专栏`  
+**Hub:** `src/content/posts/dont-mix.md`
+
+Disambiguation column for concepts people tangle together. Homepage lists **topics** (e.g. 进程), not raw articles; click a topic to open its tag page.
+
+**Sub-column tags:**
+
+| Tag | Angle | Posts |
+|-----|--------|-------|
+| `进程` | Process / thread / coroutine in one language at a time | Python + Go perspective posts |
+
+Do **not** use a lone vague tag like `混淆` or `专栏`. Sub-tag is not the parent column name.
+
 ## 最新速递 (standalone column)
 
 **Tag:** `最新速递`  
@@ -221,6 +236,9 @@ End without a corporate-sounding checklist if the body already made the points. 
 - MySQL (三): `src/content/posts/mysql-index-design.md`
 - 高性能后端实战 hub: `src/content/posts/perf-backend.md`
 - 高性能后端实战 (一): `src/content/posts/perf-backend-metrics.md`
+- 易混专栏 hub: `src/content/posts/dont-mix.md`
+- 进程 (Python): `src/content/posts/process-thread-coroutine-python.md`
+- 进程 (Go): `src/content/posts/process-thread-coroutine-go.md`
 - Glossary (lingo): `src/data/lingo/` (`mysql.ts`, `perf.ts` packs + `index.ts` merge)
 - About: `src/content/pages/about.md`
 - Site meta: `astro-paper.config.ts`

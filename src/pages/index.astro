@@ -169,18 +169,27 @@ const termIdeas = [
         </div>
 
         {
-          columnBuckets.map(({ column, posts: columnPosts, totalCount }) => (
-            <HomeColumnSection
-              column={column}
-              posts={columnPosts}
-              totalCount={totalCount}
-              locale={locale}
-              todayPickId={todayPickId}
-              newestId={newestId}
-              isFreshPost={isFreshPost}
-              isRevisedPost={isRevisedPost}
-            />
-          ))
+          columnBuckets.map(({ column, posts: columnPosts, totalCount }) => {
+            const subTopics = column.subTopics?.map(topic => ({
+              ...topic,
+              count: articlePosts.filter(p =>
+                (p.data.tags ?? []).includes(topic.tagHrefName)
+              ).length,
+            }));
+            return (
+              <HomeColumnSection
+                column={column}
+                posts={columnPosts}
+                totalCount={totalCount}
+                subTopics={subTopics}
+                locale={locale}
+                todayPickId={todayPickId}
+                newestId={newestId}
+                isFreshPost={isFreshPost}
+                isRevisedPost={isRevisedPost}
+              />
+            );
+          })
         }
 
         {

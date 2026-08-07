@@ -36,6 +36,7 @@ export interface UIStrings {
     scrollToPosts: string;
     columnsEmpty: string;
     columnCount: string;
+    topicCount: string;
   };
   footer: {
     copyright: string;

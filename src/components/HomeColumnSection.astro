@@ -4,7 +4,7 @@ import { getRelativeLocaleUrl } from "astro:i18n";
 import { slugifyStr } from "@/utils/slugify";
 import { getPostUrl } from "@/utils/getPostPaths";
 import Card from "@/components/Card.astro";
-import type { HomeColumnDef } from "@/data/home-columns";
+import type { HomeColumnDef, HomeSubTopic } from "@/data/home-columns";
 import { useTranslations } from "@/i18n";
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
   posts: CollectionEntry<"posts">[];
   /** All matching articles in this column, not just the ones shown. */
   totalCount: number;
+  /** Topic clusters for columns that hide raw posts on the homepage. */
+  subTopics?: HomeSubTopic[];
   locale: string;
   todayPickId: string | null;
   newestId: string | null;
@@ -23,6 +25,7 @@ const {
   column,
   posts,
   totalCount,
+  subTopics = column.subTopics,
   locale,
   todayPickId,
   newestId,
@@ -38,10 +41,11 @@ const hubHref = column.hubSlug
     ? getRelativeLocaleUrl(locale, `tags/${slugifyStr(column.tagHrefName)}`)
     : getRelativeLocaleUrl(locale, "posts");
 
-const countLabel = t.home.columnCount.replace(
-  "{{count}}",
-  String(totalCount)
-);
+const useSubTopics = Boolean(subTopics?.length);
+const countValue = useSubTopics ? (subTopics?.length ?? 0) : totalCount;
+const countLabel = useSubTopics
+  ? t.home.topicCount.replace("{{count}}", String(countValue))
+  : t.home.columnCount.replace("{{count}}", String(countValue));
 ---
 
 <section
@@ -66,7 +70,33 @@ const countLabel = t.home.columnCount.replace(
   </div>
 
   {
-    posts.length > 0 ? (
+    useSubTopics ? (
+      <ul class="home-column-list home-subtopic-list">
+        {subTopics!.map(topic => {
+          const href = getRelativeLocaleUrl(
+            locale,
+            `tags/${slugifyStr(topic.tagHrefName)}`
+          );
+          const topicCount =
+            typeof topic.count === "number"
+              ? t.home.columnCount.replace("{{count}}", String(topic.count))
+              : null;
+          return (
+            <li class="home-subtopic">
+              <a class="home-subtopic-link" href={href}>
+                <span class="home-subtopic-title-row">
+                  <h3 class="home-subtopic-title font-serif">{topic.title}</h3>
+                  {topicCount && (
+                    <span class="home-subtopic-count font-mono">{topicCount}</span>
+                  )}
+                </span>
+                <p class="home-subtopic-intro">{topic.intro}</p>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    ) : posts.length > 0 ? (
       <ul class="home-column-list">
         {posts.map(data => (
           <Card

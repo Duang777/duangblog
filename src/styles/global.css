@@ -215,6 +215,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #6a5a3a 60%, var(--muted-foreground));
 }
 
+.post-card[data-column="mixup"] {
+  --column-tint: color-mix(in oklab, #5a6a4a 55%, var(--muted-foreground));
+}
+
 .post-card[data-column="digest"] {
   --column-tint: color-mix(in oklab, #8a7a4a 55%, var(--accent));
 }
@@ -644,6 +648,170 @@ body {
 
 .perf-swatch.is-wait {
   fill: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+}
+
+/* 易混专栏：安静图示 */
+.mixup-figure .mixup-scene {
+  margin: 0;
+  padding: 0.45rem 0.2rem 0.15rem;
+  overflow-x: auto;
+}
+
+.mixup-svg {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  height: auto;
+  margin-inline: auto;
+  color: color-mix(in oklab, var(--foreground) 88%, #3f5a3a);
+}
+
+.mixup-panel,
+.mixup-chip,
+.mixup-lane {
+  fill: color-mix(in oklab, var(--background) 82%, var(--muted));
+  stroke: color-mix(in oklab, var(--border) 82%, #3f5a3a);
+  stroke-width: 1.15;
+}
+
+.mixup-panel.is-accent,
+.mixup-chip.is-accent,
+.mixup-lane.is-accent {
+  fill: color-mix(in oklab, #3f5a3a 12%, var(--background));
+  stroke: color-mix(in oklab, #3f5a3a 48%, var(--border));
+}
+
+.mixup-panel.is-soft {
+  fill: color-mix(in oklab, var(--muted) 28%, var(--background));
+  stroke: color-mix(in oklab, var(--border) 70%, transparent);
+  stroke-dasharray: 3 3;
+}
+
+.mixup-title {
+  fill: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-source-serif), serif;
+  letter-spacing: 0.01em;
+}
+
+.mixup-sub,
+.mixup-caption,
+.mixup-label {
+  fill: color-mix(in oklab, var(--muted-foreground) 92%, var(--foreground));
+  font-size: 11.5px;
+  font-family: var(--font-google-sans-code), ui-monospace, monospace;
+}
+
+.mixup-ring {
+  fill: none;
+  stroke: color-mix(in oklab, #3f5a3a 35%, var(--border));
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+}
+
+.mixup-fill {
+  fill: color-mix(in oklab, #3f5a3a 16%, var(--muted));
+  stroke: none;
+}
+
+.mixup-fill.is-warm {
+  fill: color-mix(in oklab, #8a4a3a 18%, var(--muted));
+}
+
+.mixup-dot {
+  fill: color-mix(in oklab, #3f5a3a 55%, var(--muted));
+}
+
+.mixup-dot.is-wait {
+  fill: color-mix(in oklab, var(--muted-foreground) 48%, transparent);
+  opacity: 0.55;
+}
+
+.mixup-dot.is-live {
+  fill: color-mix(in oklab, #3d6b4a 68%, var(--accent));
+}
+
+.mixup-dot.is-io {
+  fill: color-mix(in oklab, #4a6a8a 62%, var(--muted));
+}
+
+.mixup-lock {
+  fill: none;
+  stroke: color-mix(in oklab, #8a4a3a 70%, var(--foreground));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.mixup-arrow {
+  fill: none;
+  stroke: color-mix(in oklab, #3f5a3a 55%, var(--foreground));
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mixup-pipe {
+  fill: color-mix(in oklab, #3f5a3a 18%, var(--muted));
+  stroke: color-mix(in oklab, #3f5a3a 50%, var(--border));
+  stroke-width: 1.2;
+}
+
+.mixup-bar {
+  fill: color-mix(in oklab, #3f5a3a 42%, var(--muted));
+}
+
+.mixup-bar.is-light {
+  fill: color-mix(in oklab, #3f5a3a 22%, var(--muted));
+}
+
+.mixup-bar.is-heavy {
+  fill: color-mix(in oklab, #8a4a3a 48%, var(--accent));
+}
+
+.mixup-guide {
+  fill: none;
+  stroke: color-mix(in oklab, var(--border) 75%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mixup-figure .mixup-dot.is-live {
+    animation: mixup-pulse 1.8s ease-in-out infinite;
+  }
+
+  .mixup-figure .mixup-dot.is-io {
+    animation: mixup-pulse 2.4s ease-in-out infinite;
+  }
+
+  .mixup-figure .mixup-pipe {
+    animation: mixup-flow 2.4s ease-in-out infinite;
+  }
+
+  .mixup-figure .mixup-ring {
+    animation: mixup-flow 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes mixup-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes mixup-flow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1545,6 +1713,10 @@ html[data-theme="dark"] .about-doodle--letter-p {
   --column-ink: color-mix(in oklab, #5a4a2a 70%, var(--foreground));
 }
 
+.home-column.is-mixup {
+  --column-ink: color-mix(in oklab, #3f5a3a 70%, var(--foreground));
+}
+
 .home-column.is-misc {
   --column-ink: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
 }
@@ -1625,6 +1797,64 @@ html[data-theme="dark"] .about-doodle--letter-p {
 
 .home-column-list .post-card {
   margin-block: 0.85rem;
+}
+
+.home-subtopic-list {
+  margin-top: 0.35rem;
+}
+
+.home-subtopic {
+  margin-block: 0.65rem;
+}
+
+.home-subtopic-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.55rem 0.15rem 0.65rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.home-subtopic-link:hover,
+.home-subtopic-link:focus-visible {
+  border-bottom-color: color-mix(in oklab, var(--foreground) 35%, transparent);
+}
+
+.home-subtopic-link:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 40%, transparent);
+  outline-offset: 3px;
+}
+
+.home-subtopic-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.home-subtopic-title {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: color-mix(in oklab, var(--accent, #c45c3e) 88%, var(--foreground));
+}
+
+.home-column.is-mixup .home-subtopic-title {
+  color: color-mix(in oklab, var(--home-mixup, #c45c3e) 90%, var(--foreground));
+}
+
+.home-subtopic-count {
+  font-size: 0.72rem;
+  opacity: 0.72;
+}
+
+.home-subtopic-intro {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, var(--muted-foreground) 92%, transparent);
 }
 
 .home-column-empty {
