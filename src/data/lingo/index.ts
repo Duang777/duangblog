@@ -2,6 +2,7 @@ import type { LingoTerm } from "./types";
 import { MYSQL_LINGO } from "./mysql";
 import { PERF_LINGO } from "./perf";
 import { MIXUP_LINGO } from "./mixup";
+import { AGENT_LINGO } from "./agent";
 
 export type { LingoTerm } from "./types";
 
@@ -41,5 +42,6 @@ export function mergeLingoPacks(...packs: LingoTerm[][]): LingoTerm[] {
 export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   MYSQL_LINGO,
   PERF_LINGO,
-  MIXUP_LINGO
+  MIXUP_LINGO,
+  AGENT_LINGO
 );

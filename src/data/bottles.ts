@@ -64,6 +64,27 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-runtime-bottle.png",
     foundIn: "进程文 · Go · GMP",
   },
+  {
+    id: "rlm",
+    name: "RLM 递归瓶",
+    note: "大瓶里套着小瓶，小瓶里还套小瓶。上下文一层一层装。",
+    src: "/images/childlike-sketch-rlm-bottle.png",
+    foundIn: "Agent 拆解 · Prime Agent",
+  },
+  {
+    id: "subagent",
+    name: "子 Agent 罐",
+    note: "圆罐里挤满弯线和小点。大伙分头干活，最后碰个头。",
+    src: "/images/childlike-sketch-subagent-jar.png",
+    foundIn: "Agent 拆解 · Prime Agent · 子智能体",
+  },
+  {
+    id: "heartbeat",
+    name: "心跳瓶",
+    note: "瓶身上画着一条心跳线。你关掉终端，它还在慢慢跳。",
+    src: "/images/childlike-sketch-heartbeat-bottle.png",
+    foundIn: "Agent 拆解 · Prime Agent · 长时间运行",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
