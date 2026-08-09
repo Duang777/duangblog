@@ -148,11 +148,14 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       id: "agent",
       title: agent.title,
       intro: agent.intro,
-      tagHrefName: "Agent",
+      hubSlug: "agent-breakdown",
+      tagHrefName: "Agent 拆解专栏",
       scent: "agent",
       limit: 2,
       match: tags =>
-        (tags.includes("Agent") || tags.includes("拆解")) &&
+        (tags.includes("Agent 拆解专栏") ||
+          tags.includes("Agent") ||
+          tags.includes("拆解")) &&
         !tags.includes("Agent 系统架构设计"),
     },
     {
