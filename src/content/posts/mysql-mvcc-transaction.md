@@ -62,36 +62,36 @@ description: ACID 靠什么落地、四个隔离级别挡住哪些异常、MVCC 
         <text class="btree-label" x="380" y="28" text-anchor="middle">ACID 四支柱 · 谁撑哪一根</text>
       </g>
       <g data-btree-stage="cluster">
-        <!-- A -->
+        
         <rect class="btree-node is-root" x="30" y="60" width="150" height="100" rx="10" />
-        <text class="btree-mono" x="105" y="90" text-anchor="middle" font-size="16">A 原子性</text>
+        <text class="btree-mono" x="105" y="90" text-anchor="middle" fontSize="16">A 原子性</text>
         <text class="btree-sub" x="105" y="115" text-anchor="middle">要么全做</text>
         <text class="btree-sub" x="105" y="132" text-anchor="middle">要么全不做</text>
         <text class="btree-caption" x="105" y="152" text-anchor="middle">Undo Log 撤销</text>
-        <!-- C -->
+        
         <rect class="btree-node is-root" x="210" y="60" width="150" height="100" rx="10" />
-        <text class="btree-mono" x="285" y="90" text-anchor="middle" font-size="16">C 一致性</text>
+        <text class="btree-mono" x="285" y="90" text-anchor="middle" fontSize="16">C 一致性</text>
         <text class="btree-sub" x="285" y="115" text-anchor="middle">业务规则</text>
         <text class="btree-sub" x="285" y="132" text-anchor="middle">不被破坏</text>
         <text class="btree-caption" x="285" y="152" text-anchor="middle">A + I + D + 约束</text>
-        <!-- I -->
+        
         <rect class="btree-node is-root" x="390" y="60" width="150" height="100" rx="10" />
-        <text class="btree-mono" x="465" y="90" text-anchor="middle" font-size="16">I 隔离性</text>
+        <text class="btree-mono" x="465" y="90" text-anchor="middle" fontSize="16">I 隔离性</text>
         <text class="btree-sub" x="465" y="115" text-anchor="middle">并发事务</text>
         <text class="btree-sub" x="465" y="132" text-anchor="middle">互不串扰</text>
         <text class="btree-caption" x="465" y="152" text-anchor="middle">MVCC + 锁</text>
-        <!-- D -->
+        
         <rect class="btree-node is-root" x="570" y="60" width="150" height="100" rx="10" />
-        <text class="btree-mono" x="645" y="90" text-anchor="middle" font-size="16">D 持久性</text>
+        <text class="btree-mono" x="645" y="90" text-anchor="middle" fontSize="16">D 持久性</text>
         <text class="btree-sub" x="645" y="115" text-anchor="middle">提交后</text>
         <text class="btree-sub" x="645" y="132" text-anchor="middle">掉电不丢</text>
         <text class="btree-caption" x="645" y="152" text-anchor="middle">Redo Log 重放</text>
-        <!-- 箭头：C 由 A/I/D 共同支撑 -->
+        
         <path class="btree-ink" d="M105 160 V200 H285" />
         <path class="btree-ink" d="M465 160 V200 H285" />
         <path class="btree-ink" d="M645 160 V200 H285" />
         <text class="btree-caption" x="285" y="220" text-anchor="middle">↑ 三根柱子共同撑起一致性</text>
-        <!-- 底部时间线 -->
+        
         <rect class="btree-node is-cluster-leaf" x="30" y="250" width="690" height="60" rx="8" />
         <text class="btree-mono" x="105" y="275" text-anchor="middle">Undo</text>
         <text class="btree-sub" x="105" y="293" text-anchor="middle">第⑥篇展开</text>
@@ -298,36 +298,36 @@ MVCC（Multi-Version Concurrency Control，多版本并发控制）的核心思�
         <text class="btree-label" x="380" y="24" text-anchor="middle">id=1 的版本链 · val = 30 → 20 → 10</text>
       </g>
       <g data-btree-stage="cluster">
-        <!-- 最新版本（聚簇索引里的当前行） -->
+        
         <rect class="btree-node is-cluster-leaf" x="40" y="55" width="170" height="90" rx="8" />
         <text class="btree-mono" x="125" y="80" text-anchor="middle">聚簇索引 · 当前行</text>
         <text class="btree-sub" x="125" y="100" text-anchor="middle">val = 30</text>
         <text class="btree-sub" x="125" y="118" text-anchor="middle">DB_TRX_ID = 20</text>
         <text class="btree-sub" x="125" y="136" text-anchor="middle">DB_ROLL_PTR →</text>
 
-        <!-- 箭头 -->
+        
         <path class="btree-ink" d="M210 100 H250" />
         <path class="btree-ink" d="M243 93 L250 100 L243 107" />
 
-        <!-- Undo Log v2 -->
+        
         <rect class="btree-node is-sec-leaf" x="255" y="55" width="160" height="90" rx="8" />
         <text class="btree-mono" x="335" y="80" text-anchor="middle">Undo Log · 旧版本</text>
         <text class="btree-sub" x="335" y="100" text-anchor="middle">val = 20</text>
         <text class="btree-sub" x="335" y="118" text-anchor="middle">DB_TRX_ID = 10</text>
         <text class="btree-sub" x="335" y="136" text-anchor="middle">DB_ROLL_PTR →</text>
 
-        <!-- 箭头 -->
+        
         <path class="btree-ink" d="M415 100 H455" />
         <path class="btree-ink" d="M448 93 L455 100 L448 107" />
 
-        <!-- Undo Log v1 -->
+        
         <rect class="btree-node is-sec-leaf" x="460" y="55" width="160" height="90" rx="8" />
         <text class="btree-mono" x="540" y="80" text-anchor="middle">Undo Log · 最旧版本</text>
         <text class="btree-sub" x="540" y="100" text-anchor="middle">val = 10</text>
         <text class="btree-sub" x="540" y="118" text-anchor="middle">DB_TRX_ID = init</text>
         <text class="btree-sub" x="540" y="136" text-anchor="middle">DB_ROLL_PTR = NULL</text>
 
-        <!-- 底部说明 -->
+        
         <text class="btree-caption" x="125" y="175" text-anchor="middle">事务 20 改完后</text>
         <text class="btree-caption" x="125" y="192" text-anchor="middle">这一行存的就是 30</text>
         <text class="btree-caption" x="335" y="175" text-anchor="middle">事务 10 的旧值</text>
@@ -335,7 +335,7 @@ MVCC（Multi-Version Concurrency Control，多版本并发控制）的核心思�
         <text class="btree-caption" x="540" y="175" text-anchor="middle">最初的值</text>
         <text class="btree-caption" x="540" y="192" text-anchor="middle">链的终点</text>
 
-        <!-- 读取示意 -->
+        
         <rect class="btree-badge" x="40" y="220" width="580" height="40" rx="8" />
         <text class="btree-badge-text" x="330" y="245" text-anchor="middle">读事务顺着 ROLL_PTR 从左往右找，命中第一个"可见"版本就返回</text>
       </g>
@@ -381,39 +381,39 @@ MVCC（Multi-Version Concurrency Control，多版本并发控制）的核心思�
         <text class="btree-label" x="380" y="24" text-anchor="middle">ReadView 可见性判断 · 四条规则</text>
       </g>
       <g data-btree-stage="cluster">
-        <!-- 起点 -->
+        
         <rect class="btree-node is-root" x="290" y="45" width="180" height="36" rx="8" />
         <text class="btree-mono" x="380" y="68" text-anchor="middle">取行的 trx_id</text>
         <path class="btree-ink" d="M380 81 V100" />
 
-        <!-- 规则1 -->
+        
         <rect class="btree-node" x="250" y="100" width="260" height="50" rx="8" />
         <text class="btree-sub" x="380" y="122" text-anchor="middle">trx_id == creator_trx_id ?</text>
         <text class="btree-caption" x="380" y="140" text-anchor="middle">我自己改的 → 可见</text>
         <path class="btree-ink" d="M380 150 V165" />
         <text class="btree-caption" x="530" y="130" text-anchor="middle">否 ↓</text>
 
-        <!-- 规则2 -->
+        
         <rect class="btree-node" x="250" y="165" width="260" height="50" rx="8" />
         <text class="btree-sub" x="380" y="187" text-anchor="middle">trx_id &lt; min_trx_id ?</text>
         <text class="btree-caption" x="380" y="205" text-anchor="middle">早于我进场、已提交 → 可见</text>
         <path class="btree-ink" d="M380 215 V230" />
         <text class="btree-caption" x="530" y="195" text-anchor="middle">否 ↓</text>
 
-        <!-- 规则3 -->
+        
         <rect class="btree-node" x="250" y="230" width="260" height="50" rx="8" />
         <text class="btree-sub" x="380" y="252" text-anchor="middle">trx_id &gt;= max_trx_id ?</text>
         <text class="btree-caption" x="380" y="270" text-anchor="middle">我进场后才改的 → 不可见</text>
         <path class="btree-ink" d="M380 280 V295" />
         <text class="btree-caption" x="530" y="260" text-anchor="middle">否 ↓</text>
 
-        <!-- 规则4 -->
+        
         <rect class="btree-node" x="250" y="295" width="260" height="50" rx="8" />
         <text class="btree-sub" x="380" y="317" text-anchor="middle">trx_id 在 m_ids 里 ?</text>
         <text class="btree-caption" x="380" y="335" text-anchor="middle">在 → 未提交，不可见 / 不在 → 可见</text>
         <path class="btree-ink" d="M380 345 V360" />
 
-        <!-- 结果 -->
+        
         <rect class="btree-node is-cluster-leaf" x="140" y="360" width="200" height="40" rx="8" />
         <text class="btree-mono" x="240" y="385" text-anchor="middle">可见 → 返回此版本</text>
         <rect class="btree-node is-sec-leaf" x="420" y="360" width="200" height="40" rx="8" />
@@ -443,7 +443,7 @@ MVCC（Multi-Version Concurrency Control，多版本并发控制）的核心思�
         <text class="btree-label" x="560" y="24" text-anchor="middle">REPEATABLE READ</text>
       </g>
       <g data-btree-stage="cluster">
-        <!-- RC 侧 -->
+        
         <rect class="btree-node is-sec-leaf" x="30" y="50" width="300" height="50" rx="8" />
         <text class="btree-mono" x="180" y="72" text-anchor="middle">SELECT 1 → 生成 ReadView A</text>
         <text class="btree-caption" x="180" y="90" text-anchor="middle">看到的是此刻已提交的快照</text>
@@ -457,7 +457,7 @@ MVCC（Multi-Version Concurrency Control，多版本并发控制）的核心思�
 
         <text class="btree-caption" x="180" y="240" text-anchor="middle">两次结果不同 → 不可重复读</text>
 
-        <!-- RR 侧 -->
+        
         <rect class="btree-node is-cluster-leaf" x="410" y="50" width="300" height="50" rx="8" />
         <text class="btree-mono" x="560" y="72" text-anchor="middle">SELECT 1 → 生成 ReadView A</text>
         <text class="btree-caption" x="560" y="90" text-anchor="middle">锁定快照</text>
