@@ -85,6 +85,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-heartbeat-bottle.png",
     foundIn: "Agent 拆解 · Prime Agent · 长时间运行",
   },
+  {
+    id: "mvcc-bottle",
+    name: "多版本瓶",
+    note: "瓶里叠着好几层旧版本。读写各看各的，谁也不堵谁。",
+    src: "/images/childlike-sketch-mvcc-bottle.png",
+    foundIn: "MySQL · 事务与 MVCC",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
