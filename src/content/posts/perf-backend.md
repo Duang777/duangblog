@@ -13,6 +13,7 @@ description: 十四篇高性能后端实战：从度量尺子到 CPU、内存、
 
 已写：
 
-- [什么是高性能，怎么度量它](/posts/perf-backend-metrics/)
+- [① 什么是高性能，怎么度量它](/posts/perf-backend-metrics/)
+- [② CPU 缓存与内存层级](/posts/perf-backend-cache-memory/)
 
 系列共 14 篇：① 什么是高性能，怎么度量它　② CPU 缓存与内存层级　③–⑭ 后续按内存、并发、IO、存储、缓存、调优与架构权衡接着写

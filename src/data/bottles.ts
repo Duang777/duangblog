@@ -92,6 +92,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-mvcc-bottle.png",
     foundIn: "MySQL · 事务与 MVCC",
   },
+  {
+    id: "cache-pyramid-bottle",
+    name: "缓存金字塔瓶",
+    note: "瓶里叠着四层：L3 最宽，越往上越小越快，顶层寄存器。最底层的主存慢得像隔了一条街。",
+    src: "/images/childlike-sketch-cache-bottle.png",
+    foundIn: "高性能后端实战 · CPU 缓存与内存层级",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
