@@ -142,7 +142,7 @@ function greetingLine(author: string) {
   else if (month >= 9 && month <= 11) season = "秋天";
   else season = "冬天";
 
-  return `${author}，后端 / 全栈。${season}的${part}，还在写拆解和笔记。`;
+  return `${author}，主 Go / TypeScript，兼 Python。后端 / 全栈，还在写拆解和笔记。`;
 }
 
 function streakLine(): string | null {
@@ -806,14 +806,14 @@ async function runCommand(
     appendLine(body, "DUANG(1)                    Blog Commands                   DUANG(1)");
     appendLine(body, "");
     appendLine(body, "NAME");
-    appendLine(body, `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`);
+    appendLine(body, `       ${ctx.author.toLowerCase()} — 主 Go/TS 兼 Python · 后端 / 全栈公开笔记本`);
     appendLine(body, "");
     appendLine(body, "SYNOPSIS");
     appendLine(body, "       open <slug> | grep <词> | tags <词> | jar | last | bookmark | env | cat <slug> | today");
     appendLine(body, "");
     appendLine(body, "DESCRIPTION");
     appendLine(body, "       拆 Agent、记服务端机制，偶尔写路上的想法。");
-    appendLine(body, "       终端是入口；文章才是正文。");
+    appendLine(body, "       主 Go / TypeScript，兼 Python。终端是入口；文章才是正文。");
     appendLine(body, "");
     appendLine(body, "SEE ALSO");
     appendLine(body, "       help, ls, fortune, ssh guest@duang");
