@@ -106,6 +106,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-lock-bottle.png",
     foundIn: "MySQL · 锁机制全解",
   },
+  {
+    id: "ego-browser-bottle",
+    name: "人机共享瓶",
+    note: "瓶里装一个浏览器窗口，分成左右两个 Space，一个给人一个给 Agent。瓶口飘出两个小气泡，是新开的任务空间。",
+    src: "/images/childlike-sketch-ego-browser-bottle.png",
+    foundIn: "Agent 拆解 · ego-lite",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
