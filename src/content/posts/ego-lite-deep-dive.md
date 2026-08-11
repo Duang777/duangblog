@@ -54,30 +54,27 @@ ego lite（GitHub 仓库 citrolabs/ego-lite）把自己定义为"跑 AI agent �
 
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：五方案定位象限</p>
-  <p class="article-embed-note-lead">两个轴：横轴"是浏览器还是库"，纵轴"只给自家 Agent 还能给任何 Agent"。ego lite 独占右上角。</p>
+  <p class="article-embed-note-lead">两个轴：横轴"是浏览器还是库"，纵轴"任何 Agent 还是自家 Agent"。ego lite 独占右上角。</p>
   <figure class="btree-scene">
-    <svg class="btree-svg" viewBox="0 0 760 420" role="img" aria-label="五方案定位象限">
+    <svg class="btree-svg" viewBox="0 0 760 300" role="img" aria-label="五方案定位象限">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="30" text-anchor="middle">五方案定位象限</text>
+        <text class="btree-label" x="380" y="28" text-anchor="middle">五方案定位象限</text>
       </g>
       <g data-btree-stage="cluster">
-        <path class="btree-ink" d="M380 60 V400" />
-        <path class="btree-ink" d="M60 230 H700" />
-        <text class="btree-mono" x="380" y="55" text-anchor="middle">→ 自带浏览器本体</text>
-        <text class="btree-mono" x="55" y="235" text-anchor="end">任何 Agent 可控 ↑</text>
-        <text class="btree-sub" x="380" y="415" text-anchor="middle">← 库 / 框架</text>
-        <text class="btree-sub" x="55" y="225" text-anchor="end">只给自家 Agent ↓</text>
-        <rect class="btree-node is-root" x="430" y="80" width="240" height="60" rx="10" />
-        <text class="btree-mono" x="550" y="105" text-anchor="middle">ego lite</text>
-        <text class="btree-sub" x="550" y="125" text-anchor="middle">浏览器 + 任何 Agent</text>
-        <rect class="btree-node is-cluster-leaf" x="100" y="80" width="240" height="60" rx="10" />
-        <text class="btree-mono" x="220" y="105" text-anchor="middle">Browser-Use / agent-browser</text>
-        <text class="btree-sub" x="220" y="125" text-anchor="middle">库 + 任何 Agent</text>
-        <rect class="btree-node is-cluster-leaf" x="430" y="320" width="240" height="60" rx="10" />
-        <text class="btree-mono" x="550" y="345" text-anchor="middle">ChatGPT Atlas / Comet</text>
-        <text class="btree-sub" x="550" y="365" text-anchor="middle">浏览器 + 自家 Agent</text>
-        <rect class="btree-badge" x="100" y="350" width="240" height="40" rx="8" />
-        <text class="btree-badge-text" x="220" y="375" text-anchor="middle">无对应方案（库不给自家 Agent）</text>
+        <rect class="btree-node is-root" x="390" y="60" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="480" y="88" text-anchor="middle">ego lite</text>
+        <text class="btree-sub" x="480" y="110" text-anchor="middle">浏览器 · 任何 Agent</text>
+        <rect class="btree-node is-cluster-leaf" x="60" y="60" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="150" y="88" text-anchor="middle">Browser-Use</text>
+        <text class="btree-sub" x="150" y="110" text-anchor="middle">库 · 任何 Agent</text>
+        <rect class="btree-node is-cluster-leaf" x="390" y="200" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="480" y="228" text-anchor="middle">Atlas / Comet</text>
+        <text class="btree-sub" x="480" y="250" text-anchor="middle">浏览器 · 自家 Agent</text>
+        <rect class="btree-node is-cluster-leaf" x="60" y="200" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="150" y="228" text-anchor="middle">Vercel agent-browser</text>
+        <text class="btree-sub" x="150" y="250" text-anchor="middle">库 · 任何 Agent</text>
+        <rect class="btree-badge" x="180" y="145" width="400" height="40" rx="8" />
+        <text class="btree-badge-text" x="380" y="170" text-anchor="middle">↑ 任何 Agent 可控 · ↓ 只给自家 Agent · ← 库 · → 浏览器</text>
       </g>
     </svg>
   </figure>
@@ -139,31 +136,27 @@ README 列出九项亮点，我把它们和"为什么重要"一起说清楚：
   <p class="article-embed-note-title">图解：三层结构与一次 heredoc 的数据流</p>
   <p class="article-embed-note-lead">闭源浏览器只露 globalThis.ego；开源 harness 把它包成 helper；agent 经 stdin 写 JS，结果经 console.log 回流。</p>
   <figure class="btree-scene">
-    <svg class="btree-svg" viewBox="0 0 760 380" role="img" aria-label="ego lite 三层结构与数据流">
+    <svg class="btree-svg" viewBox="0 0 760 320" role="img" aria-label="ego lite 三层结构与数据流">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="30" text-anchor="middle">三层结构 · 一次 heredoc 的数据流</text>
+        <text class="btree-label" x="380" y="28" text-anchor="middle">三层结构 · 一次 heredoc 的数据流</text>
       </g>
       <g data-btree-stage="cluster">
-        <rect class="btree-node is-root" x="40" y="60" width="680" height="60" rx="10" />
-        <text class="btree-mono" x="60" y="85" text-anchor="start">① Agent 侧</text>
-        <text class="btree-sub" x="60" y="105" text-anchor="start">Claude Code / Codex / Cursor</text>
-        <text class="btree-sub" x="380" y="95" text-anchor="middle">写 JS · stdin → ego-browser nodejs &lt;&lt;'EOF'</text>
-        <rect class="btree-node is-cluster-leaf" x="40" y="150" width="680" height="60" rx="10" />
-        <text class="btree-mono" x="60" y="175" text-anchor="start">② 开源 harness · ego-browser</text>
-        <text class="btree-sub" x="60" y="195" text-anchor="start">package/ego-browser/src/</text>
-        <text class="btree-sub" x="380" y="185" text-anchor="middle">runMain() 读 stdin · helperContext() 注入 facade</text>
-        <rect class="btree-node is-cluster-leaf" x="40" y="240" width="680" height="60" rx="10" />
-        <text class="btree-mono" x="60" y="265" text-anchor="start">③ 闭源浏览器本体</text>
-        <text class="btree-sub" x="60" y="285" text-anchor="start">修改过的 Chromium · macOS app</text>
-        <text class="btree-sub" x="380" y="275" text-anchor="middle">globalThis.ego · sendCDPMessage · snapshot</text>
-        <rect class="btree-badge" x="40" y="320" width="680" height="40" rx="8" />
-        <text class="btree-badge-text" x="380" y="345" text-anchor="middle">console.log 把 snapshot / 解析结果交回 Agent</text>
-        <path class="btree-ink" d="M380 120 V150" />
-        <path class="btree-ink" d="M373 143 L380 150 L387 143" />
-        <path class="btree-ink" d="M380 210 V240" />
-        <path class="btree-ink" d="M373 233 L380 240 L387 233" />
-        <path class="btree-ink" d="M380 300 V320" />
-        <path class="btree-ink" d="M373 313 L380 320 L387 313" />
+        <rect class="btree-node is-root" x="290" y="55" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="380" y="83" text-anchor="middle">① Agent 侧</text>
+        <text class="btree-sub" x="380" y="105" text-anchor="middle">写 JS · stdin</text>
+        <path class="btree-ink" d="M380 125 V145" />
+        <path class="btree-ink" d="M373 138 L380 145 L387 138" />
+        <rect class="btree-node is-cluster-leaf" x="290" y="155" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="380" y="183" text-anchor="middle">② ego-browser harness</text>
+        <text class="btree-sub" x="380" y="205" text-anchor="middle">runMain() · helperContext()</text>
+        <path class="btree-ink" d="M380 225 V245" />
+        <path class="btree-ink" d="M373 238 L380 245 L387 238" />
+        <rect class="btree-node is-cluster-leaf" x="290" y="255" width="180" height="50" rx="10" />
+        <text class="btree-mono" x="380" y="278" text-anchor="middle">③ 闭源浏览器</text>
+        <rect class="btree-badge" x="180" y="60" width="100" height="30" rx="8" />
+        <text class="btree-badge-text" x="230" y="80" text-anchor="middle">stdin</text>
+        <rect class="btree-badge" x="480" y="60" width="100" height="30" rx="8" />
+        <text class="btree-badge-text" x="530" y="80" text-anchor="middle">console.log</text>
       </g>
     </svg>
   </figure>
@@ -244,38 +237,34 @@ flowchart TB
 
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：Space 所有权流转与 handoff</p>
-  <p class="article-embed-note-lead">ownership 在 agent / agentDelegatedToUser / user 三态间切换；同一时刻只有一方握控制权，user is controlling 是硬停止。</p>
+  <p class="article-embed-note-lead">ownership 在 agent / agentDelegatedToUser / user 三态间切换；user is controlling 是硬停止信号。</p>
   <figure class="btree-scene">
-    <svg class="btree-svg" viewBox="0 0 760 360" role="img" aria-label="Space 所有权流转">
+    <svg class="btree-svg" viewBox="0 0 760 300" role="img" aria-label="Space 所有权流转">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="30" text-anchor="middle">任务空间所有权 · 三态流转</text>
+        <text class="btree-label" x="380" y="28" text-anchor="middle">任务空间所有权 · 三态流转</text>
       </g>
       <g data-btree-stage="cluster">
-        <rect class="btree-node is-root" x="60" y="70" width="200" height="100" rx="10" />
-        <text class="btree-mono" x="160" y="100" text-anchor="middle">agent</text>
-        <text class="btree-sub" x="160" y="125" text-anchor="middle">useOrCreate / new</text>
-        <text class="btree-sub" x="160" y="145" text-anchor="middle">claim / complete</text>
-        <rect class="btree-node is-cluster-leaf" x="280" y="70" width="200" height="100" rx="10" />
-        <text class="btree-mono" x="380" y="100" text-anchor="middle">agentDelegatedToUser</text>
-        <text class="btree-sub" x="380" y="125" text-anchor="middle">handOffTaskSpace</text>
-        <text class="btree-sub" x="380" y="145" text-anchor="middle">user 接管 GUI</text>
-        <rect class="btree-node is-cluster-leaf" x="500" y="70" width="200" height="100" rx="10" />
-        <text class="btree-mono" x="600" y="100" text-anchor="middle">user</text>
-        <text class="btree-sub" x="600" y="125" text-anchor="middle">用户自建</text>
-        <text class="btree-sub" x="600" y="145" text-anchor="middle">claim 才能动</text>
-        <path class="btree-ink" d="M260 105 Q280 80 300 105" />
-        <path class="btree-ink" d="M293 95 L300 105 L287 103" />
-        <text class="btree-caption" x="280" y="65" text-anchor="middle">handOff</text>
-        <path class="btree-ink" d="M300 135 Q280 160 260 135" />
-        <path class="btree-ink" d="M267 145 L260 135 L273 137" />
-        <text class="btree-caption" x="280" y="190" text-anchor="middle">takeOver / waitForAgentControl</text>
-        <path class="btree-ink" d="M480 105 Q500 80 520 105" />
-        <path class="btree-ink" d="M513 95 L520 105 L507 103" />
-        <text class="btree-caption" x="500" y="65" text-anchor="middle">claim</text>
-        <rect class="btree-badge" x="60" y="230" width="640" height="100" rx="8" />
-        <text class="btree-badge-text" x="380" y="255" text-anchor="middle">硬停止：user is controlling</text>
-        <text class="btree-sub" x="380" y="280" text-anchor="middle">用户接管期间，agent 任何操作都报错。不是障碍，是停止信号。</text>
-        <text class="btree-sub" x="380" y="300" text-anchor="middle">正确做法：停下来 · 问用户 · 等确认 · 不硬抢控制权</text>
+        <rect class="btree-node is-root" x="40" y="60" width="180" height="80" rx="10" />
+        <text class="btree-mono" x="130" y="88" text-anchor="middle">agent</text>
+        <text class="btree-sub" x="130" y="110" text-anchor="middle">useOrCreate / new</text>
+        <text class="btree-sub" x="130" y="128" text-anchor="middle">claim / complete</text>
+        <rect class="btree-node is-cluster-leaf" x="290" y="60" width="180" height="80" rx="10" />
+        <text class="btree-mono" x="380" y="88" text-anchor="middle">delegatedToUser</text>
+        <text class="btree-sub" x="380" y="110" text-anchor="middle">handOffTaskSpace</text>
+        <text class="btree-sub" x="380" y="128" text-anchor="middle">user 接管 GUI</text>
+        <rect class="btree-node is-cluster-leaf" x="540" y="60" width="180" height="80" rx="10" />
+        <text class="btree-mono" x="630" y="88" text-anchor="middle">user</text>
+        <text class="btree-sub" x="630" y="110" text-anchor="middle">用户自建</text>
+        <text class="btree-sub" x="630" y="128" text-anchor="middle">claim 才能动</text>
+        <path class="btree-ink" d="M220 100 V135" />
+        <path class="btree-ink" d="M213 128 L220 135 L227 128" />
+        <path class="btree-ink" d="M470 100 V135" />
+        <path class="btree-ink" d="M463 128 L470 135 L477 128" />
+        <rect class="btree-badge" x="240" y="150" width="280" height="32" rx="8" />
+        <text class="btree-badge-text" x="380" y="172" text-anchor="middle">takeOver / waitForAgentControl</text>
+        <rect class="btree-badge" x="180" y="210" width="400" height="60" rx="8" />
+        <text class="btree-badge-text" x="380" y="235" text-anchor="middle">硬停止：user is controlling</text>
+        <text class="btree-sub" x="380" y="258" text-anchor="middle">用户接管期间 agent 任何操作都报错 · 不是障碍是停止信号</text>
       </g>
     </svg>
   </figure>
@@ -317,40 +306,31 @@ agent 接到的官方指南让它在动手前先挑一种工作流，三种可�
 
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：三种工作流各走哪条路</p>
-  <p class="article-embed-note-lead">默认走语义工作流；视觉/画布/虚拟化页面退化到视觉工作流；要拿浏览器状态或裸 CDP 能力时直接走 js()/cdp()。</p>
+  <p class="article-embed-note-lead">默认走语义工作流；视觉/画布/虚拟化页面退化到视觉工作流；要拿浏览器状态或裸 CDP 能力时走 js()/cdp()。</p>
   <figure class="btree-scene">
-    <svg class="btree-svg" viewBox="0 0 760 380" role="img" aria-label="三种工作流">
+    <svg class="btree-svg" viewBox="0 0 760 280" role="img" aria-label="三种工作流">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="30" text-anchor="middle">三种工作流 · 按页面形态分流</text>
+        <text class="btree-label" x="380" y="28" text-anchor="middle">三种工作流 · 按页面形态分流</text>
       </g>
       <g data-btree-stage="cluster">
-        <rect class="btree-node is-root" x="40" y="60" width="220" height="290" rx="10" />
-        <text class="btree-mono" x="150" y="88" text-anchor="middle">① 语义工作流（默认）</text>
-        <text class="btree-sub" x="150" y="115" text-anchor="middle">snapshotText + @N / loc=</text>
-        <text class="btree-sub" x="150" y="145" text-anchor="middle">适合：文本 / 表单 / 表格 / 列表</text>
-        <text class="btree-sub" x="150" y="180" text-anchor="middle">useOrCreateTaskSpace</text>
-        <text class="btree-sub" x="150" y="205" text-anchor="middle">openOrReuseTab(url,{wait})</text>
-        <text class="btree-sub" x="150" y="230" text-anchor="middle">snapshotText() 拿语义树</text>
-        <text class="btree-sub" x="150" y="255" text-anchor="middle">click('@N') / fillInput</text>
-        <text class="btree-sub" x="150" y="280" text-anchor="middle">操作后再 snapshot 确认</text>
-        <rect class="btree-node is-cluster-leaf" x="290" y="60" width="220" height="290" rx="10" />
-        <text class="btree-mono" x="400" y="88" text-anchor="middle">② 视觉工作流</text>
-        <text class="btree-sub" x="400" y="115" text-anchor="middle">captureScreenshot + 坐标</text>
-        <text class="btree-sub" x="400" y="145" text-anchor="middle">适合：画布 / 虚拟化 / AX 残缺</text>
-        <text class="btree-sub" x="400" y="180" text-anchor="middle">Google Docs / 飞书 / Notion</text>
-        <text class="btree-sub" x="400" y="205" text-anchor="middle">Figma / 白板 / 地图</text>
-        <text class="btree-sub" x="400" y="240" text-anchor="middle">先看截图</text>
-        <text class="btree-sub" x="400" y="265" text-anchor="middle">click([x,y]) / pressKey</text>
-        <text class="btree-sub" x="400" y="290" text-anchor="middle">用导出/回读校验</text>
-        <rect class="btree-node is-cluster-leaf" x="540" y="60" width="220" height="290" rx="10" />
-        <text class="btree-mono" x="650" y="88" text-anchor="middle">③ DOM / CDP 工作流</text>
-        <text class="btree-sub" x="650" y="115" text-anchor="middle">js() / cdp()</text>
-        <text class="btree-sub" x="650" y="145" text-anchor="middle">适合：紧凑数据 / 自定义遍历</text>
-        <text class="btree-sub" x="650" y="180" text-anchor="middle">需要浏览器状态</text>
-        <text class="btree-sub" x="650" y="205" text-anchor="middle">裸 CDP 能力</text>
-        <text class="btree-sub" x="650" y="240" text-anchor="middle">写一个自执行闭包</text>
-        <text class="btree-sub" x="650" y="265" text-anchor="middle">一次 return 返回结果</text>
-        <text class="btree-sub" x="650" y="290" text-anchor="middle">别拆成多个 js() 调用</text>
+        <rect class="btree-node is-root" x="60" y="60" width="200" height="100" rx="10" />
+        <text class="btree-mono" x="160" y="88" text-anchor="middle">① 语义工作流（默认）</text>
+        <text class="btree-sub" x="160" y="110" text-anchor="middle">snapshotText + @N</text>
+        <text class="btree-sub" x="160" y="128" text-anchor="middle">文本 / 表单 / 表格</text>
+        <text class="btree-sub" x="160" y="146" text-anchor="middle">click · fillInput</text>
+        <rect class="btree-node is-cluster-leaf" x="280" y="60" width="200" height="100" rx="10" />
+        <text class="btree-mono" x="380" y="88" text-anchor="middle">② 视觉工作流</text>
+        <text class="btree-sub" x="380" y="110" text-anchor="middle">captureScreenshot</text>
+        <text class="btree-sub" x="380" y="128" text-anchor="middle">画布 / 虚拟化 / AX 残缺</text>
+        <text class="btree-sub" x="380" y="146" text-anchor="middle">click(x,y) · pressKey</text>
+        <rect class="btree-node is-cluster-leaf" x="500" y="60" width="200" height="100" rx="10" />
+        <text class="btree-mono" x="600" y="88" text-anchor="middle">③ DOM / CDP 工作流</text>
+        <text class="btree-sub" x="600" y="110" text-anchor="middle">js() / cdp()</text>
+        <text class="btree-sub" x="600" y="128" text-anchor="middle">裸 CDP · 浏览器状态</text>
+        <text class="btree-sub" x="600" y="146" text-anchor="middle">自执行闭包 · 一次 return</text>
+        <rect class="btree-badge" x="180" y="190" width="400" height="60" rx="8" />
+        <text class="btree-badge-text" x="380" y="215" text-anchor="middle">三种工作流可以组合 · agent 按页面形态选</text>
+        <text class="btree-sub" x="380" y="238" text-anchor="middle">默认语义 → 视觉退化 → DOM/CDP 兜底</text>
       </g>
     </svg>
   </figure>
@@ -453,31 +433,29 @@ OpenCLI（github.com/jackwener/opencli，开源，AI 原生命令行工具）的
 
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：ego lite vs OpenCLI · 抽象层级相反</p>
-  <p class="article-embed-note-lead">ego lite 把浏览器升级成 Agent 实时操作的工作台；OpenCLI 把网站降级成确定性 CLI 命令。一个边看边做，一个跑完拿结果。</p>
+  <p class="article-embed-note-lead">ego lite 把浏览器升级成 Agent 实时操作的工作台；OpenCLI 把网站降级成确定性 CLI 命令。</p>
   <figure class="btree-scene">
-    <svg class="btree-svg" viewBox="0 0 760 380" role="img" aria-label="ego lite vs OpenCLI 抽象层级">
+    <svg class="btree-svg" viewBox="0 0 760 280" role="img" aria-label="ego lite vs OpenCLI">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="30" text-anchor="middle">ego lite vs OpenCLI · 抽象层级相反</text>
+        <text class="btree-label" x="380" y="28" text-anchor="middle">ego lite vs OpenCLI · 抽象层级相反</text>
       </g>
       <g data-btree-stage="cluster">
-        <rect class="btree-node is-root" x="40" y="60" width="340" height="290" rx="10" />
-        <text class="btree-mono" x="210" y="88" text-anchor="middle">ego lite · 升级浏览器</text>
-        <text class="btree-sub" x="210" y="120" text-anchor="middle">Agent → harness → 浏览器</text>
-        <text class="btree-sub" x="210" y="155" text-anchor="middle">实时操作 · 视觉+语义+DOM</text>
-        <text class="btree-sub" x="210" y="190" text-anchor="middle">snapshotText + click/fill</text>
-        <text class="btree-sub" x="210" y="225" text-anchor="middle">消耗 Token（边看边推理）</text>
-        <text class="btree-sub" x="210" y="260" text-anchor="middle">覆盖：任意网站</text>
-        <text class="btree-sub" x="210" y="295" text-anchor="middle">人机协作：handoff 控制权</text>
-        <text class="btree-sub" x="210" y="325" text-anchor="middle">平台：仅 macOS</text>
-        <rect class="btree-node is-cluster-leaf" x="400" y="60" width="340" height="290" rx="10" />
-        <text class="btree-mono" x="570" y="88" text-anchor="middle">OpenCLI · 降级网站</text>
-        <text class="btree-sub" x="570" y="120" text-anchor="middle">CLI → Daemon → Chrome 扩展</text>
-        <text class="btree-sub" x="570" y="155" text-anchor="middle">确定性命令 · 输入参数拿结果</text>
-        <text class="btree-sub" x="570" y="190" text-anchor="middle">opencli zhihu search "...""</text>
-        <text class="btree-sub" x="570" y="225" text-anchor="middle">运行时零 Token</text>
-        <text class="btree-sub" x="570" y="260" text-anchor="middle">覆盖：100+ 内置 Adapter</text>
-        <text class="btree-sub" x="570" y="295" text-anchor="middle">人机协作：无（CI/CD 友好）</text>
-        <text class="btree-sub" x="570" y="325" text-anchor="middle">平台：跨平台 Node.js 18+</text>
+        <rect class="btree-node is-root" x="60" y="60" width="280" height="170" rx="10" />
+        <text class="btree-mono" x="200" y="88" text-anchor="middle">ego lite · 升级浏览器</text>
+        <text class="btree-sub" x="200" y="115" text-anchor="middle">Agent → harness → 浏览器</text>
+        <text class="btree-sub" x="200" y="135" text-anchor="middle">实时 · 边看边推理</text>
+        <text class="btree-sub" x="200" y="155" text-anchor="middle">消耗 Token · macOS only</text>
+        <text class="btree-sub" x="200" y="175" text-anchor="middle">覆盖任意网站</text>
+        <text class="btree-sub" x="200" y="195" text-anchor="middle">支持 handoff 人机协作</text>
+        <rect class="btree-node is-cluster-leaf" x="420" y="60" width="280" height="170" rx="10" />
+        <text class="btree-mono" x="560" y="88" text-anchor="middle">OpenCLI · 降级网站</text>
+        <text class="btree-sub" x="560" y="115" text-anchor="middle">CLI → Daemon → Chrome 扩展</text>
+        <text class="btree-sub" x="560" y="135" text-anchor="middle">确定性命令 · 跑完拿结果</text>
+        <text class="btree-sub" x="560" y="155" text-anchor="middle">运行时零 Token</text>
+        <text class="btree-sub" x="560" y="175" text-anchor="middle">100+ Adapter · 跨平台</text>
+        <text class="btree-sub" x="560" y="195" text-anchor="middle">CI/CD 友好 · 无 handoff</text>
+        <rect class="btree-badge" x="180" y="240" width="400" height="30" rx="8" />
+        <text class="btree-badge-text" x="380" y="260" text-anchor="middle">一个让 Web 变成命令 · 一个让浏览器变成工作台</text>
       </g>
     </svg>
   </figure>
