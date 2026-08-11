@@ -99,6 +99,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-cache-bottle.png",
     foundIn: "高性能后端实战 · CPU 缓存与内存层级",
   },
+  {
+    id: "lock-bottle",
+    name: "锁瓶",
+    note: "瓶身上挂着一把锁，旁边两把小钥匙。MVCC 把读放走了，写的门还得有人守。",
+    src: "/images/childlike-sketch-lock-bottle.png",
+    foundIn: "MySQL · 锁机制全解",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
