@@ -45,7 +45,7 @@ description: 行锁为什么加在索引上、间隙锁怎么防幻读、Next-Ke
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：InnoDB 锁全景 · 两个维度撑起一张锁地图</p>
   <p class="article-embed-note-lead">按粒度分全局 / 表 / 行，按模式分 S / X；再叠 MDL、意向锁、自增锁、间隙锁、插入意向锁五类"特殊用途锁"，就是本篇要拆的全部。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 420" role="img" aria-label="InnoDB 锁全景图">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">InnoDB 锁全景 · 粒度 × 模式 + 特殊用途</text>
@@ -182,7 +182,7 @@ WHERE object_name = 'user' AND lock_type = 'RECORD';
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：有索引锁一行 vs 无索引锁全表</p>
   <p class="article-embed-note-lead">同一条 UPDATE，走索引只锁命中的那一行；不走索引就只能逐行加 X 锁，整张表都被捏住。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 320" role="img" aria-label="有索引锁一行，无索引锁全表">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">WHERE id=5 走主键 vs WHERE name='duang' 无索引</text>
@@ -262,7 +262,7 @@ UPDATE t SET c=1 WHERE id=10;  -- 不被阻塞，已有记录可改
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：间隙锁锁的是"空" · 阻塞 INSERT，放行 UPDATE</p>
   <p class="article-embed-note-lead">id 现有 5 / 10 / 15。事务 A 用 FOR UPDATE 锁住 (10,15) 间隙，事务 B 想 INSERT 12 被卡住，但 UPDATE id=10 照常通过。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 360" role="img"aria-label="间隙锁只阻塞插入，不阻塞修改">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">间隙 (10, 15) · 锁空不锁实</text>
@@ -339,7 +339,7 @@ INSERT INTO user(age) VALUES (22);  -- 阻塞，落在 (20,25) 空隙
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：Next-Key Lock 降级规则 · 唯一索引等值命中只锁一行</p>
   <p class="article-embed-note-lead">主键等值命中退化为 Record Lock；普通索引等值会向右多锁一个间隙；范围查询逐区间锁；无索引直接锁全表。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 380" role="img" aria-label="Next-Key Lock 降级规则">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">同一张表 · 四种查询的锁范围对比</text>
@@ -435,7 +435,7 @@ COMMIT;  -- 锁持有窗口极短
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：两阶段锁协议 · 锁持有窗口的"长尾"与"短促"</p>
   <p class="article-embed-note-lead">反例：FOR UPDATE 后做 RPC，锁持有几百毫秒；正例：先做完 RPC 再 FOR UPDATE，锁只在最后一瞬握在手里。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 320" role="img" aria-label="两阶段锁协议 · 反例 vs 正例的持锁时长">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">同一组操作 · 持锁窗口从 RPC+更新 缩到 仅更新</text>
@@ -531,46 +531,67 @@ INSERT INTO o(ct) VALUES ('10:45');  -- 请求插入意向锁，被 B 的间隙�
 ```
 
 <section class="article-embed-note">
-  <p class="article-embed-note-title">图解：两种典型死锁 · ABBA 与 间隙锁+插入意向锁</p>
-  <p class="article-embed-note-lead">左：反向加锁顺序形成环；右：两个间隙锁互相兼容，但各自的插入意向锁都被对方挡住，形成环。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
-    <svg class="btree-svg" viewBox="0 0 760 360" role="img" aria-label="两种典型死锁成因">
+  <p class="article-embed-note-title">图解：ABBA 死锁形成过程 · 点播放看环是怎么闭上的</p>
+  <p class="article-embed-note-lead">事务 A 先锁 id=1、事务 B 先锁 id=2，然后各自反过来要对方的锁，环路一闭就死锁。</p>
+  <figure class="btree-scene" data-btree-demo="lock-deadlock">
+    <svg class="btree-svg" viewBox="0 0 760 380" role="img" aria-label="ABBA 死锁形成过程">
       <g data-btree-stage="title">
-        <text class="btree-label" x="380" y="28" text-anchor="middle">死锁 · 两种最常见形态</text>
+        <text class="btree-label" x="380" y="30" text-anchor="middle">ABBA 顺序反转 · 死锁形成过程</text>
+      </g>
+      <g data-btree-stage="scene">
+        <rect class="btree-node is-root" data-role="lock-1" x="60" y="60" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="150" y="88" text-anchor="middle">id=1 · X 锁</text>
+        <text class="btree-sub" x="150" y="110" text-anchor="middle">事务 A 持有</text>
+        <rect class="btree-node is-root" data-role="lock-2" x="520" y="60" width="180" height="70" rx="10" />
+        <text class="btree-mono" x="610" y="88" text-anchor="middle">id=2 · X 锁</text>
+        <text class="btree-sub" x="610" y="110" text-anchor="middle">事务 B 持有</text>
+        <rect class="btree-node is-cluster-leaf" data-role="a-box" x="60" y="200" width="180" height="100" rx="10" />
+        <text class="btree-mono" x="150" y="228" text-anchor="middle">事务 A</text>
+        <text class="btree-sub" x="150" y="250" text-anchor="middle">UPDATE id=1 ✓</text>
+        <text class="btree-sub" x="150" y="270" text-anchor="middle">UPDATE id=2 ...</text>
+        <rect class="btree-node is-cluster-leaf" data-role="b-box" x="520" y="200" width="180" height="100" rx="10" />
+        <text class="btree-mono" x="610" y="228" text-anchor="middle">事务 B</text>
+        <text class="btree-sub" x="610" y="250" text-anchor="middle">UPDATE id=2 ✓</text>
+        <text class="btree-sub" x="610" y="270" text-anchor="middle">UPDATE id=1 ...</text>
+        <path class="btree-ink" d="M150 130 V200" />
+        <path class="btree-ink" d="M143 193 L150 200 L157 193" />
+        <path class="btree-ink" d="M610 130 V200" />
+        <path class="btree-ink" d="M603 193 L610 200 L617 193" />
+        <path class="btree-path" data-role="arrow-ab" d="M240 240 Q380 180 520 95" />
+        <path class="btree-path" data-role="arrow-ba" d="M520 260 Q380 320 240 95" />
+        <rect class="btree-badge" data-role="deadlock-label" x="180" y="330" width="400" height="40" rx="8" />
+        <text class="btree-badge-text" x="380" y="355" text-anchor="middle">环路形成 → 死锁！回滚代价小的一方</text>
+      </g>
+    </svg>
+  </figure>
+</section>
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：间隙锁 + 插入意向锁 死锁</p>
+  <p class="article-embed-note-lead">两个间隙锁互相兼容，但各自的插入意向锁都被对方挡住，形成环。</p>
+  <figure class="btree-scene">
+    <svg class="btree-svg" viewBox="0 0 760 280" role="img" aria-label="间隙锁+插入意向锁死锁">
+      <g data-btree-stage="title">
+        <text class="btree-label" x="380" y="28" text-anchor="middle">间隙锁 + 插入意向锁 · 互挡成环</text>
       </g>
       <g data-btree-stage="cluster">
-        <rect class="btree-node is-root" x="30" y="60" width="340" height="270" rx="10" />
-        <text class="btree-mono" x="200" y="88" text-anchor="middle">场景一 · ABBA 顺序反转</text>
-        <rect class="btree-node is-cluster-leaf" x="60" y="110" width="120" height="60" rx="8" />
-        <text class="btree-mono" x="120" y="135" text-anchor="middle">事务 A</text>
-        <text class="btree-sub" x="120" y="155" text-anchor="middle">持 id=1 · 等 id=2</text>
-        <rect class="btree-node is-cluster-leaf" x="220" y="110" width="120" height="60" rx="8" />
-        <text class="btree-mono" x="280" y="135" text-anchor="middle">事务 B</text>
-        <text class="btree-sub" x="280" y="155" text-anchor="middle">持 id=2 · 等 id=1</text>
-        <path class="btree-ink" d="M180 140 Q200 110 220 140" />
-        <path class="btree-ink" d="M213 122 L220 140 L202 138" />
-        <path class="btree-ink" d="M220 160 Q200 190 180 160" />
-        <path class="btree-ink" d="M187 178 L180 160 L198 162" />
-        <text class="btree-caption" x="200" y="210" text-anchor="middle">环路：A 等 B，B 等 A</text>
-        <rect class="btree-badge" x="60" y="240" width="280" height="70" rx="8" />
-        <text class="btree-badge-text" x="200" y="265" text-anchor="middle">避免：统一按 id 升序加锁</text>
-        <text class="btree-sub" x="200" y="288" text-anchor="middle">代码层对 ID 列表排序后再更新</text>
-        <rect class="btree-node is-root" x="390" y="60" width="340" height="270" rx="10" />
-        <text class="btree-mono" x="560" y="88" text-anchor="middle">场景二 · 间隙锁 + 插入意向锁</text>
-        <rect class="btree-node is-cluster-leaf" x="420" y="110" width="120" height="60" rx="8" />
-        <text class="btree-mono" x="480" y="135" text-anchor="middle">事务 A</text>
-        <text class="btree-sub" x="480" y="155" text-anchor="middle">持间隙 · 想插 10:45</text>
-        <rect class="btree-node is-cluster-leaf" x="580" y="110" width="120" height="60" rx="8" />
-        <text class="btree-mono" x="640" y="135" text-anchor="middle">事务 B</text>
-        <text class="btree-sub" x="640" y="155" text-anchor="middle">持间隙 · 想插 10:50</text>
-        <path class="btree-ink" d="M540 140 Q560 110 580 140" />
-        <path class="btree-ink" d="M573 122 L580 140 L562 138" />
-        <path class="btree-ink" d="M580 160 Q560 190 540 160" />
-        <path class="btree-ink" d="M547 178 L540 160 L558 162" />
-        <text class="btree-caption" x="560" y="210" text-anchor="middle">间隙锁互相兼容 · 但插入意向锁互挡</text>
-        <rect class="btree-badge" x="420" y="240" width="280" height="70" rx="8" />
-        <text class="btree-badge-text" x="560" y="265" text-anchor="middle">避免：降 RC 消除间隙锁</text>
-        <text class="btree-sub" x="560" y="288" text-anchor="middle">或缩小 FOR UPDATE 范围</text>
+        <rect class="btree-node is-cluster-leaf" x="60" y="60" width="220" height="80" rx="8" />
+        <text class="btree-mono" x="170" y="88" text-anchor="middle">事务 A</text>
+        <text class="btree-sub" x="170" y="110" text-anchor="middle">持间隙 (10:30,11:00)</text>
+        <text class="btree-sub" x="170" y="128" text-anchor="middle">想 INSERT 10:45</text>
+        <rect class="btree-node is-cluster-leaf" x="480" y="60" width="220" height="80" rx="8" />
+        <text class="btree-mono" x="590" y="88" text-anchor="middle">事务 B</text>
+        <text class="btree-sub" x="590" y="110" text-anchor="middle">持间隙 (10:30,11:00)</text>
+        <text class="btree-sub" x="590" y="128" text-anchor="middle">想 INSERT 10:50</text>
+        <path class="btree-ink" d="M280 100 Q380 70 480 100" />
+        <path class="btree-ink" d="M467 92 L480 100 L462 103" />
+        <text class="btree-caption" x="380" y="68" text-anchor="middle">A 的插入意向锁被 B 的间隙锁挡住</text>
+        <path class="btree-ink" d="M480 120 Q380 150 280 120" />
+        <path class="btree-ink" d="M293 128 L280 120 L298 117" />
+        <text class="btree-caption" x="380" y="158" text-anchor="middle">B 的插入意向锁被 A 的间隙锁挡住</text>
+        <rect class="btree-badge" x="120" y="190" width="520" height="60" rx="8" />
+        <text class="btree-badge-text" x="380" y="215" text-anchor="middle">间隙锁互相兼容 · 但插入意向锁与间隙锁冲突</text>
+        <text class="btree-sub" x="380" y="237" text-anchor="middle">避免：降 RC 消除间隙锁，或缩小 FOR UPDATE 范围</text>
       </g>
     </svg>
   </figure>
@@ -675,7 +696,7 @@ WHERE object_name='user' AND engine_transaction_id = <本事务ID>;
 <section class="article-embed-note">
   <p class="article-embed-note-title">图解：一条 UPDATE 的锁范围 · 普通索引 vs 主键</p>
   <p class="article-embed-note-lead">同样"等值命中"，普通索引锁两个区间，主键只锁一行——这就是"为什么查询要尽量走唯一索引"的锁视角解释。</p>
-  <figure class="btree-scene" data-btree-demo="compare">
+  <figure class="btree-scene">
     <svg class="btree-svg" viewBox="0 0 760 320" role="img" aria-label="一条 UPDATE 的锁范围对比">
       <g data-btree-stage="title">
         <text class="btree-label" x="380" y="28" text-anchor="middle">UPDATE user SET name='x' WHERE age=20</text>

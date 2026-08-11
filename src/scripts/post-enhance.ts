@@ -1592,7 +1592,7 @@ function initTimelineReveal(article: HTMLElement) {
   }
 }
 
-type BtreeDemoKind = "compare" | "lookup" | "prefix" | "cover";
+type BtreeDemoKind = "compare" | "lookup" | "prefix" | "cover" | "lock-deadlock";
 
 function sleep(ms: number, signal?: { cancelled: boolean }) {
   return new Promise<void>(resolve => {
@@ -1698,6 +1698,32 @@ function initBtreeDemos(article: HTMLElement) {
           await sleep(900, signal);
           if (!alive()) return;
           await showStage("badge", "<strong>记住这句</strong>：胖叶子存数据，瘦叶子存钥匙。", 800, signal);
+        } else if (kind === "lock-deadlock") {
+          await showStage("title", "两个事务，相反顺序更新 id=1 和 id=2。", 500, signal);
+          if (!alive()) return;
+          await showStage("scene", "两个事务同时 BEGIN。", 500, signal);
+          if (!alive()) return;
+          svg.querySelector<SVGElement>('[data-role="a-box"]')?.classList.add("is-hit", "is-pulse");
+          svg.querySelector<SVGElement>('[data-role="lock-1"]')?.classList.add("is-hit", "is-pulse");
+          setStatus("<strong>事务 A</strong> UPDATE id=1，拿到 X 锁。");
+          await sleep(1000, signal);
+          if (!alive()) return;
+          svg.querySelector<SVGElement>('[data-role="b-box"]')?.classList.add("is-hit", "is-pulse");
+          svg.querySelector<SVGElement>('[data-role="lock-2"]')?.classList.add("is-hit", "is-pulse");
+          setStatus("<strong>事务 B</strong> UPDATE id=2，也拿到 X 锁。");
+          await sleep(1000, signal);
+          if (!alive()) return;
+          svg.querySelector<SVGElement>('[data-role="arrow-ab"]')?.classList.add("is-on", "is-animate");
+          setStatus("事务 A 接着 UPDATE id=2，被 B 挡住 → <strong>等待</strong>。");
+          await sleep(1100, signal);
+          if (!alive()) return;
+          svg.querySelector<SVGElement>('[data-role="arrow-ba"]')?.classList.add("is-on", "is-animate");
+          setStatus("事务 B 接着 UPDATE id=1，被 A 挡住 → <strong>等待</strong>。");
+          await sleep(1100, signal);
+          if (!alive()) return;
+          svg.querySelector<SVGElement>('[data-role="deadlock-label"]')?.classList.add("is-hit", "is-pulse");
+          setStatus("<strong>环路形成 → 死锁！</strong> InnoDB 检测到环，回滚代价小的一方。");
+          await sleep(1300, signal);
         } else if (kind === "lookup") {
           await showStage("title", "查询：WHERE name='张三'，要整行。", 450, signal);
           if (!alive()) return;
