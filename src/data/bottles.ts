@@ -113,6 +113,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-ego-browser-bottle.png",
     foundIn: "Agent 拆解 · ego-lite",
   },
+  {
+    id: "layered-bottle",
+    name: "分层瓶",
+    note: "瓶身横切成四层，顶上飘请求圆圈、二层是齿轮、三层是数据库圆柱、底层一道波浪。四层各装各的，谁也不抢谁的活。",
+    src: "/images/childlike-sketch-layered-bottle.png",
+    foundIn: "后端架构深度解析 · Python 篇",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
