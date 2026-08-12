@@ -200,42 +200,72 @@ gunicorn app.main:app -w 2 -k uvicorn.workers.UvicornWorker -b 127.0.0.1:8000
 在 FastAPI 项目里，业务逻辑写在 service 模块里，handler（路由函数）只做薄薄的协议转换。下面是一个下单的业务逻辑，注意它完全不碰 HTTP，参数是普通 Python 类型，返回值也是纯领域对象：
 
 ```python
+# dataclass 是 Python 3.7+ 引入的标准库装饰器，用于自动生成 __init__、__repr__ 等方法
+# 用它来定义纯数据载体类，比普通 class 更简洁，且不可变（frozen=True）时可哈希
 from dataclasses import dataclass
+# Optional 用于类型标注，表示值可以是 None
+# Python 3.10+ 也可以用 int | None，但 Optional 更显式
 from typing import Optional
 
 
+# @dataclass 自动根据类属性生成构造函数：Order(id=None, user_id=0, ...)
+# 这里 Order 是领域对象（domain object），不是 ORM 模型，不绑定数据库 session
+# 设计意图：用纯 Python 对象承载业务数据，与持久化框架解耦
 @dataclass
 class Order:
+    # id 默认为 None，因为新建订单时还没有自增 ID，由 Repository 写入后回填
     id: Optional[int] = None
+    # user_id 关联下单用户，默认值 0 是因为 dataclass 要求所有字段都有默认值
     user_id: int = 0
+    # amount 金额，用 float 表示（真实项目中建议用 Decimal 避免浮点误差）
     amount: float = 0.0
+    # status 订单状态机的初始状态，默认 "created"
     status: str = "created"
 
 
+# Service 层是业务逻辑的核心，所有业务规则、校验、事务编排放这里
+# 注意：Service 不 import 任何 HTTP 相关模块（如 FastAPI 的 Request/Response）
+# 也不直接 import SQLAlchemy session，完全通过 Repository 接口访问数据
 class OrderService:
+    # 构造函数注入 Repository 依赖（依赖注入模式）
+    # 好处：单测时可以传入内存实现的 FakeRepo，不需要真实数据库
+    # 坏处几乎为零，这是解耦的标准做法
     def __init__(self, repo):
         # 通过构造函数注入 Repository，不直接 import db，方便单测替换
         self.repo = repo
 
+    # 创建订单的业务方法：接收原始参数，返回领域对象 Order
+    # 注意入参是简单类型（int, float），不是 HTTP 的 Body 对象
+    # 这使得业务逻辑可以被 HTTP 接口、RPC 接口、定时任务等任何入口复用
     def create_order(self, user_id: int, amount: float) -> Order:
         # ---- 业务校验：规则集中在这里，不散落在 handler 里 ----
+        # 这些是带业务语义的校验（不是格式校验）：金额是否合法是业务规则
+        # 格式校验（比如 amount 是不是数字）由 FastAPI + Pydantic 在路由层自动完成
         if amount <= 0:
             raise ValueError("金额必须大于零")
         if amount > 100_000:
             raise ValueError("单笔订单上限 100000")
 
         # ---- 编排用例：调用 DAL 取数据、写数据 ----
+        # 业务层不自己查 SQL，通过 Repository 接口获取用户信息
+        # Repository 内部可能用 SQLAlchemy、原生 SQL、甚至缓存，对 Service 透明
         user = self.repo.get_user(user_id)
         if user is None:
             raise ValueError("用户不存在")
 
         # 创建订单（事务边界在这里：repo 的写操作在 service 控制下成组提交）
+        # 先在内存中构造 Order 对象，交给 Repository 持久化
         order = Order(user_id=user_id, amount=amount)
+        # repo.create() 返回写入后的 Order（带自增 ID）
         saved = self.repo.create(order)
 
         # ---- 落实领域规则：新用户首单打九折 ----
+        # 这是典型的领域规则：折扣策略属于业务逻辑，不应散落在数据访问层
+        # 如果将来折扣规则变化（比如改成八折、按会员等级分级），只改 Service 这一处
         if user.is_new:
+            # round 保留两位小数，避免浮点精度问题
             saved.amount = round(saved.amount * 0.9, 2)
+            # 折扣后需要更新数据库，再次调用 repo.update()
             self.repo.update(saved)
 
         return saved
@@ -244,16 +274,27 @@ class OrderService:
 而"薄路由"只做协议转换，把校验、规则都交给 service：
 
 ```python
+# APIRouter 是 FastAPI 的路由组织器，用于将相关路由归为一组
+# Depends 是 FastAPI 的依赖注入装饰器，用于声明函数参数由框架自动注入
 from fastapi import APIRouter, Depends
+# 从业务逻辑层引入 OrderService（注意：路由层不直接操作数据库）
 from .order_service import OrderService
+# 从 schemas 引入 Pydantic 模型，用于请求体解析和校验
 from .schemas import CreateOrderReq
 
+# 创建路由实例，可挂载到主 app 上
 router = APIRouter()
 
 
+# @router.post 声明这是一个 POST 接口，路径为 /orders
+# body: CreateOrderReq 由 FastAPI 自动解析 JSON 请求体并校验类型
+# svc: OrderService = Depends() 由 FastAPI 自动创建并注入 OrderService 实例
+# 这里的 Depends() 没参数，FastAPI 会自动通过类型注解推断如何构造依赖
 @router.post("/orders")
 def create_order(body: CreateOrderReq, svc: OrderService = Depends()):
     # 这里没有 if 校验、没有 try/except、没有 SQL，只有一次调用
+    # 路由层只做协议转换：HTTP 请求 → 业务调用 → 返回值
+    # 业务逻辑（校验、规则、事务）全在 Service 层，保持路由极薄
     return svc.create_order(body.user_id, body.amount)
 ```
 
@@ -282,54 +323,95 @@ def create_order(body: CreateOrderReq, svc: OrderService = Depends()):
 下面用 SQLAlchemy 给出工程实现：基于 ORM 模型的 CRUD 操作，以及原生 SQL（适合复杂查询 ORM 表达不了的场景）。两种都被封装在同一个 Repository 接口后面，业务层无感知：
 
 ```python
+# Session 是 SQLAlchemy 的会话对象，代表与数据库的一次会话
+# 所有 ORM 操作（增删改查）都通过 Session 进行
 from sqlalchemy.orm import Session
+# text() 用于执行原生 SQL，适合复杂查询或 ORM 表达不了的场景
 from sqlalchemy import text
 
+# Column/Integer/Float/String 是 ORM 模型的列定义类型
+# 用于 Python 类与数据库表字段的映射
 from sqlalchemy import Column, Integer, Float, String
+# declarative_base 是 SQLAlchemy 1.x 的声明式基类工厂
+# 所有 ORM 模型类都继承自它，从而获得 ORM 能力
 from sqlalchemy.ext.declarative import declarative_base
 
+# 创建声明式基类，所有模型共享此 Base
 Base = declarative_base()
 
 
+# OrderModel 是 ORM 模型类，对应数据库中的 orders 表
+# 注意：这是数据库模型，不是领域对象（Order dataclass）
+# ORM 模型绑定了 Session，不应泄漏到业务层
 class OrderModel(Base):
+    # __tablename__ 指定对应的数据库表名
     __tablename__ = "orders"
+    # Column 定义表字段：主键自增 ID
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # user_id 带索引，因为常用于按用户查询订单
     user_id = Column(Integer, nullable=False, index=True)
+    # amount 金额，不允许为空
     amount = Column(Float, nullable=False)
+    # status 默认值 "created"，最长 20 字符
     status = Column(String(20), default="created")
 
 
+# OrderRepository 是数据访问层的核心，封装所有数据库操作
+# 向上提供按业务语义命名的方法（如 get_user, create），而非暴露 SQL
+# 业务层通过接口调用，不知道底层用的是 ORM 还是原生 SQL
 class OrderRepository:
+    # 构造函数接收外部创建的 Session
+    # 设计意图：Session 生命周期由外部（依赖注入容器或框架）管理
+    # 好处：事务边界由 Service 层统一控制，Repository 不自行 commit
     def __init__(self, session: Session):
         # session 由外部创建和管理，自己不在内部 new 一个，方便单测替换
         self.db = session
 
+    # get_user 用原生 SQL 查询用户（示例）
+    # 为什么用原生 SQL 而不是 ORM？因为简单查询原生 SQL 更直观
+    # 返回 dict 或 None，dict 是纯数据结构，不会泄漏 ORM 语义
     def get_user(self, user_id: int):
         """按 ID 查用户，返回 dict 或 None"""
+        # 使用参数化查询防止 SQL 注入
+        # :uid 是命名参数，通过第二个参数字典传入
         result = self.db.execute(
             text("SELECT id, is_new FROM users WHERE id = :uid"),
             {"uid": user_id},
         ).fetchone()
         if result is None:
             return None
+        # 把查询结果转成 dict，是纯数据结构，不暴露数据库细节
         return {"id": result[0], "is_new": bool(result[1])}
 
+    # create 方法：将领域对象 Order 写入数据库
+    # 接受领域对象（dataclass），内部转为 ORM 模型，再写库
+    # 返回写入后的领域对象（带自增 ID），不让 ORM 实例泄漏到上层
     def create(self, order) -> "Order":
         """写入数据库，返回带自增 ID 的对象"""
+        # 将领域对象的属性值拷贝到 ORM 模型
         model = OrderModel(
             user_id=order.user_id,
             amount=order.amount,
             status=order.status,
         )
+        # add 将 ORM 模型加入 session 的待管理队列（不立即写库）
         self.db.add(model)
+        # commit 触发事务提交，此时才真正执行 INSERT SQL
+        # 注意：如果有多个写操作都在同一个 session 中，commit 一次即可
         self.db.commit()
+        # refresh 从数据库重新加载模型，拿到自增 ID 等数据库生成的字段
         self.db.refresh(model)
         # 把 ORM 模型转回领域对象，不让 ORM 泄漏到上层
+        # 只回填 ID，其他字段在 order 中已有值
         order.id = model.id
         return order
 
+    # update 方法：按 ID 更新已有记录
+    # 用 ORM 的 query + filter 定位记录，再用 update() 批量更新
     def update(self, order):
         """更新已有记录"""
+        # filter 按主键定位记录，update 直接设置新的字段值
+        # 这里只更新 amount 字段，真实场景可能更新更多字段
         self.db.query(OrderModel).filter(
             OrderModel.id == order.id
         ).update({"amount": order.amount})
@@ -361,83 +443,145 @@ class OrderRepository:
 下面三个例子分别展示：请求级日志中间件、统一异常处理器、JWT 鉴权依赖：
 
 ```python
+# time 模块用于计时，这里用来计算请求耗时
 import time
+# uuid 生成唯一 ID，这里用作 trace_id
 import uuid
+# logging 是 Python 标准库的日志模块
 import logging
+# Request/Response 是 FastAPI 的请求和响应对象类型
 from fastapi import Request, Response
+# JSONResponse 用于返回 JSON 格式的 HTTP 响应
 from fastapi.responses import JSONResponse
+# BaseHTTPMiddleware 是 Starlette 提供的中间件基类
+# 继承它可以自定义请求处理逻辑，在请求前后插入横切行为
 from starlette.middleware.base import BaseHTTPMiddleware
 
+# 获取名为 "order_service" 的 logger，日志会带上这个名字用于过滤
+# 在 logging 配置中可以针对该 logger 设置不同级别（INFO/DEBUG 等）
 logger = logging.getLogger("order_service")
 
 
 # ---- 1. 请求日志中间件：自动记录耗时和 trace id ----
+# 中间件在每个请求进入应用前先执行，返回响应后再执行后半段
+# 这样可以拦截所有请求，实现"对业务代码零侵入"的全局日志记录
 class LoggingMiddleware(BaseHTTPMiddleware):
+    # dispatch 是中间件的核心方法，request 是当前请求，call_next 是下一个处理器
+    # 必须是 async def，因为 ASGI 框架（FastAPI/Starlette）基于异步 IO
     async def dispatch(self, request: Request, call_next):
+        # 生成 8 位短 trace_id（完整 uuid 太长，日志里用短 ID 够用且更易读）
+        # 用十六进制截断，保证 log 中的 trace_id 等宽
         trace_id = str(uuid.uuid4())[:8]
+        # 把 trace_id 存到 request.state 中，后续任何依赖 request 的代码都能取到
         request.state.trace_id = trace_id
 
+        # perf_counter 是高精度计时器，比 time.time() 更适合做耗时测量
         start = time.perf_counter()
+        # call_next(request) 调用后续的路由处理链，返回 Response
+        # 这是真正执行业务逻辑的地方，用 await 支持异步处理
         response = await call_next(request)
+        # 计算耗时并转为毫秒
         duration = (time.perf_counter() - start) * 1000
 
+        # 结构化日志记录：用 %s 占位符而非 f-string，因为 logging 的 %s 写法
+        # 在日志级别被过滤时不会产生字符串拼接开销（性能优化）
+        # 日志格式：[trace_id] 方法 路径 状态码 耗时ms
         logger.info(
             "[%s] %s %s %d %.1fms",
             trace_id, request.method, request.url.path,
             response.status_code, duration,
         )
+        # 把 trace_id 写入响应 header，前端或下游服务可以从中获取 trace_id
+        # 用于端到端的链路追踪（比如前端报错时上报 trace_id 方便排查）
         response.headers["X-Trace-ID"] = trace_id
         return response
 
 
 # ---- 2. 统一异常处理：不同错误类型对应不同状态码 ----
+# BizError 是自定义业务异常类，继承 Exception
+# 它携带两个关键信息：错误消息 msg 和 HTTP 状态码 status_code
+# 业务代码只需 raise BizError("金额必须大于零", 400)，框架自动转成 HTTP 响应
 class BizError(Exception):
     def __init__(self, msg: str, status_code: int = 400):
         self.msg = msg
         self.status_code = status_code
 
 
+# 全局异常处理器：捕获 BizError，转成统一格式的 JSON 响应
+# 这意味着业务代码里 raise BizError 不会变成 500 或 HTML 错误页
+# 前端收到的始终是 {"error": "xxx"} 格式，状态码正确
 async def biz_error_handler(request: Request, exc: BizError):
     return JSONResponse(
         status_code=exc.status_code,
+        # 统一错误响应结构：{"error": "错误描述"}
+        # 前后端约定好这个格式，前端可以统一处理所有业务错误
         content={"error": exc.msg},
     )
 
 
 # ---- 3. JWT 鉴权依赖：挂在需要登录的路由上即可 ----
+# Depends 用于声明依赖注入，HTTPException 用于返回 HTTP 错误响应
 from fastapi import Depends, HTTPException
+# jose 库是 JWT 的 Python 实现，用于解析和验证 JWT token
 from jose import jwt, JWTError
 
 
+# get_current_user 是鉴权依赖函数
+# 路由函数参数声明 current_user = Depends(get_current_user) 后
+# FastAPI 会在执行路由前自动调用此函数，实现"未登录则 401"
+# 业务代码完全不需要写 token 解析逻辑，保持干净
 async def get_current_user(request: Request):
+    # 从请求 header 中获取 Authorization 字段
     auth = request.headers.get("Authorization", "")
+    # Bearer Token 是 OAuth 2.0 / JWT 的标准格式
     if not auth.startswith("Bearer "):
+        # 401 Unauthorized 状态码表示未认证
         raise HTTPException(401, "未提供认证信息")
+    # 去掉 "Bearer " 前缀，拿到纯 token 字符串
     token = auth[7:]
     try:
+        # jwt.decode 解析并验证 JWT：校验签名、过期时间、算法
+        # "your-secret" 是密钥（真实项目应从配置读取，不要硬编码）
+        # algorithms 指定签名算法，必须与签发时一致，防止算法混淆攻击
         payload = jwt.decode(token, "your-secret", algorithms=["HS256"])
+        # payload["sub"] 是 JWT 的 Subject 字段，通常存用户 ID
+        # 返回包含 user_id 的 dict，路由函数通过 Depends 拿到
         return {"user_id": payload["sub"]}
     except JWTError:
+        # JWTError 是所有 JWT 解析失败的统一异常（过期、签名错误、格式错误）
         raise HTTPException(401, "token 无效或已过期")
 ```
 
 使用方式是在应用装配时挂上去，业务 handler 一行都不用写：
 
 ```python
+# FastAPI 是主框架类，用于创建 Web 应用实例
 from fastapi import FastAPI
+# 从 middleware 模块导入之前定义的中间件和异常处理器
+# 这些横切关注点（日志、异常、鉴权）被集中管理，不污染业务代码
 from middleware import LoggingMiddleware, biz_error_handler, BizError, get_current_user
 
+# 创建 FastAPI 应用实例，这是整个应用的入口
 app = FastAPI()
 
 # 全局中间件：每个请求都经过
+# add_middleware 注册中间件，所有请求（包括未匹配路由的请求）都会经过
+# FastAPI 中间件执行顺序是"后注册的先执行"（洋葱模型）
 app.add_middleware(LoggingMiddleware)
 # 全局异常处理器：BizError 不再变成 500
+# add_exception_handler 注册自定义异常处理器，只处理指定异常类型
+# 这里只处理 BizError，其他异常（如 ValueError、数据库异常）仍会走默认处理
 app.add_exception_handler(BizError, biz_error_handler)
 
 
+# @app.post 路由装饰器，声明 POST /orders 接口
+# dependencies 参数声明该路由需要的依赖（在路由执行前自动完成鉴权）
+# Depends(get_current_user) 会在执行 create_order 前先解析 JWT token
 @app.post("/orders", dependencies=[Depends(get_current_user)])
 def create_order(body: dict, current_user: dict = Depends(get_current_user)):
     # 这里完全不需要检查 token、不需要记录日志、不需要 try/except 包裹
+    # 鉴权、日志、异常全由中间件和依赖注入在框架层面完成
+    # 业务代码只剩纯业务逻辑调用
     return service.create_order(current_user["user_id"], body["amount"])
 ```
 
@@ -471,6 +615,14 @@ GIL（全局解释器锁）规定：同一进程内，同一时刻只有一个�
 
 对 Web 服务的影响很直接：纯靠多线程想利用多核行不通，所以常起多个进程（gunicorn/uWSGI 的多个 worker），每个 worker 一个进程、各有一把 GIL，多进程才能真正并行吃满多核。
 
+<section class="article-embed-note">
+  <p class="article-embed-note-title">单进程能跑多少个并发单元（Python 视角）</p>
+  <p class="article-embed-note-lead">GIL 锁死线程并行，所以 Python Web 常用多进程吃满多核，IO 场景用协程。1 tick = 5 万，方便和 Go 篇对照。</p>
+  <figure class="lieflat-scene">
+    <svg class="lieflat-svg" viewBox="0 0 760 320" role="img" aria-label="Python 并发单元容量对比" style="font-family: Inter, system-ui, sans-serif;"><rect x="0" y="0" width="760" height="320" rx="16" fill="#F0EFEB" /><text x="28" y="34" font-size="15" font-weight="700" fill="#1C1C1A">单进程能跑多少个并发单元（Python 视角）</text><text x="28" y="54" font-size="11" fill="#8F8E88">1 tick = 5 万 · 空心圈 = 低于 1 tick · 线程被 GIL 卡死</text><text x="104" y="92" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">协程 / ASYNC</text><line x1="114" y1="100" x2="614" y2="100" stroke="#DEDDD6" stroke-width="0.6" /><line x1="114" y1="100" x2="114" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="159" y1="100" x2="159" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="204" y1="100" x2="204" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="249" y1="100" x2="249" y2="87" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><line x1="294" y1="100" x2="294" y2="82" stroke="#1C1C1A" stroke-width="0.9" opacity="0.6" /><circle cx="294" cy="104" r="1.2" fill="#C6C5BF" /><line x1="339" y1="100" x2="339" y2="85" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="384" y1="100" x2="384" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="429" y1="100" x2="429" y2="87" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><line x1="474" y1="100" x2="474" y2="82" stroke="#1C1C1A" stroke-width="0.9" opacity="0.6" /><line x1="519" y1="100" x2="519" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><circle cx="519" cy="104" r="1.2" fill="#C6C5BF" /><line x1="564" y1="100" x2="564" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><text x="624" y="94" font-size="14" font-weight="800" fill="#1C1C1A">≈50 万</text><text x="104" y="138" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">线程（GIL）</text><line x1="114" y1="146" x2="614" y2="146" stroke="#DEDDD6" stroke-width="0.6" /><circle cx="120" cy="146" r="2.4" fill="none" stroke="#8F8E88" stroke-width="0.8" /><text x="130" y="143" font-size="9" fill="#8F8E88">＜1 TICK · 同一时刻只有 1 个在跑</text><text x="624" y="140" font-size="12" font-weight="700" fill="#8F8E88">1</text><text x="104" y="184" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">进程 / GUNICORN WORKER</text><line x1="114" y1="192" x2="614" y2="192" stroke="#DEDDD6" stroke-width="0.6" /><line x1="118" y1="192" x2="118" y2="182" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="146" y1="192" x2="146" y2="180" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="174" y1="192" x2="174" y2="184" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><text x="184" y="189" font-size="9" fill="#8F8E88">CPU 核数 · 典型 4-8</text><text x="624" y="186" font-size="12" font-weight="700" fill="#8F8E88">4-8</text><line x1="28" y1="220" x2="732" y2="220" stroke="#DEDDD6" stroke-width="0.5" /><text x="380" y="240" font-size="8" font-weight="600" fill="#C6C5BF" text-anchor="middle" letter-spacing="0.1em">1 TICK = 5 万并发单元 · 线程被 GIL 锁死 · 协程单进程内无锁并发 · 进程按核数分配</text><text x="28" y="258" font-size="8" font-weight="500" fill="#C6C5BF" letter-spacing="0.08em">SOURCE · 后端架构深度解析（PYTHON 篇）第六章 · GIL 限制线程并行 · asyncio 单进程协程</text></svg>
+  </figure>
+</section>
+
 IO 密集和 CPU 密集要分开看：IO 密集（等网络、等库）用协程（asyncio）在一个进程内并发最高效；CPU 密集（计算）用多进程，或把计算交给会释放 GIL 的 C 扩展（如 NumPy）。ASGI 的 event loop 一旦碰到 CPU 重活也会被卡住、切不动别的任务，所以重计算要下沉到 Celery 或多进程。
 
 典型部署形态：Nginx（接入） → gunicorn（起 N 个 worker 进程，每个跑应用） → 应用（内部可能再用 asyncio）。水平扩容就是加机器或加 worker 数。
@@ -491,15 +643,24 @@ ORM 把数据库表和 Python 对象映射起来，你写 user.orders 而不是�
 
 ```python
 # 反例：循环里逐个触发关联查询，产生 N+1 次 SQL
+# 1 次查 users 表，N 次按每个 user 查 orders 表，总共 N+1 次
+# 数据量大时（如 10000 用户）会产生 10001 次 SQL，严重拖垮数据库
 users = session.query(User).all()
 for u in users:
-    print(u.orders)   # 每访问一次就打一次查 orders 的 SQL
+    # 每访问一次 u.orders 就触发一次查 orders 的 SQL（懒加载）
+    # 这是因为 SQLAlchemy 默认使用懒加载，只有访问关联属性时才查数据库
+    print(u.orders)
 
 # 正例：一次 JOIN 把关联数据取回来
+# joinedload 使用 LEFT JOIN 在第一次查询时就把 orders 一起带回来
+# 无论多少用户，始终只有 1 次 SQL（或 1 次 JOIN + 1 次额外查询）
 from sqlalchemy.orm import joinedload
+# options(joinedload(User.orders)) 告诉 SQLAlchemy：加载 User 时一并加载 orders
+# 这样后续访问 u.orders 时直接从已加载的数据中取，不再触发额外 SQL
 users = session.query(User).options(joinedload(User.orders)).all()
 for u in users:
-    print(u.orders)   # 不再额外打 SQL
+    # 不再额外打 SQL，orders 已经在第一次查询时通过 JOIN 加载到内存
+    print(u.orders)
 ```
 
 ## 连接池
@@ -515,19 +676,36 @@ for u in users:
 缓存把热点数据放内存（Redis），读起来比查库快几个数量级。最常用的是旁路缓存（Cache-Aside）：读的时候先查缓存，命中直接返回；没命中才查库，并把结果写回缓存再返回。写的时候先更新数据库，再删除缓存（注意顺序，先删缓存再更库会有并发不一致风险）。
 
 ```python
+# redis 是 Redis 的官方 Python 客户端库
 import redis, json
 
+# 创建 Redis 连接，默认连 localhost:6379
+# 生产环境应从配置读取 Redis 地址，这里用默认参数简化
 cache = redis.Redis()
 
+# 旁路缓存模式（Cache-Aside）的读取流程
+# 读路径：先查缓存 → 命中直接返回 → 未命中查库 → 回填缓存
 def get_user(user_id):
+    # 构造缓存 key，使用 "user:{user_id}" 格式
+    # 冒号分隔是 Redis key 的常见命名约定，便于管理和搜索
     key = f"user:{user_id}"
+    # cache.get 从 Redis 获取字符串值
     data = cache.get(key)
     if data:                        # 命中缓存
+        # 命中时直接反序列化 JSON 并返回，速度比查库快 1-2 个数量级
         return json.loads(data)
+    # 未命中缓存，回源查数据库
     row = db.query_user(user_id)    # 未命中，查库
+    # setex 设置带过期时间的缓存，300 秒（5 分钟）后自动过期
+    # 过期时间不是越长越好：太长会导致数据不一致，太短会导致频繁回源
     cache.setex(key, 300, json.dumps(row))  # 回填，300 秒过期
     return row
 
+# 旁路缓存模式的写流程
+# 写路径：先更新数据库 → 再删除缓存（注意顺序！）
+# 为什么是"删缓存"而不是"更新缓存"？
+# 因为删缓存后，下次读请求会自动回源查库并回填，保证数据一致性
+# 如果先删缓存再更库，并发场景下可能有其他请求在缓存删除后、DB 更新前查库，读到旧值
 def update_user(user_id, name):
     db.update_user(user_id, name)   # 先更库
     cache.delete(f"user:{user_id}") # 再删缓存
@@ -547,15 +725,30 @@ Celery 由四部分组成：任务（你写的 Python 函数，加 @app.task 装
 
 ```python
 # tasks.py
+# Celery 是 Python 生态最流行的异步任务队列框架
+# 它由四部分组成：Task（任务）、Broker（消息队列）、Worker（执行者）、Backend（结果存储）
 from celery import Celery
+
+# 创建 Celery 应用实例
+# "demo" 是当前应用的名字（用于在多个 Celery 应用中区分）
+# broker 指定消息队列（Broker）的连接地址，这里用 Redis 作为消息中间件
+# Redis 不是 Celery 的唯一选择，RabbitMQ 也是常见的 Broker
 app = Celery("demo", broker="redis://localhost:6379/0")
 
+# @app.task 装饰器将函数注册为 Celery 任务
+# 注册后，该函数可以被 Worker 进程异步执行，而不是在 Web 请求中同步执行
+# 这样 Web 请求只需将任务投到 Broker 就立刻返回，由 Worker 后台慢慢处理
 @app.task
 def send_welcome_email(user_id: int):
-    # 这里是耗时的邮件发送逻辑
+    # 这里是耗时的邮件发送逻辑（调 SMTP 服务、拼接邮件内容等）
+    # 这些操作可能耗时几百毫秒到几秒，放在 HTTP 请求里会让用户干等
+    # 所以放到 Celery Worker 中异步执行，用户提交后立即收到响应
     ...
 
 # 在 Web 视图里只投任务，不等它跑完
+# .delay() 将任务序列化后投到 Redis Broker，立即返回一个 AsyncResult 对象
+# 这个调用几乎不耗时（只是写 Redis），不会阻塞 HTTP 请求
+# Worker 进程在后台从 Redis 取出任务并执行
 send_welcome_email.delay(user_id=123)
 ```
 
@@ -640,19 +833,35 @@ order-service/
 配置最容易写成到处 os.getenv("DB_URL")，结果配置从哪来、叫什么名、是什么类型全靠记忆，环境一多就乱。工程做法是集中到一个 Settings 类，用 pydantic-settings 从环境变量或 .env 文件读取，并且带类型校验：启动时类型不对直接报错，而不是跑到一半才发现 db_url 是 None。
 
 ```python
+# pydantic_settings 是 Pydantic 的配置管理扩展
+# BaseSettings 提供从环境变量/.env 文件自动读取配置的能力
+# SettingsConfigDict 用于配置 Settings 类的行为（如环境文件路径、前缀等）
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Settings 类集中管理所有配置项，带类型校验和默认值
+# 好处：配置不再散落在各处 os.getenv()，一处定义处处使用
+# 启动时如果类型不对（比如 db_url 写了个数字），Pydantic 会直接报错
 class Settings(BaseSettings):
-    # env_file 指 .env；env_prefix 让变量以 APP_ 开头，避免和别的冲突
+    # model_config 配置 Settings 的行为：
+    # env_file=".env" 表示从项目根目录的 .env 文件读取环境变量
+    # env_prefix="APP_" 表示只读取以 APP_ 开头的环境变量，避免与系统变量冲突
+    # extra="ignore" 表示忽略 .env 中存在但 Settings 类未定义的字段
     model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
 
+    # 每个配置项都是一个带类型和默认值的类属性
+    # Pydantic 会自动从环境变量或 .env 文件读取对应的值
+    # 例如 .env 中写 APP_DB_URL=postgres://user:pass@localhost/db
+    # 就会自动赋值给 db_url 字段
     app_name: str = "order-service"
     db_url: str = "sqlite:///./app.db"
     redis_url: str = "redis://localhost:6379/0"
+    # jwt_secret 是 JWT 签名密钥，生产环境必须改！
     jwt_secret: str = "change-me"
+    # debug 控制是否开启调试模式，布尔类型自动转换
     debug: bool = False
 
-# 全局单例，别处直接 from app.core.config import settings
+# 全局单例，别处直接 from app.core.config import settings 即可使用
+# Settings() 会在首次导入时从 .env 和环境变量读取并校验所有配置
 settings = Settings()
 ```
 
@@ -665,33 +874,57 @@ settings = Settings()
 所以工程上分两层。models 是数据库表的映射，描述"数据怎么存"；schemas 是 API 的出入参模型，描述"接口长什么样"。两者通过显式转换连接，互不直接耦合。
 
 ```python
+# datetime 模块提供时间类型，用于映射数据库的时间戳列
 from datetime import datetime
+# sqlalchemy 的类型定义：String, Float 对应数据库的 VARCHAR 和 FLOAT 类型
+# func 是 SQL 函数集合，func.now() 对应数据库的 CURRENT_TIMESTAMP
 from sqlalchemy import String, Float, func
+# DeclarativeBase 是 SQLAlchemy 2.x 风格的声明式基类
+# Mapped 和 mapped_column 是 2.x 推荐的类型映射方式（比 1.x 的 Column 更简洁）
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+# Base 类继承 DeclarativeBase，所有 ORM 模型都继承自它
+# 这是 SQLAlchemy 2.x 的推荐写法（1.x 用 declarative_base()）
 class Base(DeclarativeBase):
     pass
 
+# Order 是 ORM 模型类，映射数据库中的 orders 表
+# 注意：这不是领域对象，它绑定了 SQLAlchemy session，
+# 会有懒加载、脏写回等 ORM 特性，不应泄漏到业务层
 class Order(Base):
+    # 指定对应的数据库表名
     __tablename__ = "orders"
 
+    # Mapped[int] 是 2.x 的类型注解方式，mapped_column 定义列属性
+    # primary_key=True 表示主键，数据库会自动自增
     id: Mapped[int] = mapped_column(primary_key=True)
+    # index=True 为该列创建索引，加速按 user_id 查询订单的速度
     user_id: Mapped[int] = mapped_column(index=True)
+    # Float 类型映射数据库的浮点数列
     amount: Mapped[float] = mapped_column(Float)
+    # String(20) 限制字符串长度为 20，default="created" 是 Python 端的默认值
     status: Mapped[str] = mapped_column(String(20), default="created")
+    # server_default=func.now() 是数据库端的默认值，由数据库服务器生成当前时间戳
+    # 这意味着即使 Python 不传 created_at，MySQL/Postgres 也会自动填入
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 ```
 
 ```python
+# datetime 用于出参模型中的时间字段类型标注
 from datetime import datetime
+# BaseModel 是 Pydantic 的基类，用于定义数据模型并自动做类型校验
 from pydantic import BaseModel
 
-# 入参：客户端传什么
+# 入参模型：定义客户端需要传什么字段、什么类型
+# FastAPI 会自动将 JSON 请求体解析为 OrderCreate 实例
+# 如果类型不对（比如 amount 传了字符串 "abc"），FastAPI 自动返回 422 错误
 class OrderCreate(BaseModel):
     user_id: int
     amount: float
 
-# 出参：服务端返回什么（from_attributes 允许从 ORM 对象填充）
+# 出参模型：定义服务端返回给客户端的字段
+# 注意：这里不包含任何 ORM 特性，是纯数据结构
+# 数据库里的内部字段（如内部状态标记）不会被暴露出去
 class OrderOut(BaseModel):
     id: int
     user_id: int
@@ -699,6 +932,9 @@ class OrderOut(BaseModel):
     status: str
     created_at: datetime
 
+    # model_config = {"from_attributes": True} 允许从 ORM 对象直接填充
+    # 这意味着可以直接用 OrderOut.model_validate(orm_order) 将 ORM 对象转出参
+    # 不需要手动逐个字段赋值，Pydantic 会自动读取 ORM 对象的属性
     model_config = {"from_attributes": True}
 ```
 
@@ -711,38 +947,73 @@ Repository 的职责是：所有和数据库打交道的逻辑都封在这一层
 先准备数据库引擎和 session 工厂。session 是和数据库的一次会话，Repository 不自己 new 引擎，而是从外部接收一个 session，这样事务边界能由上层统一控制。
 
 ```python
+# create_engine 创建数据库引擎，是 SQLAlchemy 的核心入口
+# 引擎管理连接池、SQL 执行、事务等底层操作
 from sqlalchemy import create_engine
+# sessionmaker 创建 Session 工厂，Session 是与数据库的一次会话
+# Session 提供 ORM 的增删改查接口
 from sqlalchemy.orm import sessionmaker, Session
+# 从配置模块读取 db_url，不硬编码数据库地址
 from app.core.config import settings
 
+# 创建引擎：settings.db_url 是数据库连接字符串
+# 如 "postgresql://user:pass@localhost/mydb" 或 "sqlite:///app.db"
+# 引擎创建后不会立即连接数据库，而是延迟到第一次使用时
 engine = create_engine(settings.db_url)
+
+# 创建 Session 工厂：bind=engine 绑定到引擎，autoflush=False 关闭自动 flush
+# autoflush=False 的好处：不会在查询前自动 flush 未提交的变更
+# 避免意外的脏写，显式控制 flush/commit 时机更安全
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 
 # 依赖注入工厂：每个请求一个新 session，用完关闭
+# 使用 Python 生成器模式：yield session 给业务使用，finally 块保证 session 关闭
+# 这是 FastAPI 推荐的 session 生命周期管理方式
 def get_session() -> Session:
+    # 从工厂创建一个新的 Session
     session = SessionLocal()
     try:
+        # yield 暂停执行，将 session 交给 FastAPI 依赖注入系统
+        # FastAPI 会将此 session 注入到路由函数的参数中
         yield session
     finally:
+        # 请求结束后（无论成功或异常）都会执行 finally 块
+        # 确保 session 被关闭，连接归还连接池，避免连接泄漏
         session.close()
 ```
 
 ```python
+# Session 是 SQLAlchemy 的会话类型，用于类型注解
 from sqlalchemy.orm import Session
+# 导入 ORM 模型 Order（注意：这是 ORM 模型，不是领域对象）
 from app.models.order import Order
 
+# OrderRepository 是数据访问层的实现，封装所有数据库操作
+# 设计原则：Repository 不写业务规则，只做"存取数据"的原子操作
+# 事务边界由 Service 层控制（通过 commit 方法暴露给 Service）
 class OrderRepository:
+    # 构造函数接收外部注入的 Session，不自行创建
+    # 好处：Service 可以在同一个 Session 中编排多个 Repository 操作
     def __init__(self, session: Session):
         self.session = session
 
+    # get 方法：按主键查询单个订单
+    # Session.get() 是 SQLAlchemy 2.x 推荐的主键查询方式
+    # 返回 ORM 模型实例或 None（不存在时）
     def get(self, order_id: int) -> Order | None:
         return self.session.get(Order, order_id)
 
+    # create 方法：创建新订单（不提交事务）
+    # 注意：这里只 add 不 commit！commit 由 Service 统一控制
+    # 这样 Service 可以在一个事务中编排多个写操作
     def create(self, user_id: int, amount: float) -> Order:
         order = Order(user_id=user_id, amount=amount)
         self.session.add(order)
         return order
 
+    # commit 方法：提交当前事务
+    # 由 Service 调用，因为 Service 知道哪些操作应该在同一个事务中
+    # 设计意图：把事务控制权交给业务逻辑层，而不是每个 Repository 方法各自提交
     def commit(self) -> None:
         self.session.commit()
 ```
@@ -754,30 +1025,52 @@ class OrderRepository:
 Service 是系统的核心，所有业务规则、校验、事务边界、对下游的编排都在这层。它依赖 Repository 拿数据，但不碰 HTTP、不碰 SQL。把业务放这里而不是放路由里，有两个实在的好处：一是路由能保持极薄，只做协议转换；二是这段逻辑可以脱离 Web 单独跑单测，甚至被别的入口（比如定时任务、消息消费）复用。
 
 ```python
+# 从数据访问层导入 OrderRepository，Service 通过它操作数据库
 from app.repositories.order_repo import OrderRepository
+# 从 schemas 层导入 Pydantic 模型，用于接收入参和构造出参
 from app.schemas.order import OrderCreate, OrderOut
+# Session 类型注解，Service 通过 Session 创建 Repository
 from sqlalchemy.orm import Session
 
+# OrderService 是业务逻辑层的核心类
+# 它的职责：编排业务用例、管理事务边界、落实领域规则
+# 注意：Service 不直接 import HTTP 相关模块，不拼 SQL，不碰 ORM session
 class OrderService:
+    # 构造函数接收 Session，内部创建 OrderRepository
+    # 为什么不在 Service 中直接操作 Session？因为 Repository 封装了数据访问细节
+    # 如果将来换数据库或加缓存，只改 Repository，Service 不需要动
     def __init__(self, session: Session):
         self.repo = OrderRepository(session)
 
+    # create_order 是下单用例的编排入口
+    # 接收 Pydantic 入参模型，返回 Pydantic 出参模型
+    # 方法内部按顺序执行：校验 → 编排 → 事务提交 → 出参转换
     def create_order(self, data: OrderCreate) -> OrderOut:
         # 1. 业务校验：金额必须为正
+        # 业务校验与格式校验的区别：格式校验由 Pydantic/FastAPI 在路由层完成
+        # 业务校验是带业务语义的判断（如金额不能为负、不能超过上限）
         if data.amount <= 0:
             raise ValueError("amount must be positive")
 
         # 2. 业务校验：库存（真实场景调库存服务，这里简化为占位）
+        # 库存检查可能涉及调用下游服务或查缓存，属于业务编排范畴
         if not self._has_stock(data.user_id, data.amount):
             raise ValueError("insufficient stock")
 
         # 3. 事务边界：下单动作在一个 session 提交内完成
+        # repo.create() 只 add 不 commit，repo.commit() 统一提交
+        # 这样如果后续再加扣积分、发消息等操作，都可以放进同一个事务
         order = self.repo.create(user_id=data.user_id, amount=data.amount)
         self.repo.commit()
 
         # 4. 转成对外结构返回
+        # OrderOut.model_validate(order) 将 ORM 对象转为 Pydantic 出参模型
+        # 这一步切断了 ORM 与 API 的耦合，返回的是纯数据结构
         return OrderOut.model_validate(order)
 
+    # _has_stock 是私有方法（以 _ 开头），封装库存检查逻辑
+    # 私有方法不对外暴露，只在 Service 内部使用
+    # 真实项目中这里可能查缓存、调库存服务、或查数据库
     def _has_stock(self, user_id: int, amount: float) -> bool:
         # 真实项目里这里查库存服务或缓存，返回布尔
         return True
@@ -790,20 +1083,36 @@ class OrderService:
 接入层唯一该干的事是：把 HTTP 请求解析成内部对象 → 调用 Service → 把 Service 结果组装成 HTTP 响应。它不该写业务规则，也不该直接操作数据库。FastAPI 里路由函数通过 Depends 拿到 Service 需要的 session，然后 new 一个 Service 把活交出去。
 
 ```python
+# APIRouter 用于创建路由组，Depends 用于依赖注入
 from fastapi import APIRouter, Depends
+# Session 类型注解，FastAPI 会通过 Depends 注入 session 实例
 from sqlalchemy.orm import Session
+# get_session 是前面定义的 session 工厂生成器（生成器依赖）
+# FastAPI 会自动调用它获取 session，并在请求结束后关闭
 from app.core.db import get_session
+# OrderService 业务逻辑层，路由通过它执行业务
 from app.services.order_service import OrderService
+# 入参和出参的 Pydantic 模型
 from app.schemas.order import OrderCreate, OrderOut
 
+# 创建路由组：prefix="/orders" 所有路由自动加上 /orders 前缀
+# tags=["orders"] 用于 OpenAPI 文档分组显示
 router = APIRouter(prefix="/orders", tags=["orders"])
 
+# @router.post 声明 POST 接口，response_model 指定出参模型
+# response_model=OrderOut 让 FastAPI 自动用 OrderOut 序列化响应
 @router.post("", response_model=OrderOut)
 def create_order(
+    # data: OrderCreate 自动解析 JSON 请求体并校验类型
     data: OrderCreate,
+    # session: Session = Depends(get_session) 通过依赖注入获取 session
+    # FastAPI 会调用 get_session() 生成器，yield session 给这里使用
+    # 请求结束后自动回到 get_session 的 finally 块关闭 session
     session: Session = Depends(get_session),
 ):
     # 只做协议转换：解析请求 → 调业务 → 返回响应
+    # 路由层不写任何业务逻辑，不直接操作数据库
+    # Service 在路由内部实例化，接收 session 完成数据库操作
     service = OrderService(session)
     return service.create_order(data)
 ```
@@ -815,20 +1124,33 @@ def create_order(
 前面每一层都是独立零件，main.py 是总装线：创建 FastAPI 实例、挂上路由、初始化数据库、注册中间件和异常处理器。把装配集中在一处，应用从哪里启动、装了哪些组件一目了然。
 
 ```python
+# FastAPI 主框架
 from fastapi import FastAPI
+# 从路由模块导入路由实例，并重命名为 orders_router 避免命名冲突
 from app.api.orders import router as orders_router
+# 从数据库模块导入 engine（用于建表）
 from app.core.db import engine
+# 从模型模块导入 Base，Base.metadata 包含所有 ORM 模型的表结构信息
 from app.models.order import Base
 
+# create_app 是应用工厂函数（Factory Pattern）
+# 设计意图：不在模块顶层直接创建 app 实例并执行副作用
+# 好处：测试时可以多次调用 create_app() 创建干净的实例，互不影响
+# 如果在模块顶层直接执行建表等操作，import 模块就会触发副作用，测试困难
 def create_app() -> FastAPI:
+    # 创建 FastAPI 实例，title 会显示在 OpenAPI 文档页面
     app = FastAPI(title="order-service")
-    # 挂路由
+    # include_router 将路由组挂载到主应用
+    # 可以多次调用，将不同模块的路由组织在一起
     app.include_router(orders_router)
-    # 建表（生产环境用 Alembic migration 替代）
+    # Base.metadata.create_all(engine) 根据 ORM 模型自动建表
+    # 注意：这只适合开发/测试环境，生产环境应使用 Alembic 等迁移工具
+    # create_all 只会创建不存在的表，不会修改已有表的结构
     Base.metadata.create_all(engine)
     return app
 
-# 给 uvicorn 用的入口：app.main:app
+# 给 uvicorn/gunicorn 用的入口：app.main:app
+# 这一行是模块级别的变量，ASGI 服务器会 import 它
 app = create_app()
 ```
 
@@ -843,11 +1165,19 @@ app = create_app()
 Service 抛出的业务错误（比如 ValueError）如果直接冒泡，FastAPI 会返回 500。注册一个异常处理器，把它转成统一结构的 4xx 响应，前端也好解析。
 
 ```python
+# Request 是 FastAPI 的请求对象类型，用于异常处理器的参数类型注解
 from fastapi import Request
+# JSONResponse 用于构造 JSON 格式的 HTTP 响应
 from fastapi.responses import JSONResponse
 
+# @app.exception_handler 注册全局异常处理器
+# 捕获指定类型的异常（这里是 ValueError），将其转换为统一的 JSON 响应
+# 这样业务代码 raise ValueError 不会变成默认的 500 HTML 错误页
+# 注意：这里的 app 必须是已创建的 FastAPI 实例，所以这段代码应该在 create_app 之后执行
 @app.exception_handler(ValueError)
 async def handle_value_error(request: Request, exc: ValueError):
+    # 返回 400 状态码（表示客户端请求有误）和统一格式的错误信息
+    # exc 是被捕获的异常实例，str(exc) 即业务代码传入的错误消息
     return JSONResponse(
         status_code=400,
         content={"error": str(exc)},
@@ -859,14 +1189,32 @@ async def handle_value_error(request: Request, exc: ValueError):
 每个请求生成一个 trace_id，贯穿整条调用链，写日志时带上它，出问题时能把一次请求的所有日志串起来。中间件在请求前后插一脚，对业务代码零侵入。
 
 ```python
+# uuid 用于生成唯一 trace_id
 import uuid
+# BaseHTTPMiddleware 是 Starlette 中间件基类
+# 继承它可以自定义请求前后的拦截逻辑
 from starlette.middleware.base import BaseHTTPMiddleware
 
+# TraceMiddleware 是链路追踪中间件
+# 职责：为每个请求分配 trace_id，透传在 request.state 和响应 header 中
+# 设计意图：对业务代码零侵入，业务代码不需要感知 trace_id 的存在
+# 但日志、下游服务调用都可以从中取到同一个 trace_id，串起整条链路
 class TraceMiddleware(BaseHTTPMiddleware):
+    # dispatch 是中间件的入口方法，必须是 async def
+    # request 是 ASGI 的请求对象，call_next 是下一个处理链
     async def dispatch(self, request, call_next):
+        # 优先从请求 header 获取上游传来的 X-Trace-Id
+        # 如果上游（如网关）已分配 trace_id，就沿用它，保证全链路 ID 一致
+        # 如果没有，则生成新的 uuid.hex（32 位无短横线格式，更紧凑）
         trace_id = request.headers.get("X-Trace-Id") or uuid.uuid4().hex
+        # 将 trace_id 存入 request.state，后续中间件/路由/服务层都可以取到
+        # request.state 是 Starlette 提供的请求级状态存储，生命周期与请求一致
         request.state.trace_id = trace_id
+        # call_next(request) 执行后续的中间件和路由处理
+        # await 等待响应返回后，再将 trace_id 写入响应 header
         response = await call_next(request)
+        # 将 trace_id 写入响应 header，前端或下游服务可以读取
+        # 即使出错，trace_id 也会出现在响应中，方便排查
         response.headers["X-Trace-Id"] = trace_id
         return response
 ```
@@ -876,12 +1224,23 @@ class TraceMiddleware(BaseHTTPMiddleware):
 鉴权也做成依赖，路由声明要 current_user 就自动先走鉴权，拿不到合法 token 直接 401，业务代码里完全不用管"谁登录了"。
 
 ```python
+# Depends 用于声明依赖注入，Header 用于从 HTTP header 提取参数
+# HTTPException 用于返回 HTTP 错误响应（如 401）
 from fastapi import Depends, Header, HTTPException
 
+# get_current_user 是鉴权依赖函数
+# 路由声明 current_user = Depends(get_current_user) 后
+# FastAPI 在执行路由前自动调用此函数，完成 token 校验
+# 如果校验失败，直接返回 401，路由函数不会执行
 async def get_current_user(authorization: str = Header(None)) -> dict:
+    # Header(None) 从请求的 Authorization header 取值，默认 None
+    # 如果没带 Authorization header，值为 None
     if not authorization:
+        # 401 表示未认证，detail 是错误描述
         raise HTTPException(status_code=401, detail="missing token")
-    # 真实场景用 jwt 解码并校验签名，这里简化为非空校验
+    # 真实场景用 jwt 解码并校验签名、过期时间
+    # 这里简化为非空校验，只演示鉴权依赖的架构思路
+    # 真实项目应使用 jose.jwt.decode() 完整校验 JWT
     return {"user": authorization}
 ```
 
@@ -892,24 +1251,41 @@ async def get_current_user(authorization: str = Header(None)) -> dict:
 前面反复用 Depends(get_session) 把 session 注入到路由。依赖注入不只是少写几行代码，它真正解决的是可测试性。因为 session 是从外部"注入"的，测试时就能把它替换成指向测试库的 session，业务代码一行不改，单测就能跑起来、还能不污染生产数据。
 
 ```python
+# TestClient 是 FastAPI/Starlette 提供的测试客户端
+# 它模拟 HTTP 请求，不需要真正启动 ASGI 服务器
 from fastapi.testclient import TestClient
+# 导入已创建的 app 实例
 from app.main import app
+# 从数据库模块导入 SessionLocal（测试用的 session 工厂）和 get_session（生产用的依赖）
 from app.core.db import SessionLocal, get_session
 
 def test_create_order():
     # 覆盖 get_session 依赖，指向测试库
+    # dependency_overrides 是 FastAPI 的依赖覆盖机制
+    # 当路由请求 get_session 时，FastAPI 会用 fake_session 替代原实现
+    # 这使得测试可以指向独立的测试数据库，不污染生产数据
     def fake_session():
+        # SessionLocal 默认连配置中的 db_url，测试环境应配置为 SQLite 内存库
+        # 真实项目中测试配置应指向独立的测试数据库
         session = SessionLocal()   # 接测试库，而非生产库
         try:
             yield session
         finally:
             session.close()
 
+    # 将 get_session 的依赖替换为 fake_session
+    # 这样整个请求链（路由→Service→Repository）都用测试库的 session
     app.dependency_overrides[get_session] = fake_session
+    # 创建测试客户端，模拟 HTTP 请求
     client = TestClient(app)
+    # 发送 POST 请求到 /orders，用 JSON 作为请求体
     resp = client.post("/orders", json={"user_id": 1, "amount": 9.9})
+    # 断言响应状态码为 200（请求成功）
     assert resp.status_code == 200
+    # 断言响应体中的金额字段
     assert resp.json()["amount"] == 9.9
+    # 清理依赖覆盖，避免影响后续测试
+    # 实际项目中建议用 pytest 的 fixture 自动处理
     app.dependency_overrides.clear()
 ```
 
