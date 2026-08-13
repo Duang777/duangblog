@@ -5,7 +5,6 @@ title: 后端架构深度解析（Go 篇）：用 goroutine 和接口把高并�
 featured: false
 draft: false
 tags:
-  - 后端专栏
   - 后端架构深度解析
   - Go
 description: 用 Go 重走一次 HTTP 请求链路，重点讲和 Python 不一样的地方：没有 GIL、原生 goroutine、接口驱动的分层、单一二进制部署。
