@@ -5,6 +5,7 @@ title: 后端架构深度解析（TypeScript / Node 篇）：单线程事件循�
 featured: false
 draft: false
 tags:
+  - 后端专栏
   - 后端架构深度解析
   - TypeScript
 description: 用 TypeScript（跑在 Node.js 上）把同一次请求从进门到出门的链路再走一遍。重点讲和 Python、Go 不一样的地方：单线程事件循环、异步非阻塞 I/O、NestJS 装饰器驱动的分层与依赖注入。
@@ -35,13 +36,35 @@ flowchart LR
 
   Client --> Nginx --> NodeBin --> Router --> Service --> DAL --> DB
   Service -. 异步任务 .-> MQ
-
-  classDef cross stroke-dasharray: 4 3
 ```
 
 分层带来的好处很实在：解耦（改接入层不影响业务）、各自演进（框架升级不带动数据层）、故障隔离、好测试。不管是 Python、Go 还是 TypeScript，后端架构要解决的根本问题都一样：当外部请求进来，怎么把它接住、拆解、调动业务和数据库、再把结果安全地送回去，并且整个过程在流量变大、依赖变多、人员变多时仍然可控。具体落到四件事上：分层（让每一层只关心自己该关心的）、解耦（业务代码不直接依赖 HTTP 协议、不直接拼 SQL）、并发（在有限的进程/线程里，尽可能多地同时处理请求而不互相拖垮）、可观测（出了问题能知道卡在哪一层、哪次请求、什么原因）。
 
-这一篇和前两篇最大的不同在"并发"那一栏：TypeScript/Node 是单线程事件循环模型，它不靠多线程，而是靠异步 I/O 在等待数据库、网络返回时腾出 CPU 去处理别的请求。
+这一篇和前两篇最大的不同在"并发"那一栏：TypeScript/Node 是单线程事件循环模型，它不靠多线程，而是靠异步 I/O 在等待数据库、网络返回时腾出 CPU 去处理别的请求。下面第二章先把这门语言运行时讲清楚，第三章给出结构总览，之后逐层展开。
+
+<details class="marginalia" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    Node 的分层靠框架约束，不是靠编译器守。NestJS 的 Module/Controller/Service 结构是"你不按这个写编译也过不了"的 Python 风格，只是用装饰器把声明做得更显式。Go 是编译器守，Python 和 TS 是框架守。
+  </div>
+</details>
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · 单线程里跑异步</span>
+  </div>
+  <p class="duang-whisper-body">单线程事件循环是 Node 的命根子。I/O 密集用它最爽，CPU 密集别碰它。一条线串起所有请求，哪个 I/O 先回来先处理谁。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
 
 ## 二、TypeScript / Node 在后端的定位与生态
 
@@ -54,6 +77,23 @@ TypeScript 是 JavaScript 的超集，给 JS 加了静态类型；Node.js 是让
 Node 不适合 CPU 密集任务（长计算会阻塞事件循环，拖垮所有请求），但非常适合 I/O 密集的 Web 服务、API 网关、BFF（服务于前端的后端）、实时通信（WebSocket）。这也是为什么它常和 Python/Go 出现在同一家公司里，各管一段：计算重的用 Go/Python，I/O 多、要快速出业务的用 Node。
 
 框架生态上，Node 后端从最轻的 Express，到洋葱模型的 Koa，到高性能带 schema 校验的 Fastify，再到工程化最强、带 IoC 的 NestJS。本篇工程落地部分用 NestJS，因为它把"模块、依赖注入、分层"这些架构约束直接做进了框架，和前两篇的 Python 工程结构、Go 的 internal 分层可以直接对照。
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · 生态是最大的武器</span>
+  </div>
+  <p class="duang-whisper-body">npm 是最大的包仓库，前后端共用 TS 是杀手级优势。选 Node 不只是选语言，是选生态和团队协作方式。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
 
 ## 三、分层架构：每一层到底干什么，代码长什么样
 
@@ -97,7 +137,7 @@ order-service/
             └── order-response.dto.ts
 ```
 
-记住一条主线：请求从 order.controller 进来，调用 order.service 里的业务，service 再调用 order.repository 取数，repository 操作 order.entity 对应的表；common/ 里的日志、鉴权、异常被各层共享，但 common 自己不依赖任何业务代码。依赖方向永远是 controller → service → repository → entity，反向不通。下面逐层展开时，每段代码都会标明它属于上面这个树的哪个位置。
+记住一条主线：请求从 order.controller 进来，调用 order.service 里的业务，service 再调用 order.repository 取数，repository 操作 order.entity 对应的表；common/ 里的日志、鉴权、异常被各层共享，但 common 自己不依赖任何业务代码。依赖方向永远是 controller → service → repository → entity，反向不通。
 
 ### 接入层（反向代理 + Node 进程）
 
@@ -115,9 +155,6 @@ upstream node_backend {
     server 127.0.0.1:3000;  # Node 实例 1
     server 127.0.0.1:3001;  # Node 实例 2（PM2 或容器起多份）
 }
-
-# 限流 zone 定义在 http 块里
-# limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 
 server {
     listen 443 ssl;
@@ -149,17 +186,12 @@ server {
 
 和前两篇一样，TLS、静态、超时、限流都交给 Nginx。Node 是单进程、靠 PM2 或容器起多份横向扩展，Nginx 把这多个实例当 upstream。注意一个 Node 特有的点：Nginx 的 `proxy_read_timeout 30s` 只管"Nginx 到 Node"这一段；Node 自己的 `server.timeout` 和 `headersTimeout` 也得配，否则一个慢 handler 仍能把事件循环里的连接占满。另外 Node 不适合 CPU 密集任务，大循环、加解密、压缩这些会阻塞事件循环，应该放到接入层之外的独立服务去做。
 
-<strong>常见坑：</strong>
-
-<strong>限流放错位置。</strong>和 Python/Go 一样，把限流写在应用层而不是 Nginx，Node 多实例各自计数根本拦不住。Nginx 是全局唯一入口，在这里限流才准。比如你能容忍一秒 100 请求，分到 3 个 Node 实例，每个只看到 33，全放过去了。同样地，Nginx 的 `limit_req` 要配 `burst` 缓冲，否则正常的小高峰也被硬拒。
-
-<strong>漏写 proxy_set_header Host。</strong>Node 拿到的 `req.headers.host` 会变成内部地址（比如 `127.0.0.1:3000`），代码里生成 URL 或重定向时地址全错。还有 `X-Forwarded-For` 别忘了，否则你看到的客户端 IP 全是 Nginx 的，限流和审计都没法做。
-
-<strong>Node 的 server 没配超时。</strong>Nginx 的超时只管到 Node 这一段，Node 自己如果没配 `server.timeout`，被慢客户端或慢依赖拖住时，连接会一直占着事件循环，单个实例的吞吐直接塌方。Node 是单线程，一个事件循环被占满，上面的所有请求一起卡住，比多进程语言更严重。
-
-<strong>静态资源没配 expires。</strong>Nginx 的 `location /static/` 不加 `expires 30d`，浏览器每次刷新都回源，Nginx 和 Node 一起被重复请求拖垮。加上后浏览器不再回源，压力归零。对 Node 尤其重要，因为回源会占用本就不富裕的事件循环。
-
-<strong>在 Node 主线程里跑 CPU 密集计算。</strong>这是 Node 最典型的坑。Node 是单线程事件循环，一个大的 for 循环、同步加解密、同步压缩，会阻塞整个事件循环，所有正在处理的请求一起卡住，吞吐直接塌方。CPU 密集的活要么用 Worker Threads 丢到子线程，要么拆成独立服务（Go/Rust 写的）去干，绝对不能放在处理 HTTP 的主事件循环里。
+<details class="marginalia" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    Node 单线程的特性决定了：一个 CPU 密集的 handler 会卡掉整个事件循环，所有正在处理的请求一起卡住。Python 多进程还能靠其他 worker 接请求，Go 多线程还能靠其他核跑，Node 一个事件循环被堵就全堵。CPU 重活必须丢给 Worker Threads 或独立服务。
+  </div>
+</details>
 
 ### 应用层 / 业务逻辑层
 
@@ -180,25 +212,17 @@ import { UserClient } from '../user/user.client';
 
 @Injectable()
 export class OrderService {
-  // 构造函数注入：依赖由 NestJS 容器在装配时传入，不在这里 import 具体实现
   constructor(
     private readonly orderRepo: OrderRepository,
     private readonly userClient: UserClient,
   ) {}
 
   async createOrder(dto: CreateOrderDto) {
-    // ---- 业务校验：规则集中在这里，不散落在 controller 里 ----
     if (dto.amount <= 0) throw new Error('金额必须大于零');
-
-    // ---- 编排用例：调用 DAL / 其他服务取数据 ----
     const user = await this.userClient.get(dto.userId);
     if (!user) throw new NotFoundException('用户不存在');
-
-    // ---- 落实领域规则：新用户首单打九折 ----
     const discount = user.isNew ? 0.9 : 1;
     const finalAmount = dto.amount * discount;
-
-    // ---- 调用 DAL 落库：不知道底层是 TypeORM 还是别的 ----
     return this.orderRepo.save({
       userId: dto.userId,
       amount: finalAmount,
@@ -211,7 +235,7 @@ export class OrderService {
 而"薄路由"只做协议转换，把校验、规则都交给 service：
 
 ```typescript
-// order.controller.ts — 薄路由（只转换协议，不放业务）
+// order.controller.ts — 薄路由
 import { Controller, Post, Body } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -222,25 +246,17 @@ export class OrderController {
 
   @Post()
   async create(@Body() dto: CreateOrderDto) {
-    // 这里没有 if 校验、没有 try/catch、没有 SQL，只有一次调用
     return this.orderService.createOrder(dto);
   }
 }
 ```
 
-校验逻辑集中在 service（Controller 不重复判断）；通过 Repository 接口访问数据（不知道底层是 MySQL 还是别的）；领域规则（新用户折扣）写在业务流程里而不是散在各处。构造函数注入让单测传一个 mock 假实现就能替换真实数据库。将来从 TypeORM 换 Prisma，只要 Repository 接口不变，这层一行不用改。
-
-<strong>常见坑：</strong>
-
-<strong>忘了 await。</strong>这是 Node 最高频的静默 bug。比如 `const user = this.userClient.get(dto.userId)`，拿到的是 Promise 对象而不是用户数据，后面的 `if (!user)` 永远为 false，金额校验形同虚设。更糟的是返回 Promise 时，NestJS 把它当正常结果返回，前端拿到一个 `Promise { <pending> }` 字符串。所有返回 Promise 的调用都得 await。
-
-<strong>把校验写进 Controller。</strong>同样的下单校验如果在 HTTP 接口、消息消费、定时任务里各写一遍，规则一改就漏改，出现不一致。比如金额上限从 10 万改成 50 万，你改了 controller 忘了改消费者，两边行为就不一样了。正确做法是把校验收口到 service，controller 只管"接参数、调 service、转响应"。
-
-<strong>service 里直接 res.json(...) 或操作 Express Response。</strong>图方便在 service 里 `res.status(200).json({...})` 返回响应，把 HTTP 协议混进了业务层。将来这个下单逻辑要被消息队列消费、或被 gRPC 复用，你会发现 service 根本没法用，因为它返回的是 HTTP 响应。service 应该永远返回领域对象或 throw error，"转成什么格式"交给调用方。
-
-<strong>不用接口、直接写死具体类。</strong>在 service 里直接 `import { OrderRepository } from './order.repository'` 然后 new 出来，把具体类型写死。这样单测必须连真库才能跑，而且没法模拟"数据库报错"这种异常分支。构造函数注入（NestJS 的 IoC 容器自动传入）让单测可以传一个 mock 假实现，既快又覆盖异常路径。
-
-<strong>service 和 repository 互相 import 造成循环依赖。</strong>NestJS 里如果 repository import service（比如 repo 里想调 service 发通知），构建时会拿到 undefined 的依赖，启动时报诡异的"Cannot read properties of undefined"。靠构造函数注入而不是顶层 import 可以完全避免，依赖由容器在运行时传入，不在模块加载时互相等待。
+<details class="marginalia" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    NestJS 的 IoC 容器是关键。`@Injectable()` 声明一个可被注入的服务，构造函数参数由容器自动解析。你不需要 `new OrderService()`，容器帮你管生命周期和依赖关系。这让单测变得简单：传一个 mock 的 OrderRepository 就行。
+  </div>
+</details>
 
 ### 数据访问层（DAL / Repository）
 
@@ -248,15 +264,12 @@ export class OrderController {
 
 这一层收口了所有数据库操作。业务层只调 `repo.save(...)`、`repo.findById(...)`，完全不知道数据存在哪张表、用的什么 ORM。它暴露的是"建订单""查订单"这种带业务语义的方法，而不是"执行这条 SQL"。连接池由 DataSource 在装配时统一配置（最大连接、超时都在一个地方设好），不在每个方法里开关。结果映射由 Entity 完成：把数据库行转成对象，上层拿到的是普通实体而不是裸行或查询构建器。
 
-这一层不写业务规则（"满 100 减 10"不该出现在这）、不碰 HTTP、不在每个方法里各开各的事务。事务边界应由 service 圈定，Repository 方法只管单条读写、不自己提交。
-
-下面用 TypeORM 给出 Entity 与 Repository 的实现。Entity 描述表结构，Repository 把数据库操作收口成语义方法：
+下面用 TypeORM 给出 Entity 与 Repository 的实现：
 
 ```typescript
 // order.entity.ts + order.repository.ts — 数据访问层
 import { Entity, PrimaryGeneratedColumn, Column, DataSource } from 'typeorm';
 
-// ---- Entity：表到对象的映射 ----
 @Entity()
 export class OrderEntity {
   @PrimaryGeneratedColumn()
@@ -272,9 +285,7 @@ export class OrderEntity {
   status: string;
 }
 
-// ---- Repository：收口所有数据库操作 ----
 export class OrderRepository {
-  // DataSource 由外部注入，连接池在装配时统一配好
   constructor(private readonly dataSource: DataSource) {}
 
   private repo = this.dataSource.getRepository(OrderEntity);
@@ -289,32 +300,19 @@ export class OrderRepository {
 }
 ```
 
-Repository 的构造函数接收外部注入的 DataSource，不在内部自己 new，单测可塞 SQLite 内存库。save 把"建对象 + 写入"收成一步，业务层只看到语义方法；连接池、事务在 DataSource 层统一配置，Repository 方法只管读写。如果将来从 TypeORM 换 Prisma，只要把 Repository 实现换掉、接口（方法签名）不变，业务层完全无感。
-
-<strong>常见坑：</strong>
-
-<strong>在 Repository 里写业务规则。</strong>比如把"金额打九折"写在 `repo.save` 里。DAL 本该是稳定的 CRUD，业务规则一混进来，改折扣要去改数据层，边界模糊、规则难追溯。折扣归 service 管，Repository 只管原价存取，这是分层底线。
-
-<strong>把 Entity 实例直接往上返并在上层改属性。</strong>TypeORM 的 Entity 是绑着 DataSource 的"活对象"，你在 service 里 `order.amount = 999` 改了属性，下次任何地方触发 save 或 flush，这个改动可能被静默写回库，而你根本没显式调用过存库。脏写极难排查。正确做法是返回 DTO（纯数据副本）给上层，或者明确用 update 方法触发更新，不要让上层拿到能"自动回写"的活对象。
-
-<strong>N+1 查询。</strong>查 100 个订单，每个要显示用户名，如果先查订单列表（1 次 SQL）再在循环里对每个订单调一次用户查询（触发 100 次查询），总共 101 次。解法是用 `relations` 或 `leftJoinAndSelect` 在第一次查询时把关联数据一次性带出来，始终 1-2 次 SQL。
-
-<strong>连接泄漏。</strong>如果手动拿 queryRunner 或开事务忘了 `release()` / `commit()` / `rollback()`，这个连接就还不回池子。高并发时连接池占满，新请求拿不到连接就一直排队，服务卡死。正确做法是用 TypeORM 的事务包装 `dataSource.transaction(async manager => {...})`，它在正常结束或抛错时自动释放，不用手写 release。
-
-<strong>每个方法里各开各的事务。</strong>Repository 内部自己 `beginTransaction/commit`，service 想做"写 A 再写 B 要么全成要么全败"就不可能了，A 已经自己提交，B 失败也回不去。正确做法是事务由 service 用 `dataSource.transaction(...)` 统一在用例结束时提交或回滚，Repository 方法只管单条读写、不自己提交。
-
 ### 横切关注点：过滤器 / 守卫 / 拦截器 / 中间件
 
 日志、鉴权、统一异常这些东西横穿所有层。它们不该散落在业务代码里，而是用 NestJS 的过滤器（Filter）、守卫（Guard）、拦截器（Interceptor）、中间件（Middleware）统一处理。NestJS 把这四类横切组件做成了一等公民，各管一段互不混写。
 
-具体来说，请求级日志要在每个请求自动记录方法、路径、状态码、耗时，并带 trace id 串联整条链路，否则一次请求散出几十条日志对不上号。统一异常负责把业务抛的任何错误转成固定格式响应（比如 `{code, message, traceId}`），不让它裸奔成 500 或暴露堆栈。鉴权负责解析 token、识别当前用户，业务代码不用自己查"谁登录了"。此外 CORS、响应包装、限流这些跨层能力，全局一处配置、处处生效。
-
-这一层不写具体业务逻辑，也不决定某个接口的业务含义。它是基础设施，业务代码直接用就行。
+- **过滤器（Filter）**：异常处理，把业务抛的任何错误转成固定格式响应
+- **守卫（Guard）**：鉴权，解析 token、识别当前用户
+- **拦截器（Interceptor）**：日志记录、响应包装
+- **中间件（Middleware）**：请求级预处理、CORS
 
 下面用异常过滤器举例，把任何未处理的错误转成统一 JSON 结构：
 
 ```typescript
-// AllExceptionsFilter — 统一异常响应（横切工程实现）
+// AllExceptionsFilter — 统一异常响应
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 import { Request, Response } from 'express';
 
@@ -324,10 +322,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
-
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception instanceof HttpException ? exception.message : '内部错误';
-
     res.status(status).json({
       code: status,
       message,
@@ -337,22 +333,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 }
 ```
-
-用 `@Catch()` 兜住所有异常，无论业务抛的是什么，最终都变成固定字段的 JSON，前端能统一处理；traceId 从请求头里带出，配合日志中间件就能把一次请求的所有日志串起来。守卫（Guard）负责 JWT 鉴权、拦截器（Interceptor）负责日志与响应包装、中间件（Middleware）负责请求级预处理，四者各管一段、互不混写。在 `main.ts` 里 `app.useGlobalFilters(new AllExceptionsFilter())` 挂上即可，业务 handler 一行都不用写。
-
-<strong>常见坑：</strong>
-
-<strong>忘了全局注册过滤器。</strong>NestJS 不会自动把所有异常转成统一格式，你得显式 `useGlobalFilters(new AllExceptionsFilter())` 或在模块里 providers 注册。忘了的话，业务抛的异常照样裸奔成默认的 500 HTML 错误页，前端拿不到稳定结构，有时还泄露堆栈信息。
-
-<strong>trace id 没透传。</strong>日志中间件生成了 trace id 放进 `req.headers['x-trace-id']`（或者 `c.set('traceId', ...)`），但后续代码记日志时没把这个 id 带进去，那这次请求的日志还是散的。更糟的是调下游服务时没把 trace id 放进 HTTP header，你这边的日志和下游对不上。trace id 必须贯穿整条链路：入请求 header、每条日志、调下游都带上。
-
-<strong>鉴权守卫忘了挂在路由上。</strong>在 NestJS 里守卫要显式挂（`@UseGuards(JwtAuthGuard)` 或全局 `app.useGlobalGuards(...)`），如果有的 controller 忘了挂，那个接口就成了越权入口，用户没登录也能调。推荐用全局守卫 + 白名单（公开接口用 `@Public()` 标记例外），而不是每个接口手动挂，避免漏挂。
-
-<strong>中间件顺序错 + 忘了 await next()。</strong>顺序上，如果鉴权中间件放在日志中间件之前注册，未授权请求被拦截时还没经过日志中间件，这条请求就没有 trace id，日志断链。另外自定义中间件里必须 `await next()`（Express 风格是 `next()`），忘了这步请求就不往下走了，前端一直转圈。NestJS 的中间件和 Express 一致，这点最容易在迁移代码时漏掉。
-
-<strong>在过滤器 / 守卫里做重活。</strong>这些是每请求都走的横切，如果 JWT 守卫每次都去数据库查用户、而且没缓存，那它就成了性能瓶颈，每个请求多打一次库，QPS 上不去。守卫应该只本地验 JWT 签名（不查库），需要用户信息时从 token 的 claim 里取，而不是每请求查库。
-
-到这里，第三章把 TypeScript / Node 的四层各自负责什么、工程上怎么落地、常见坑都讲透了。第四章起我们看框架怎么选，第五章起讲 TS/Node 和前两篇差异最大的地方：并发模型。
 
 ## 四、Web 框架哲学：Express / Koa / Fastify / NestJS
 
@@ -365,40 +345,44 @@ Node 后端框架很多，但工程化落地的选择基本在这四个里权衡
 | Fastify | 高性能、内置 JSON Schema 校验和日志，吞吐比 Express 高几倍 | 性能敏感、API 网关、高 QPS 服务 |
 | NestJS | 模块化、强 IoC 依赖注入、装饰器驱动，架构约束内置到框架 | 中大型团队、长期维护的业务系统 |
 
-四种里，Express 和 Koa 把结构决定权完全交给你；Fastify 在性能上更激进；NestJS 则直接把"分层、模块化、依赖注入"做成了框架能力。本篇工程落地选 NestJS，正是为了让 TS 篇和前两篇的 Python 工程结构、Go 的 internal 分层能直接对照。
-
-<strong>Express：极简中间件链</strong>
-
-```typescript
-// Express 一个最小服务
-import express from 'express';
-
-const app = express();
-app.use(express.json());
-
-app.post('/orders', (req, res) => {
-  const { userId, amount } = req.body;
-  // 业务逻辑直接写在 handler 里
-  const order = createOrder(userId, amount);
-  res.json(order);
-});
-
-app.listen(3000, () => console.log('listening on 3000'));
-```
-
-Express 极简，但也意味着分层、校验、依赖注入全得自己搭。项目一变大，没有约束就容易回到"所有逻辑堆在 handler 里"的混乱状态。
-
-<strong>NestJS：装饰器 + 模块化（工程落地用这个）</strong>
-
-NestJS 把路由、参数解析、依赖注入都用装饰器声明，handler 只写业务，结构由框架和模块约束。前面第三章的 OrderController 和 OrderService 就是通过构造函数自动注入关联起来的。NestJS 的结构约束（Module / Controller / Service / Repository 分层）和 Python 的 FastAPI + Depends、Go 的接口 + 构造函数注入是同一个思路，只是 TS 用装饰器语法把声明做得更显式。
+Express 极简，但也意味着分层、校验、依赖注入全得自己搭。项目一变大，没有约束就容易回到"所有逻辑堆在 handler 里"的混乱状态。NestJS 则直接把路由、参数解析、依赖注入都用装饰器声明，handler 只写业务，结构由框架和模块约束。
 
 ## 五、单线程事件循环与并发模型
 
 这是 TS/Node 和前两篇差异最大的地方，必须讲透。Node 的 JavaScript 代码跑在单个线程上，同一时刻只执行一段 JS。那它为什么能扛高并发？关键在于：当代码遇到 I/O（查数据库、调下游接口、读文件）时，Node 把这件事交给底层的 libuv 线程池去等，自己立刻回到事件循环去处理别的请求。等 I/O 完成，结果再作为"回调"排回事件循环执行。
 
-所以 Node 的并发不是"同时算多件事"，而是"在等待时不停下来"。要理解它为什么能扛住并发，对照 Python 和 Go 就更清楚了。Python 受 GIL 限制，一个进程同一时刻只能跑一个线程的字节码，所以 Web 高并发靠起多个进程，每个进程各自一个事件循环或同步处理。Go 从语言层面支持真并行，多个 goroutine 可以真正同时跑在多核上，彼此靠 channel 通信。Node 走的是第三条路：单线程跑 JS，靠异步 I/O 在等待期间把 CPU 让出去，因此适合 I/O 密集、不适合 CPU 密集。三者没有谁更先进，只是各自把并发的边界画在了不同的地方。
+所以 Node 的并发不是"同时算多件事"，而是"在等待时不停下来"。要理解它为什么能扛住并发，对照 Python 和 Go 就更清楚了。Python 受 GIL 限制，一个进程同一时刻只能跑一个线程的字节码，所以 Web 高并发靠起多个进程，每个进程各自一个事件循环或同步处理。Go 从语言层面支持真并行，多个 goroutine 可以真正同时跑在多核上，彼此靠 channel 通信。Node 走的是第三条路：单线程跑 JS，靠异步 I/O 在等待期间把 CPU 让出去，因此适合 I/O 密集、不适合 CPU 密集。
 
-<strong>踩坑：CPU 密集任务会阻塞整个事件循环</strong>
+### 单进程能跑多少个并发单元（Node 视角）
+
+下面这张图把 Python、Go、Node 三种后端的并发单位做一个直观对比。1 tick = 5 万并发单元，方便和前两篇对照。空心圈代表量级小于 1 tick（同一时刻只有 1 个在跑），实心圈代表真实并发。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">单进程能跑多少个并发单元（Node 视角）</p>
+  <p class="article-embed-note-lead">Python 靠多进程绕开 GIL，Go 靠真并行跑多核，Node 靠事件循环在等待时不闲着。1 tick = 5 万 · 空心圈 = 低于 1 tick · 单进程视角。</p>
+  <figure class="lieflat-scene">
+    <svg class="lieflat-svg" viewBox="0 0 760 320" role="img" aria-label="Node 并发单元容量对比" style="font-family: Inter, system-ui, sans-serif;"><rect x="0" y="0" width="760" height="320" rx="16" fill="#F0EFEB" /><text x="28" y="34" font-size="15" font-weight="700" fill="#1C1C1A">单进程能跑多少个并发单元（Node 视角）</text><text x="28" y="54" font-size="11" fill="#8F8E88">1 tick = 5 万 · 空心圈 = 低于 1 tick · Node 单线程靠事件循环调度</text><text x="104" y="92" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">NODE 异步 I/O</text><line x1="114" y1="100" x2="614" y2="100" stroke="#DEDDD6" stroke-width="0.6" /><line x1="114" y1="100" x2="114" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="159" y1="100" x2="159" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="204" y1="100" x2="204" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="249" y1="100" x2="249" y2="87" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><line x1="294" y1="100" x2="294" y2="82" stroke="#1C1C1A" stroke-width="0.9" opacity="0.6" /><circle cx="294" cy="104" r="1.2" fill="#C6C5BF" /><line x1="339" y1="100" x2="339" y2="85" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="384" y1="100" x2="384" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="429" y1="100" x2="429" y2="87" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><line x1="474" y1="100" x2="474" y2="82" stroke="#1C1C1A" stroke-width="0.9" opacity="0.6" /><line x1="519" y1="100" x2="519" y2="86" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><circle cx="519" cy="104" r="1.2" fill="#C6C5BF" /><line x1="564" y1="100" x2="564" y2="83" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><text x="624" y="94" font-size="14" font-weight="800" fill="#1C1C1A">≈50 万</text><text x="104" y="138" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">GO GOROUTINE</text><line x1="114" y1="146" x2="614" y2="146" stroke="#DEDDD6" stroke-width="0.6" /><line x1="118" y1="146" x2="118" y2="136" stroke="#1C1C1A" stroke-width="0.9" opacity="0.7" /><line x1="146" y1="146" x2="146" y2="134" stroke="#1C1C1A" stroke-width="0.9" opacity="0.65" /><line x1="174" y1="146" x2="174" y2="138" stroke="#1C1C1A" stroke-width="0.9" opacity="0.75" /><text x="184" y="143" font-size="9" fill="#8F8E88">CPU 核数 · 真并行</text><text x="624" y="140" font-size="12" font-weight="700" fill="#8F8E88">~百万</text><text x="104" y="184" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">PY 协程</text><line x1="114" y1="192" x2="614" y2="192" stroke="#DEDDD6" stroke-width="0.6" /><circle cx="120" cy="192" r="2.4" fill="none" stroke="#8F8E88" stroke-width="0.8" /><text x="130" y="189" font-size="9" fill="#8F8E88">＜1 TICK · GIL 排队</text><text x="624" y="186" font-size="12" font-weight="700" fill="#8F8E88">≈50 万</text><text x="104" y="230" font-size="9.5" font-weight="700" fill="#6A6963" text-anchor="end" letter-spacing="0.06em">NODE 线程</text><line x1="114" y1="238" x2="614" y2="238" stroke="#DEDDD6" stroke-width="0.6" /><circle cx="120" cy="238" r="2.4" fill="none" stroke="#8F8E88" stroke-width="0.8" /><text x="130" y="235" font-size="9" fill="#8F8E88">＜1 TICK · 同一时刻只有 1 个在跑</text><text x="624" y="232" font-size="12" font-weight="700" fill="#8F8E88">1</text><line x1="28" y1="266" x2="732" y2="266" stroke="#DEDDD6" stroke-width="0.5" /><text x="380" y="286" font-size="8" font-weight="600" fill="#C6C5BF" text-anchor="middle" letter-spacing="0.1em">1 TICK = 5 万并发单元 · Node 靠事件循环调度 I/O · Go 靠真并行 · Python 协程被 GIL 卡</text><text x="28" y="304" font-size="8" font-weight="500" fill="#C6C5BF" letter-spacing="0.08em">SOURCE · 后端架构深度解析（TS 篇）第五章 · Node 单线程事件循环 · async I/O</text></svg>
+  </figure>
+</section>
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · 事件循环调度</span>
+  </div>
+  <p class="duang-whisper-body">Python 靠多进程绕开 GIL，Go 靠真并行跑多核，Node 靠事件循环在等待时不闲着。三条路，同一个目标：别让请求排队。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
+### 踩坑：CPU 密集任务会阻塞整个事件循环
 
 下面这段代码一旦被调用，事件循环被一个长循环占满，期间所有其他请求都得不到响应，整个进程像卡死：
 
@@ -408,7 +392,6 @@ function heavyCompute(n: number) {
   let sum = 0;
   for (let i = 0; i < n; i++) {
     sum += Math.sqrt(i);
-    // 纯 CPU 计算，事件循环在此期间无法处理任何请求
   }
   return sum;
 }
@@ -416,8 +399,7 @@ function heavyCompute(n: number) {
 @Get('report')
 async report() {
   const result = heavyCompute(1e9);
-  // 危险：会拖垮整个服务
-  return { result };
+  return { result };  // 危险：会拖垮整个服务
 }
 ```
 
@@ -447,6 +429,297 @@ async function parallel() {
 }
 ```
 
-在 Node 里写业务最容易犯的错，就是该并发的 I/O 被写成了串行 await，白白浪费事件循环的等待时间。凡是彼此没有先后依赖的 I/O，都应该用 `Promise.all` 并发发出。这和前两篇"减少不必要等待"的思想一致，只是 Node 的表达方式就是 Promise 和事件循环。
+在 Node 里写业务最容易犯的错，就是该并发的 I/O 被写成了串行 await，白白浪费事件循环的等待时间。凡是彼此没有先后依赖的 I/O，都应该用 `Promise.all` 并发发出。
 
-一句话记住 Node 的并发：单线程跑 JS，异步 I/O 当并发，CPU 重活要挪走。这是它区别于 Python 多进程、Go 多线程的根本，也是后面选框架、写数据访问层时都要守住的边界。
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · Promise.all 才是正确姿势</span>
+  </div>
+  <p class="duang-whisper-body">串行 await 等于把单线程的优势白白浪费。没依赖的 I/O 就并发发出，让事件循环在等待 A 的时候去处理 B、C，这才是 Node 的正确打开方式。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
+## 七、NestJS 的装饰器驱动与依赖注入
+
+NestJS 的核心是装饰器和模块。装饰器把"这是什么"写在代码上，框架在运行时自动装配。和传统 Express/Koa 的中间件链比，NestJS 的好处是结构约束直接做进了语言层。
+
+```typescript
+// app.module.ts — 根模块
+import { Module } from '@nestjs/common';
+import { OrderModule } from './order/order.module';
+import { ConfigModule } from './config/config.module';
+
+@Module({
+  imports: [ConfigModule, OrderModule],
+})
+export class AppModule {}
+```
+
+每个业务模块用 `@Module()` 声明，里面收口自己的 Controller、Service、Repository。依赖关系由 NestJS 的 IoC 容器自动管理，不需要手动 `new`。
+
+## 八、配置层：集中、带类型、可覆盖
+
+配置是另一个横切点。NestJS 用 `@nestjs/config` 包 + `env.validation.ts` 做了带类型校验的配置管理：
+
+```typescript
+// config/env.validation.ts
+import { z } from 'zod';
+
+export const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  REDIS_URL: z.string().url(),
+  PORT: z.number().default(3000),
+  NODE_ENV: z.enum(['development', 'production', 'test']),
+});
+
+export type EnvConfig = z.infer<typeof envSchema>;
+```
+
+启动时如果环境变量不符合 schema（比如 PORT 写了 "abc"），NestJS 会直接报错拒绝启动，而不是运行时才发现问题。
+
+<details class="marginalia" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    用 Zod 做配置校验是 Node 项目的最佳实践。类型在启动时就锁住了，避免了"生产环境配置写错、跑起来才报错"的经典事故。Python 和 Go 也可以做到，但 NestJS 把这套东西做成了内置模块，开箱即用。
+  </div>
+</details>
+
+## 九、异步任务与解耦：BullMQ + Redis
+
+不是所有活都要在请求里同步做完。发邮件、生成报表、推送通知这些耗时操作，应该丢到消息队列里异步处理。Node 生态常用 BullMQ（基于 Redis）做任务队列：
+
+```typescript
+// order.processor.ts — 异步任务处理器
+import { Processor, Process } from '@nestjs/bull';
+import { Job } from 'bullmq';
+
+@Processor('order')
+export class OrderProcessor {
+  @Process('send-confirmation')
+  async handleConfirmation(job: Job) {
+    const { orderId, email } = job.data;
+    // 发邮件、推通知，不阻塞主请求
+    await this.emailService.sendConfirmation(email, orderId);
+    return { success: true };
+  }
+}
+```
+
+下单成功后往队列里丢一个 job，主请求立刻返回；处理器慢慢跑，失败了自动重试，不会影响用户体验。
+
+## 十、可观测性：日志、指标、链路追踪
+
+出了问题怎么排查？日志、指标、链路追踪三件套。NestJS 用 `@nestjs/terminus` 做健康检查，用 pino 做结构化日志，用 OpenTelemetry 做链路追踪：
+
+```typescript
+// main.ts — 启动时注册健康检查
+import { TerminusModule } from '@nestjs/terminus';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  // 健康检查端点
+  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalGuards(new JwtAuthGuard());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+健康检查要轻（不查库不查下游），深度检查（/health?deep=true）才查依赖。每请求带 trace id，日志、指标、追踪三者用同一个 id 串起来，出了问题一条线追到底。
+
+## 十一、Node 特有的坑：事件循环阻塞与内存泄漏
+
+Node 最典型的坑：事件循环阻塞。同步文件 I/O、CPU 密集计算、无限循环，都会把整个事件循环卡住，所有请求一起超时。用 `--inspect` + Chrome DevTools 的 Performance 面板可以定位热点。
+
+另一个坑：内存泄漏。Node 的垃圾回收不及时释放大对象、闭包引用变量、定时器没清理，都会导致内存持续增长。用 `heapdump` 拍快照，Chrome DevTools 的 Memory 面板对比分析。
+
+记住一条铁律：事件循环里只放 I/O 和轻量逻辑，重计算另寻出路。
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · 别让单线程的优势变成诅咒</span>
+  </div>
+  <p class="duang-whisper-body">事件循环阻塞是 Node 最致命的坑。Python 多进程还能靠其他 worker 接请求，Go 多线程还能靠其他核跑，Node 一个事件循环被堵就全堵。CPU 重活必须丢出去。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
+## 十二、从单体到服务化：什么时候该拆
+
+Node 单体项目一开始跑得好好的，什么时候该拆成多个服务？三个信号：某个模块的需求变化速度和其他模块明显不同、某个模块的 QPS 是其他模块的几倍需要独立扩容、两个团队要改同一份代码经常冲突。拆的时候注意：用 BullMQ 或 RabbitMQ 做异步通信，用 gRPC 或 REST 做同步调用，服务之间通过接口契约（OpenAPI）对齐，不要共享数据库。
+
+## 十三、工程结构：NestJS 的模块化约束
+
+NestJS 的模块化不是摆设。每个业务领域一个 Module，内部收口自己的 Controller、Service、Repository。跨模块调用通过接口和依赖注入，不要直接 import 别的模块的内部实现。下面是一个健康的目录结构：
+
+```
+src/
+├── config/              # 配置
+├── common/              # 横切：filters, guards, interceptors
+├── user/                # 用户模块
+│   ├── user.module.ts
+│   ├── user.controller.ts
+│   ├── user.service.ts
+│   ├── user.repository.ts
+│   └── user.entity.ts
+├── order/               # 订单模块
+│   ├── order.module.ts
+│   ├── order.controller.ts
+│   ├── order.service.ts
+│   ├── order.repository.ts
+│   ├── order.entity.ts
+│   └── dto/
+└── main.ts
+```
+
+每个模块独立，依赖方向清晰，想单独部署一个模块（比如把 order 拆成独立服务）时，不用改其他模块的代码。
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-node-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">Node 瓶 · 模块化不只是文件夹</span>
+  </div>
+  <p class="duang-whisper-body">NestJS 的 @Module 不是摆设。你不按模块分，依赖注入就变乱；你按模块分，想拆服务时拎一个走就行。分层是纪律，模块化是保险。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
+## 十四、TypeORM 与数据访问层实践
+
+TypeORM 是 NestJS 生态最常用的 ORM。Entity 定义表结构，Repository 收口 CRUD，DataSource 管理连接池。下面是一些实践要点：
+
+- **Entity 用装饰器定义**：`@Entity()` + `@Column()` + `@PrimaryGeneratedColumn()`，表结构在代码里一目了然
+- **Repository 用接口隔离**：业务层依赖接口，不依赖具体的 TypeORM 实现，换 ORM 时业务层一行不改
+- **事务由 Service 圈定**：`dataSource.transaction(manager => ...)` 统一管理提交回滚，Repository 不自己开事务
+- **N+1 查询**：用 `relations` 或 `leftJoinAndSelect` 在第一次查询时把关联数据带出来
+
+```typescript
+// 事务由 Service 圈定
+@Injectable()
+export class OrderService {
+  constructor(private readonly dataSource: DataSource) {}
+
+  async createOrder(dto: CreateOrderDto) {
+    return this.dataSource.transaction(async manager => {
+      const order = manager.create(OrderEntity, { ...dto, status: 'CREATED' });
+      await manager.save(order);
+      return order;
+    });
+  }
+}
+```
+
+## 十五、打包、容器化与 12-Factor
+
+Node 应用的容器化比 Python/Go 简单，因为 Node 没有编译步骤。一个最小 Dockerfile：
+
+```dockerfile
+# Dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+COPY . .
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+```
+
+12-Factor 原则在 Node 项目里的体现：
+- 配置用环境变量（不写死在代码里）
+- 无状态进程（随时可以杀掉重启）
+- 依赖在 package.json 里声明
+- 端口绑定由 PORT 环境变量决定
+
+## 十六、安全与防护
+
+Node 应用的安全要点：
+- **Helmet**：给 HTTP 响应加安全头（X-Frame-Options、CSP 等）
+- **CORS**：只允许指定域名跨域
+- **速率限制**：用 `@nestjs/throttler` 做限流
+- **JWT 鉴权**：Access Token + Refresh Token 双 token 机制
+- **输入校验**：DTO 用 class-validator + class-transformer 自动校验
+
+```typescript
+// main.ts — 安全头和限流
+import helmet from 'helmet';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.use(helmet());
+  app.enableCors({ origin: ['https://example.com'] });
+  app.useGlobalGuards(new ThrottlerGuard());
+  await app.listen(3000);
+}
+```
+
+## 十七、TS/Node 与 Python、Go 的对照总结
+
+把三种后端的架构选择拉一张对照表，最后收束：
+
+| 维度 | Python (gunicorn + FastAPI) | Go (原生 net/http + Gin) | TypeScript/Node (NestJS) |
+|-|-|-|-|
+| 并发模型 | 多进程 + 协程 (asyncio) | goroutine + channel | 单线程事件循环 + async I/O |
+| 高并发单位 | 协程 ~500k/进程 | goroutine ~百万/进程 | 连接数 ~数十万/进程 |
+| CPU 密集 | 绕开 GIL：多进程 | 真并行：多核调度 | 阻塞事件循环：必须挪走 |
+| 异步框架 | asyncio + await | goroutine + select | Promise + async/await |
+| ORM | SQLAlchemy / Tortoise | GORM / sqlx | TypeORM / Prisma |
+| 依赖注入 | FastAPI Depends | 构造函数 + 接口 | NestJS IoC 装饰器 |
+| 模块约束 | 靠目录和自律 | 靠 internal 目录 | 靠 @Module 装饰器 |
+| 单测友好 | mock 传假实现 | 接口 + mock | 构造函数 + mock 注入 |
+| 部署产物 | Python 环境 + venv | 单一二进制 | Node 环境 + dist/ |
+| 适合场景 | 数据处理、AI、快速原型 | 高并发后端、微服务 | I/O 密集、BFF、实时应用 |
+
+三种没有谁更先进，只是各自把边界画在了不同的地方。Python 适合数据密集，Go 适合计算密集，Node 适合 I/O 密集。选对了场景，每个都好用；选错了，每个都痛苦。
+
+<details class="marginalia" open>
+  <summary></summary>
+  <div class="marginalia-body">
+    三种后端的选择不是"谁取代谁"，而是"谁在自己的主场"。Python 处理数据和 AI，Go 做高并发后端和基础设施，Node 做 BFF 和实时应用。一个成熟的技术栈通常三者都有，各管一段。
+  </div>
+</details>
+
+## 十八、面试高频考点清单
+
+1. Node 单线程事件循环是什么？它是怎么实现高并发的？
+2. async/await 和 Promise 的关系？async/await 是怎么调度的？
+3. 什么情况会阻塞事件循环？怎么排查和避免？
+4. NestJS 的依赖注入是怎么实现的？和 Spring 的 IoC 有什么异同？
+5. TypeORM 的事务应该在哪一层控制？为什么 Repository 不该自己开事务？
+6. Node 进程内存泄漏怎么排查？heapdump 怎么用？
+7. BullMQ 的任务队列怎么保证可靠性？失败任务怎么处理？
+8. 健康检查端点该查什么、不该查什么？为什么？
+9. Node 应用的容器化需要注意什么？和 Go/Python 有什么不同？
+10. CORS 的预检请求（OPTIONS）是怎么回事？什么时候需要处理？
+
+## 十九、为什么 TS/Node 项目更需要明确的工程结构
+
+Python 项目靠 PEP 8 和团队自律，Go 项目靠 internal 目录和编译器，TS/Node 项目靠什么？答案是 NestJS 的框架约束 + TypeScript 的类型系统 + 团队的纪律。
+
+TypeScript 的类型系统在编译期就能发现很多错误：传错参数类型、返回值不匹配、接口实现不全。但类型系统管不了架构分层：你可以在 Controller 里直接 import TypeORM 的 Repository，编译器不会说你错。这时候就需要 NestJS 的 @Module 装饰器把结构框住：每个模块内部的东西只能在模块内部用，跨模块必须通过公共 API。
+
+TS/Node 项目的工程结构比 Python/Go 更依赖框架约束，因为 JavaScript/TypeScript 语言本身太灵活，没有编译期的访问控制。框架的价值就在于此：把架构决策做成强制的规则，让团队成员"按框架的方式写代码"而不是"自己想怎么写就怎么写"。

@@ -427,8 +427,8 @@ function columnStats(posts: TermPost[]) {
     const tags = post.tags.map(t => t.toLowerCase());
     if (tags.some(t => t.includes("最新速递"))) buckets["最新速递"]! += 1;
     else if (tags.some(t => t.includes("请求过境"))) buckets["请求过境"]! += 1;
-    else if (tags.some(t => t.includes("架构"))) buckets["架构解析"]! += 1;
     else if (tags.some(t => t.includes("后端"))) buckets["后端专栏"]! += 1;
+    else if (tags.some(t => t.includes("架构"))) buckets["架构解析"]! += 1;
     else if (tags.some(t => t.includes("agent"))) buckets["Agent"]! += 1;
     else buckets["其他"]! += 1;
   }

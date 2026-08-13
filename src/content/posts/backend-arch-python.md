@@ -5,6 +5,7 @@ title: 后端架构深度解析（Python 篇）：顺着一次请求看懂系统
 featured: false
 draft: false
 tags:
+  - 后端专栏
   - 后端架构深度解析
   - Python
 description: 顺着一次 HTTP 请求从进门到出门的链路，把 Python 后端的分层、同步异步、并发、数据访问、缓存、异步任务逐个拆开。第三部分会落成真实目录和能跑的代码。

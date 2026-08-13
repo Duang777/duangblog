@@ -81,7 +81,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "连接池",
     definition:
       "预先建好一批数据库连接放在池子里，请求来了借一个、用完还回去复用，避免每次请求都走 TCP 握手和鉴权。关键参数：最大连接数（上限不能超数据库承受力）、空闲连接数、连接最大存活时间。不配上限会打挂数据库，配太小会饿死请求。",
-    aliases: ["连接池", "Connection Pool", "connection pool", "pool_size", "SetMaxOpenConns"],
+    aliases: ["连接池", "Connection Pool", "connection pool", "pool_size"],
   },
   {
     id: "read-write-split",
@@ -114,12 +114,12 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
 
   // ── Python 特有概念 ──
   {
-    id: "gil",
+    id: "gil-backend",
     title: "GIL",
     subtitle: "Global Interpreter Lock · 全局解释器锁",
     definition:
       "CPython 的实现细节：同一进程内，同一时刻只有一个线程能执行 Python 字节码。所以多线程做 CPU 密集任务无法真正并行，反而因锁竞争更慢。Python Web 靠多进程（gunicorn 多 worker）吃满多核，IO 密集用协程绕开 GIL。Go 没有这个问题。",
-    aliases: ["GIL", "全局解释器锁", "Global Interpreter Lock"],
+    aliases: [],
   },
   {
     id: "wsgi",
@@ -127,7 +127,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Web Server Gateway Interface",
     definition:
       "Python 的同步 Web 服务器接口规范（PEP 3333）。一个请求进来，占用一个 worker（线程或进程），从头执行到返回，期间 worker 不能被别的请求用。Django/Flask 的传统跑法就是 WSGI。并发能力基本等于 worker 数乘每 worker 线程数。",
-    aliases: ["WSGI", "wsgi", "gunicorn", "Gunicorn"],
+    aliases: ["WSGI", "wsgi"],
     source: {
       label: "Wikipedia: Web Server Gateway Interface",
       url: "https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface",
@@ -142,12 +142,12 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     aliases: ["ASGI", "asgi", "uvicorn", "Uvicorn"],
   },
   {
-    id: "asyncio",
+    id: "asyncio-backend",
     title: "asyncio",
     subtitle: "Python 异步 IO 事件循环",
     definition:
       "Python 3.4+ 内置的异步 IO 框架。一个线程里维护任务队列，遇到 await 就把当前协程挂起、切到别的就绪协程，等 IO 好了再回来接着跑。一个协程只几 KB 栈，单进程能管成百上千条连接。代价是写异步代码要避开阻塞调用，否则会卡住整个事件循环。",
-    aliases: ["asyncio", "协程", "coroutine", "event loop", "事件循环", "async await"],
+    aliases: [],
   },
   {
     id: "celery",
@@ -168,36 +168,36 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
 
   // ── Go 特有概念 ──
   {
-    id: "goroutine",
+    id: "goroutine-backend",
     title: "Goroutine",
     subtitle: "Go 轻量协程",
     definition:
       "Go 运行时管理的轻量协程。go func() 就起一个，初始栈只有几 KB，由 runtime 在多个操作系统线程上多路复用（GMP 调度）。一个进程轻松跑几十万个 goroutine，而 Python 一个线程就要占几 MB 且受 GIL 限制。这是 Go 高并发的根基。",
-    aliases: ["goroutine", "Goroutine", "go func", "go func()"],
+    aliases: [],
     source: {
       label: "Wikipedia: Goroutine",
       url: "https://en.wikipedia.org/wiki/Go_(programming_language)#Goroutines",
     },
   },
   {
-    id: "channel",
+    id: "channel-backend",
     title: "Channel",
     subtitle: "Go 通道",
     definition:
       "goroutine 之间传数据和同步的管道。核心思想：不要通过共享内存来通信，而要通过通信来共享内存。channel 是有类型的，可以用 make 创建带缓冲或无缓冲的。无缓冲 channel 强制收发双方同步握手；带缓冲的在缓冲区满之前发方不阻塞。",
-    aliases: ["channel", "Channel", "Go channel", "chan", "make(chan"],
+    aliases: [],
     source: {
       label: "Wikipedia: Channel (Go)",
       url: "https://en.wikipedia.org/wiki/Go_(programming_language)#Channels",
     },
   },
   {
-    id: "go-context",
+    id: "go-context-backend",
     title: "context.Context",
     subtitle: "Go 上下文传播",
     definition:
       "Go 标准库的上下文接口，在函数调用链中传递超时、取消信号和请求范围的值。所有数据库调用、HTTP 请求都应该透传 ctx，这样上游取消或超时时，下游的 IO 操作会立即中止，避免 goroutine 泄漏。不传 ctx 的 goroutine 一旦启动就失控，是 Go 并发最常见的坑。",
-    aliases: ["context.Context", "context", "ctx", "context.Background", "context.WithTimeout"],
+    aliases: [],
   },
   {
     id: "go-interface",
@@ -237,7 +237,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go ORM",
     definition:
       "Go 生态最流行的全功能 ORM。用链式调用拼查询（db.Where(...).Find(&orders)），自动建表迁移，关联预加载用 Preload 一次性取回关联数据避免 N+1。开发快但抽象重，复杂查询时性能与可控性要留意。更轻的选择是 sqlx，只帮你把行扫进 struct，SQL 自己写。",
-    aliases: ["GORM", "gorm", "Preload", "sqlx"],
+    aliases: ["GORM", "gorm", "Preload"],
   },
   {
     id: "asynq",
@@ -269,7 +269,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go runtime 调度模型",
     definition:
       "Go 运行时把 goroutine 调度到操作系统线程上跑的模型。G 是 goroutine，M 是操作系统线程，P 是逻辑处理器（持有可运行 G 的本地队列）。一个 M 只有绑了一个 P 才能执行 G。P 的数量由 GOMAXPROCS 控制，默认等于 CPU 核数。当某个 P 的队列空了，会从别的 P 偷一半 G 过来跑（work stealing），保证所有核都不闲着。",
-    aliases: ["GMP", "GMP 调度", "Goroutine 调度", "work stealing", "GOMAXPROCS"],
+    aliases: ["GMP 调度", "Goroutine 调度"],
   },
   {
     id: "go-select",
@@ -285,15 +285,15 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go 协程同步",
     definition:
       "Go 标准库的计数信号量，用来等一组 goroutine 全部完成。主 goroutine 调 Add(n) 加 n，每个子 goroutine 完成时调 Done()（内部就是 Add(-1)），最后 Wait() 阻塞到计数归零。常见坑：Add 必须在启动 goroutine 之前调，Done 要 defer 调确保 panic 时也执行，否则 Wait 永远等不到。",
-    aliases: ["WaitGroup", "sync.WaitGroup", "wg.Add", "wg.Done", "wg.Wait"],
+    aliases: ["wg.Add", "wg.Done"],
   },
   {
-    id: "sync-mutex",
+    id: "sync-mutex-backend",
     title: "sync.Mutex",
     subtitle: "Go 互斥锁",
     definition:
       "Go 标准库的互斥锁。Lock 加锁、Unlock 解锁，同一时刻只有一个 goroutine 能持有。保护共享状态（计数器、map 并发写）时用。Go 风格推荐优先用 channel 通信而不是共享内存加锁，但有些场景（比如缓存 map）锁更直接。RWMutex 允许多读单写，读多写少的场景比 Mutex 性能好。defer Unlock 是基本操作。",
-    aliases: ["sync.Mutex", "Mutex", "sync.RWMutex", "RWMutex", "Lock", "Unlock"],
+    aliases: [],
   },
   {
     id: "go-module",
@@ -351,7 +351,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Python 异步 Web 框架",
     definition:
       "Python 生态最现代的 Web 框架。基于 Starlette（ASGI）和 Pydantic（类型校验），原生 async/await，自动生成 OpenAPI 文档。依赖注入用 Depends，比 Flask 的全局 g 干净。因为跑在 ASGI 上，单进程能扛大量并发连接；但注意：同步阻塞调用（requests.get、同步 ORM）会卡住事件循环，必须换异步版本（httpx、asyncpg）。",
-    aliases: ["FastAPI", "fastapi", "Depends", "Starlette"],
+    aliases: ["FastAPI", "fastapi", "Starlette"],
   },
   {
     id: "pydantic",

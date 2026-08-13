@@ -120,6 +120,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-layered-bottle.png",
     foundIn: "后端架构深度解析 · Python 篇",
   },
+  {
+    id: "node-bottle",
+    name: "Node 瓶",
+    note: "瓶身上贴了 TS 标签，瓶口飘出一根事件循环的线。单线程里跑异步，别让 CPU 重活堵了整条街。",
+    src: "/images/childlike-sketch-node-bottle.png",
+    foundIn: "后端架构深度解析 · TypeScript 篇",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
