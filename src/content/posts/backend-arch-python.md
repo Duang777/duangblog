@@ -1326,7 +1326,330 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 - 为什么用 create_app 工厂而不是顶层副作用：测试能多次创建干净实例，避免导入模块就触发建表等全局副作用。
 - 容器化与水平扩容：应用加依赖打包成镜像，配合 gunicorn 多进程加 nginx 反代实现水平扩容。
 
-到这里，后端架构深度解析的 Python 篇就完整了：前面十二章讲清"每一层在解决什么、怎么选、踩什么坑"，这一 Part 把那些分层落成真实目录和能跑的代码。下一篇（Go 篇）可以用同一套分层思想对照着看——只是 Go 没有 GIL、用 goroutine 而非 asyncio，框架换成 Gin/echo，依赖注入和 Repository 的写法也会带上 Go 自己的味道。
+到这里，前二十四章把分层架构从设计原则落到了能跑的代码。但现实项目里有个越来越常见的场景：业务需要调用外部大模型（OpenAI、Claude、或内部模型网关）来做情感分析、内容摘要、智能客服。这个"大模型适配层"该放在哪、哪些文件要动、哪些绝对不能动，用前面建立的分层骨架一眼就能看清。
+
+## 二十五、接入大模型适配层：在哪些层动刀
+
+核心原则只有一条：把大模型当成外部基础设施，和 Redis、数据库同级。它不是业务逻辑，不是数据库映射，是一个需要管理连接、超时、重试的外部依赖。沿着分层骨架走，改动落在 `core/`、`schemas/`、`services/`、`api/` 四层，`models/` 和 `repositories/` 碰都不碰。
+
+先看动了哪些文件：
+
+```text
+order-service/
+├── pyproject.toml              # [改] 加 httpx 依赖
+├── .env                        # [改] 加 AI_API_KEY、AI_BASE_URL
+├── app/
+│   ├── main.py                 # [改] 加 LLM 客户端生命周期管理
+│   ├── api/
+│   │   └── orders.py           # [改] 新增 /orders/{id}/analyze 路由
+│   ├── services/
+│   │   └── order_service.py    # [改] 注入 LLMClient，新增 AI 业务方法
+│   ├── schemas/
+│   │   └── ai.py               # [新建] AI 交互的入参和出参模型
+│   └── core/
+│       ├── config.py           # [改] 新增 AI 相关配置项
+│       ├── deps.py             # [改] 新增 get_llm_client 依赖
+│       └── llm_client.py       # [新建] 封装 AI SDK 调用
+```
+
+下面逐层展开，每块代码标明它属于树的哪个位置。
+
+### 基础设施层：封装客户端（core/llm_client.py）
+
+这层只管发请求、解析响应、处理超时和重试，不含任何订单业务规则。把 AI 调用的脏活收口在这里，业务层只需要调一个方法拿结果。
+
+```python
+# httpx 是 Python 的异步 HTTP 客户端，比 requests 更适合 async 场景
+# FastAPI 是异步框架，配 httpx 能做到全链路异步不阻塞事件循环
+import httpx
+# logging 用于记录调用日志，方便排查超时和异常
+import logging
+
+logger = logging.getLogger(__name__)
+
+# LLMClient 封装了对大模型 API 的所有调用细节
+# 设计意图：业务层不需要知道用的是 OpenAI 还是 Claude，也不需要管重试逻辑
+# 换模型供应商时只改这一个文件，业务层纹丝不动
+class LLMClient:
+    def __init__(self, base_url: str, api_key: str, timeout: float = 30.0):
+        # httpx.AsyncClient 是异步 HTTP 客户端，支持连接池复用
+        # timeout 设 30 秒：大模型响应慢，比普通 HTTP 请求要长
+        # 建议生产环境根据实际模型响应时间调整
+        self._client = httpx.AsyncClient(
+            base_url=base_url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=httpx.Timeout(timeout, connect=5.0),
+        )
+
+    # chat_completion 是核心方法，封装了 /v1/chat/completions 接口调用
+    # 接收消息列表和可选的模型参数，返回模型生成的文本
+    async def chat_completion(
+        self, messages: list[dict], model: str = "gpt-4o-mini"
+    ) -> str:
+        try:
+            # 异步发送 POST 请求，不阻塞事件循环
+            # 这意味着在等待大模型响应时，FastAPI 可以处理其他请求
+            resp = await self._client.post(
+                "/v1/chat/completions",
+                json={"model": model, "messages": messages},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["message"]["content"]
+        except httpx.TimeoutException:
+            # 超时是 AI 调用最常见的异常，单独捕获并记日志
+            # 不在这里重试：重试策略应该由业务层决定（比如是否允许重复调用）
+            logger.error("LLM call timed out")
+            raise
+        except httpx.HTTPStatusError as e:
+            # 4xx/5xx 错误，比如 API Key 失效、额度用完
+            logger.error("LLM API error: %s", e.response.status_code)
+            raise
+
+    # aclose 在应用关闭时调用，清理连接池
+    # 不在 __del__ 里做：Python 的 GC 时机不可控
+    async def aclose(self):
+        await self._client.aclose()
+```
+
+### 配置层：新增 AI 配置项（core/config.py）
+
+在已有的 Settings 类里加几个字段，和数据库配置、Redis 配置并列。配置走环境变量，不写死代码，这是前面讲的 12-factor 原则。
+
+```python
+# 在 Settings 类中新增以下字段（其他字段省略，见第十五章）
+class Settings(BaseSettings):
+    # ... 原有配置 ...
+
+    # AI 大模型相关配置
+    # api_key 从 .env 读取，切记 .env 不进版本库
+    ai_api_key: str = ""
+    # base_url 支持 OpenAI 官方地址或自建模型网关地址
+    # 比如内部部署了 vLLM 或 Ollama，把 base_url 指过去就行
+    ai_base_url: str = "https://api.openai.com/v1"
+    # 默认模型名，业务层调用时不传 model 参数就用这个
+    ai_model: str = "gpt-4o-mini"
+    # 超时时间（秒），大模型响应比普通 API 慢，默认给 30 秒
+    ai_timeout: float = 30.0
+```
+
+### 依赖注入：提供单例客户端（core/deps.py）
+
+让业务层通过 Depends 拿到 LLMClient 实例，而不是自己 new。这样测试时能注入 mock 客户端，不需要真的调大模型。
+
+```python
+# 全局 LLM 客户端单例，在应用启动时初始化
+# 用全局变量而不是每次请求 new：连接池可以跨请求复用，避免反复建连
+_llm_client: LLMClient | None = None
+
+def init_llm_client(settings: Settings):
+    """在 main.py 的 lifespan 中调用，初始化全局客户端"""
+    global _llm_client
+    _llm_client = LLMClient(
+        base_url=settings.ai_base_url,
+        api_key=settings.ai_api_key,
+        timeout=settings.ai_timeout,
+    )
+
+async def close_llm_client():
+    """在 main.py 的 lifespan 中调用，关闭连接池"""
+    global _llm_client
+    if _llm_client:
+        await _llm_client.aclose()
+        _llm_client = None
+
+# FastAPI 依赖函数：路由通过 Depends(get_llm_client) 拿到客户端实例
+def get_llm_client() -> LLMClient:
+    if _llm_client is None:
+        raise RuntimeError("LLM client not initialized")
+    return _llm_client
+```
+
+### 契约层：定义 AI 交互模型（schemas/ai.py）
+
+和 `schemas/order.py` 并列，定义 AI 交互的入参和出参。这层和数据库无关，纯粹是 API 契约。
+
+```python
+from pydantic import BaseModel
+
+# AI 分析请求的入参模型
+# 调用方只需要传 order_id，Service 内部去查订单数据组装 prompt
+class AIAnalyzeRequest(BaseModel):
+    order_id: int
+
+# AI 分析结果的出参模型
+# sentiment 是情感标签（positive/negative/neutral）
+# summary 是 AI 生成的订单摘要
+# confidence 是置信度（0-1），用于业务层判断是否需要人工介入
+class AIAnalyzeResponse(BaseModel):
+    order_id: int
+    sentiment: str
+    summary: str
+    confidence: float
+```
+
+### 业务逻辑层：编排 AI 调用（services/order_service.py）
+
+这是核心改动点。Service 里决定什么时候调 AI、怎么组装 prompt、AI 返回的结果怎么处理。关键原则：先查 DB 拿数据，再调 AI 处理，最后把结果存回 DB 或返回。AI 调用是编排中的一步，不是孤立的操作。
+
+```python
+# 新增 LLMClient 类型导入
+from app.core.llm_client import LLMClient
+
+class OrderService:
+    def __init__(self, session: Session, llm_client: LLMClient | None = None):
+        self.repo = OrderRepository(session)
+        # llm_client 可选注入：不需要 AI 功能的用例不传，需要时才注入
+        # 这样原有方法（create_order 等）完全不受影响
+        self.llm = llm_client
+
+    # 新增业务方法：分析订单备注的情感倾向
+    # 编排顺序：查订单 → 组装 prompt → 调 AI → 解析结果 → 返回
+    async def analyze_order_sentiment(self, order_id: int) -> dict:
+        # 1. 先从数据库查订单数据
+        # AI 不能直接访问数据库，数据由 Service 提供
+        order = self.repo.get_by_id(order_id)
+        if not order:
+            raise ValueError("order not found")
+
+        # 2. 组装 prompt
+        # 把订单备注、金额、状态等业务上下文喂给模型
+        # prompt 工程是业务决策，放 Service 层而不是 llm_client 层
+        messages = [
+            {
+                "role": "system",
+                "content": "你是一个订单分析助手。分析订单备注的情感倾向，返回 JSON。",
+            },
+            {
+                "role": "user",
+                "content": f"订单金额: {order.amount}, 状态: {order.status}, 备注: {order.note or '无'}",
+            },
+        ]
+
+        # 3. 调用 AI
+        # 如果模型超时或返回格式不对，异常在这里抛出
+        # 调用方（路由层）负责捕获并转成 HTTP 状态码
+        result = await self.llm.chat_completion(messages)
+
+        # 4. 解析结果
+        # 真实项目里这里会做 JSON 解析和字段校验
+        # 如果模型返回的格式不对，可能需要重试或降级
+        import json
+        try:
+            parsed = json.loads(result)
+        except json.JSONDecodeError:
+            # 模型返回的不是合法 JSON，降级返回默认值
+            return {"order_id": order_id, "sentiment": "unknown", "summary": result, "confidence": 0.0}
+
+        return {
+            "order_id": order_id,
+            "sentiment": parsed.get("sentiment", "unknown"),
+            "summary": parsed.get("summary", ""),
+            "confidence": parsed.get("confidence", 0.0),
+        }
+```
+
+### 接入层：暴露 HTTP 接口（api/orders.py）
+
+路由层只做协议转换：解析请求参数，调 Service，把结果包成 HTTP 响应。AI 调用的异常（超时、格式错误）在这里转成合适的 HTTP 状态码，别让 `ConnectionError` 直接炸到前端。
+
+```python
+# 新增 AI 分析路由
+from app.schemas.ai import AIAnalyzeRequest, AIAnalyzeResponse
+from app.core.deps import get_llm_client
+from app.core.llm_client import LLMClient
+import httpx
+
+@router.post("/{order_id}/analyze", response_model=AIAnalyzeResponse)
+async def analyze_order(
+    order_id: int,
+    session: Session = Depends(get_session),
+    llm_client: LLMClient = Depends(get_llm_client),
+):
+    # 路由层依然极薄：实例化 Service，调用业务方法，处理异常
+    service = OrderService(session, llm_client)
+    try:
+        result = await service.analyze_order_sentiment(order_id)
+        return AIAnalyzeResponse(**result)
+    except httpx.TimeoutException:
+        # AI 调用超时，返回 504 Gateway Timeout
+        # 用 504 而不是 500：504 明确表示上游超时，方便前端区分
+        raise HTTPException(status_code=504, detail="AI service timed out")
+    except ValueError as e:
+        # 业务异常（如订单不存在），返回 404
+        raise HTTPException(status_code=404, detail=str(e))
+```
+
+### 入口装配：生命周期管理（main.py）
+
+LLM 客户端需要在应用启动时初始化连接池，关闭时清理。放在 `lifespan` 上下文管理器里，和数据库引擎的初始化并列。
+
+```python
+from contextlib import asynccontextmanager
+from app.core.deps import init_llm_client, close_llm_client
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup：初始化 LLM 客户端
+    init_llm_client(settings)
+    yield
+    # shutdown：清理连接池
+    await close_llm_client()
+
+def create_app() -> FastAPI:
+    app = FastAPI(title="order-service", lifespan=lifespan)
+    app.include_router(orders_router)
+    Base.metadata.create_all(engine)
+    return app
+```
+
+### 依赖与环境变量
+
+`pyproject.toml` 加 `httpx` 依赖，`.env` 写入真实的 API Key：
+
+```toml
+# pyproject.toml [project.dependencies] 新增
+"httpx>=0.27.0"
+```
+
+```bash
+# .env 新增（这个文件不进版本库）
+AI_API_KEY=sk-xxx
+AI_BASE_URL=https://api.openai.com/v1
+AI_MODEL=gpt-4o-mini
+AI_TIMEOUT=30.0
+```
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      src="/images/childlike-sketch-layered-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">分层瓶 · AI 是基础设施不是业务</span>
+  </div>
+  <p class="duang-whisper-body">最容易犯的错是把 AI 调用塞进 models/ 或 repositories/。models 是数据库表映射，repositories 是数据访问层，AI 调用是外部基础设施。三者混在一起，换模型或换数据库时全要改。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
+### 三个不能碰的地方
+
+1. `app/models/order.py` 是数据库表结构，和 AI 模型无关。不要在这里加 `ai_summary` 之类的字段映射。如果 AI 结果需要持久化，在 Service 层调 Repository 存，而不是让 Model 知道 AI 的存在。
+
+2. `app/repositories/order_repo.py` 是数据访问层，只管 CRUD。AI 调用不属于数据访问。如果 AI 返回的结果需要存数据库，流程是 Service 调 AI 拿结果，再调 Repository 存，而不是在 Repository 里直接调 AI。
+
+3. 路由函数里不要写 prompt。prompt 是业务决策（用什么上下文、怎么组织语言），归 Service 层。路由只管把 HTTP 参数传给 Service。
+
+### 异常隔离的三层防线
+
+大模型调用链路上的异常处理分三层，各管各的：
+
+`core/llm_client.py` 捕获底层网络异常（超时、连接拒绝），记日志后向上抛。`services/order_service.py` 捕获业务异常（AI 返回格式不对、JSON 解析失败），决定降级策略（返回默认值或抛业务异常）。`api/orders.py` 捕获所有未处理的异常，转成 HTTP 状态码（504 超时、500 内部错误、404 资源不存在）。别让 AI 的 `TimeoutException` 直接变成前端的 500 报错，那样排查起来完全不知道是哪层出了问题。
 
 <details class="marginalia" open>
   <summary></summary>
