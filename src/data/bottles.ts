@@ -1,6 +1,7 @@
 /**
  * Collectible bottle catalog for the easter-egg shelf & cabinet.
  * Images live under /public/images/.
+ * Bottle art must follow childlike-sketch skill (black line on white).
  */
 export type BottleDef = {
   id: string;
@@ -65,67 +66,67 @@ export const BOTTLES: BottleDef[] = [
     foundIn: "进程文 · Go · GMP",
   },
   {
+    id: "layered",
+    name: "分层瓶",
+    note: "一层一层摞着。各装各的，别串味。",
+    src: "/images/childlike-sketch-layered-bottle.png",
+    foundIn: "后端架构 · Python / Go",
+  },
+  {
+    id: "node",
+    name: "Node 瓶",
+    note: "瓶身贴着 TS 小纸条。单线程里也能跑出热闹。",
+    src: "/images/childlike-sketch-node-bottle.png",
+    foundIn: "后端架构 · TypeScript",
+  },
+  {
+    id: "cache",
+    name: "缓存瓶",
+    note: "里头一格一格的。近的快，远的慢。",
+    src: "/images/childlike-sketch-cache-bottle.png",
+    foundIn: "高性能后端 · 缓存与内存",
+  },
+  {
+    id: "lock",
+    name: "锁瓶",
+    note: "瓶肚画着一把锁。排着队，别硬抢。",
+    src: "/images/childlike-sketch-lock-bottle.png",
+    foundIn: "MySQL · 锁机制",
+  },
+  {
+    id: "mvcc",
+    name: "多版本瓶",
+    note: "一层一层版本叠着。读的是旧的，写的是新的。",
+    src: "/images/childlike-sketch-mvcc-bottle.png",
+    foundIn: "MySQL · MVCC",
+  },
+  {
+    id: "ego-browser",
+    name: "人机共享瓶",
+    note: "瓶肚开了个小窗口。人和页面对着看。",
+    src: "/images/childlike-sketch-ego-browser-bottle.png",
+    foundIn: "Ego Lite 深挖",
+  },
+  {
     id: "rlm",
     name: "RLM 递归瓶",
-    note: "大瓶里套着小瓶，小瓶里还套小瓶。上下文一层一层装。",
+    note: "瓶子里还有瓶子。套娃要有尽头。",
     src: "/images/childlike-sketch-rlm-bottle.png",
-    foundIn: "Agent 拆解 · Prime Agent",
+    foundIn: "Prime Agent · RLM",
   },
   {
     id: "subagent",
     name: "子 Agent 罐",
-    note: "圆罐里挤满弯线和小点。大伙分头干活，最后碰个头。",
+    note: "罐子里冒着小泡。分出去干，再收回来。",
     src: "/images/childlike-sketch-subagent-jar.png",
-    foundIn: "Agent 拆解 · Prime Agent · 子智能体",
+    foundIn: "Prime Agent · 子 Agent",
   },
   {
     id: "heartbeat",
     name: "心跳瓶",
-    note: "瓶身上画着一条心跳线。你关掉终端，它还在慢慢跳。",
+    note: "瓶肚画着一条心跳线。还在跳，就还活着。",
     src: "/images/childlike-sketch-heartbeat-bottle.png",
-    foundIn: "Agent 拆解 · Prime Agent · 长时间运行",
-  },
-  {
-    id: "mvcc-bottle",
-    name: "多版本瓶",
-    note: "瓶里叠着好几层旧版本。读写各看各的，谁也不堵谁。",
-    src: "/images/childlike-sketch-mvcc-bottle.png",
-    foundIn: "MySQL · 事务与 MVCC",
-  },
-  {
-    id: "cache-pyramid-bottle",
-    name: "缓存金字塔瓶",
-    note: "瓶里叠着四层：L3 最宽，越往上越小越快，顶层寄存器。最底层的主存慢得像隔了一条街。",
-    src: "/images/childlike-sketch-cache-bottle.png",
-    foundIn: "高性能后端实战 · CPU 缓存与内存层级",
-  },
-  {
-    id: "lock-bottle",
-    name: "锁瓶",
-    note: "瓶身上挂着一把锁，旁边两把小钥匙。MVCC 把读放走了，写的门还得有人守。",
-    src: "/images/childlike-sketch-lock-bottle.png",
-    foundIn: "MySQL · 锁机制全解",
-  },
-  {
-    id: "ego-browser-bottle",
-    name: "人机共享瓶",
-    note: "瓶里装一个浏览器窗口，分成左右两个 Space，一个给人一个给 Agent。瓶口飘出两个小气泡，是新开的任务空间。",
-    src: "/images/childlike-sketch-ego-browser-bottle.png",
-    foundIn: "Agent 拆解 · ego-lite",
-  },
-  {
-    id: "layered-bottle",
-    name: "分层瓶",
-    note: "瓶身横切成四层，顶上飘请求圆圈、二层是齿轮、三层是数据库圆柱、底层一道波浪。四层各装各的，谁也不抢谁的活。",
-    src: "/images/childlike-sketch-layered-bottle.png",
-    foundIn: "后端架构深度解析 · Python 篇",
-  },
-  {
-    id: "node-bottle",
-    name: "Node 瓶",
-    note: "瓶身上贴了 TS 标签，瓶口飘出一根事件循环的线。单线程里跑异步，别让 CPU 重活堵了整条街。",
-    src: "/images/childlike-sketch-node-bottle.png",
-    foundIn: "后端架构深度解析 · TypeScript 篇",
+    foundIn: "Prime Agent · 心跳",
   },
 ];
 
