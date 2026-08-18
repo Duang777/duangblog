@@ -128,6 +128,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-heartbeat-bottle.png",
     foundIn: "Prime Agent · 心跳",
   },
+  {
+    id: "trace",
+    name: "trace 瓶",
+    note: "瓶肚里长着一棵 span 树。因果对得上，排障才有路。",
+    src: "/images/childlike-sketch-trace-bottle.png",
+    foundIn: "Agent 系统架构 · Trace 侧记",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
