@@ -61,7 +61,10 @@ const mysqlHref = getRelativeLocaleUrl(
 
 <script>
   import { BOTTLES } from "@/data/bottles";
-  import { listUnlockedBottles } from "@/scripts/bottle-collection";
+  import {
+    BOTTLE_UNLOCK_EVENT,
+    listUnlockedBottles,
+  } from "@/scripts/bottle-collection";
 
   function progressLabel(have: number, total: number) {
     if (have <= 0) return "还空着";
@@ -114,5 +117,6 @@ const mysqlHref = getRelativeLocaleUrl(
   }
 
   document.addEventListener("astro:page-load", init);
+  document.addEventListener(BOTTLE_UNLOCK_EVENT, init);
   init();
 </script>

@@ -1,4 +1,4 @@
-import { findBottleBySrc } from "@/data/bottles";
+import { findBottleBySrc, getBottle } from "@/data/bottles";
 import { playJarOpenSound } from "@/scripts/idea-jar";
 import {
   BOTTLE_UNLOCK_EVENT,
@@ -41,9 +41,30 @@ function markJar(img: HTMLImageElement, unlocked: boolean) {
   img.tabIndex = 0;
 }
 
+/** Resolve catalog bottle from data-bottle-id or image URL. */
+function resolveBottle(img: HTMLImageElement) {
+  const id = img.dataset.bottleId?.trim();
+  if (id) {
+    const byId = getBottle(id);
+    if (byId) return byId;
+  }
+  const candidates = [
+    img.currentSrc,
+    img.src,
+    img.getAttribute("src") ?? "",
+  ];
+  for (const src of candidates) {
+    if (!src) continue;
+    const bottle = findBottleBySrc(src);
+    if (bottle) return bottle;
+  }
+  return undefined;
+}
+
 function tryCollectFromImg(img: HTMLImageElement) {
-  const bottle = findBottleBySrc(img.currentSrc || img.src || "");
+  const bottle = resolveBottle(img);
   if (!bottle) return;
+  if (!img.dataset.bottleId) img.dataset.bottleId = bottle.id;
   const fresh = unlockBottle(bottle.id);
   if (fresh) {
     playJarOpenSound();
@@ -55,28 +76,31 @@ function tryCollectFromImg(img: HTMLImageElement) {
   showToast(bottle.name, fresh);
 }
 
-function bindWhisperJars(root: ParentNode = document) {
-  root.querySelectorAll<HTMLImageElement>(".duang-whisper-jar").forEach(img => {
-    if (img.dataset.bottleBound === "1") {
-      const bottle = findBottleBySrc(img.currentSrc || img.src || "");
-      if (bottle) markJar(img, isBottleUnlocked(bottle.id));
-      return;
-    }
-    img.dataset.bottleBound = "1";
-    const bottle = findBottleBySrc(img.currentSrc || img.src || "");
-    if (!bottle) return;
-    markJar(img, isBottleUnlocked(bottle.id));
+function jarFromEventTarget(target: EventTarget | null): HTMLImageElement | null {
+  if (!(target instanceof Element)) return null;
+  const img = target.closest("img.duang-whisper-jar");
+  if (img instanceof HTMLImageElement) return img;
+  // Allow clicking the note label next to the jar.
+  const row = target.closest(".duang-whisper-jar-row");
+  const sibling = row?.querySelector("img.duang-whisper-jar");
+  return sibling instanceof HTMLImageElement ? sibling : null;
+}
 
-    const onActivate = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-      tryCollectFromImg(img);
-    };
-    img.addEventListener("click", onActivate);
-    img.addEventListener("keydown", e => {
-      if (e.key === "Enter" || e.key === " ") onActivate(e);
-    });
+function syncWhisperJarState(root: ParentNode = document) {
+  root.querySelectorAll<HTMLImageElement>("img.duang-whisper-jar").forEach(img => {
+    const bottle = resolveBottle(img);
+    if (!bottle) return;
+    if (!img.dataset.bottleId) img.dataset.bottleId = bottle.id;
+    markJar(img, isBottleUnlocked(bottle.id));
   });
+}
+
+function onJarActivate(e: Event) {
+  const img = jarFromEventTarget(e.target);
+  if (!img) return;
+  e.preventDefault();
+  e.stopPropagation();
+  tryCollectFromImg(img);
 }
 
 /** Homepage idea jar → 念头瓶. */
@@ -91,14 +115,24 @@ export function unlockHomeIdeaJar() {
 }
 
 export function initBottleDiscover() {
-  bindWhisperJars();
+  syncWhisperJarState();
 }
 
 export function bindBottleDiscover() {
   const w = window as unknown as { __bottleDiscoverBound?: boolean };
   if (w.__bottleDiscoverBound) return;
   w.__bottleDiscoverBound = true;
+
+  // Capture-phase delegation: survives ClientRouter swaps and does not
+  // depend on per-image listeners that can be skipped after a failed match.
+  document.addEventListener("click", onJarActivate, true);
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const img = jarFromEventTarget(e.target);
+    if (!img || e.target !== img) return;
+    onJarActivate(e);
+  });
+
   document.addEventListener("astro:page-load", initBottleDiscover);
-  // Cover the rare case where this module loads after the first page-load.
   initBottleDiscover();
 }

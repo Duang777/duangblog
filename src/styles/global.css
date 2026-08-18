@@ -939,6 +939,8 @@ body {
 
 /* Author joke in the margin — not part of the reading column. */
 .app-prose .duang-whisper {
+  position: relative;
+  z-index: 6;
   margin: 0.8rem 0;
   padding: 0;
   max-width: 11.5rem;
@@ -2543,9 +2545,9 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   inset-inline-end: max(0.75rem, calc((100vw - 48rem) / 2 - 12.5rem));
   z-index: 5;
   max-width: 7rem;
-  opacity: 1;
-  pointer-events: auto;
-  transform: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
   transition:
     opacity 0.35s ease,
     transform 0.35s ease;
@@ -2561,15 +2563,11 @@ html[data-theme="dark"] .jar-mini-lid-ring {
  * Left rail: reading thread + chapter label.
  * Right gutter: chapter outline (always). With margin notes, park the
  * outline a bit farther out so it does not sit on top of the notes.
+ * Mid-wide screens: drop the outline only — notes keep the right side.
  */
 @media (min-width: 1280px) and (max-width: 1439px) {
   .post-body-wrap:has(.marginalia) .post-chapter-outline {
-    inset-inline-end: max(
-      0.5rem,
-      calc((100vw - 48rem) / 2 - 11.5rem)
-    );
-    max-width: 7rem;
-    text-align: start;
+    display: none !important;
   }
 }
 

@@ -33,6 +33,7 @@ pi-ai 是四个公开包里最底层、也是唯一直接和模型说话的那�
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
+      data-bottle-id="pi-ai"
       src="/images/childlike-sketch-pi-ai-bottle.png"
       alt=""
       width="88"
@@ -376,6 +377,7 @@ if (assistantMsg.stopReason === "error" || assistantMsg.stopReason === "aborted"
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
+      data-bottle-id="pi-ai"
       src="/images/childlike-sketch-pi-ai-bottle.png"
       alt=""
       width="88"
@@ -533,6 +535,7 @@ builtinProviders() 里列了 anthropic、openai、google、deepseek、groq、xai
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
+      data-bottle-id="pi-ai"
       src="/images/childlike-sketch-pi-ai-bottle.png"
       alt=""
       width="88"
