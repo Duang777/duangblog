@@ -3,7 +3,7 @@ import { MYSQL_LINGO } from "./mysql";
 import { PERF_LINGO } from "./perf";
 import { MIXUP_LINGO } from "./mixup";
 import { AGENT_LINGO } from "./agent";
-import { BACKEND_ARCH_LINGO } from "./backend-arch";
+import { AGENT_OBS_LINGO } from "./agent-obs";
 
 export type { LingoTerm } from "./types";
 
@@ -45,5 +45,5 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   PERF_LINGO,
   MIXUP_LINGO,
   AGENT_LINGO,
-  BACKEND_ARCH_LINGO
+  AGENT_OBS_LINGO
 );
