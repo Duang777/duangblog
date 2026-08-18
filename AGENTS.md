@@ -72,6 +72,7 @@ When a post talks about process topology, request paths, agent loops, graph rout
 - Prose still carries the explanation; diagrams and snippets are evidence, not decoration.
 - Add at least one right-side marginal note per post using the `marginalia` pattern from `notes/怎么写博客.md` unless the post is extremely short.
 - **Duang whisper jars (机制文 / 易混文):** generate a matching childlike bottle image under `public/images/childlike-sketch-*.png`, register it in `src/data/bottles.ts`, and insert 2–3 `duang-whisper` asides whose `img.src` matches the catalog `src`. Short posts may use one. Skip hubs / pure essays / 最新速递 unless you intentionally want the easter egg. Full rules: `notes/怎么写博客.md` §9.9.
+- **Feishu import:** do **not** rewrite the source arguments. Only mechanical formatting for site bans, plus additive HTML figures (may use existing CSS motion classes), lingo cards, marginalia, and whisper jars. Full rules: `notes/怎么写博客.md` 「飞书成稿导入」.
 - **Inline term cards (词库):** definitions live only in `src/data/lingo/` (domain packs merged by `mergeLingoPacks`). One `id` = one site-wide `definition`. Do not invent per-article card copy. Wikipedia when there is a real matching entry; otherwise write a precise own gloss and omit a fake wiki link. Full rules: `notes/怎么写博客.md` §9.8.
 
 ## Backend: 后端专栏 (parent) and sub-columns

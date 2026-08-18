@@ -135,6 +135,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-trace-bottle.png",
     foundIn: "Agent 系统架构 · Trace 侧记",
   },
+  {
+    id: "pi-ai",
+    name: "归一瓶",
+    note: "四扇小门收成一个瓶口。协议可以脏，接口得干净。",
+    src: "/images/childlike-sketch-pi-ai-bottle.png",
+    foundIn: "Pi 深度解析 · pi-ai 协议归一",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
