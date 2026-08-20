@@ -16,4 +16,5 @@ Formal pieces will keep landing here.
 
 Already filed:
 
+- [DeepSeek Harness：一切皆插件的 Agent 运行时](/posts/deepseek-harness-plugin-runtime/)（中文）
 - [What changed in the MCP draft: sessions and handshake are gone](/en/posts/mcp-draft-session-handshake-removed/)

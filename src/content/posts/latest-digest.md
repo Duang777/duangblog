@@ -15,4 +15,5 @@ description: 最近在看的内容。
 
 已整理：
 
+- [DeepSeek Harness 深度解析：一切皆插件的 Agent 运行时](/posts/deepseek-harness-plugin-runtime/)
 - [MCP 草案改了什么：会话和握手都被删掉了](/posts/mcp-draft-session-handshake-removed/)

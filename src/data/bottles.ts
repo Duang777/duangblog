@@ -142,6 +142,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-pi-ai-bottle.png",
     foundIn: "Pi 深度解析 · pi-ai 协议归一",
   },
+  {
+    id: "dsh",
+    name: "插件瓶",
+    note: "瓶肚里挂着一棵小插件树。卸下来，树上那截也跟着没了。",
+    src: "/images/childlike-sketch-dsh-bottle.png",
+    foundIn: "最新速递 · DeepSeek Harness",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
