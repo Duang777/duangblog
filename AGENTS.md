@@ -232,6 +232,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Pi 深度解析 (overview): `src/content/posts/pi-overview.md`
 - Agent 系统架构设计 hub: `src/content/posts/agent-system-architecture.md`
 - Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
+- Agent 系统架构设计 (二): `src/content/posts/agent-arch-context.md`
+- Agent 系统架构设计 (二): `src/content/posts/agent-arch-context.md`
 - MySQL hub: `src/content/posts/mysql-column.md`
 - MySQL (一): `src/content/posts/mysql-architecture-sql-journey.md`
 - MySQL (二): `src/content/posts/mysql-innodb-core.md`
