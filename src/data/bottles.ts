@@ -136,6 +136,13 @@ export const BOTTLES: BottleDef[] = [
     foundIn: "Agent 系统架构 · Trace 侧记",
   },
   {
+    id: "budget",
+    name: "预算瓶",
+    note: "瓶肚开了个小窗，一层一层装着 token。满了就漏。",
+    src: "/images/childlike-sketch-budget-bottle.png",
+    foundIn: "Agent 系统架构 · 上下文工程",
+  },
+  {
     id: "pi-ai",
     name: "归一瓶",
     note: "四扇小门收成一个瓶口。协议可以脏，接口得干净。",

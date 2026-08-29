@@ -6,6 +6,7 @@ import { AGENT_LINGO } from "./agent";
 import { AGENT_OBS_LINGO } from "./agent-obs";
 import { PI_LINGO } from "./pi";
 import { DSH_LINGO } from "./dsh";
+import { AGENT_ARCH_LINGO } from "./agent-arch";
 
 export type { LingoTerm } from "./types";
 
@@ -48,6 +49,7 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   MIXUP_LINGO,
   AGENT_LINGO,
   AGENT_OBS_LINGO,
+  AGENT_ARCH_LINGO,
   PI_LINGO,
   DSH_LINGO
 );

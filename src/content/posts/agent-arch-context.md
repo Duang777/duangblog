@@ -1,12 +1,16 @@
 ---
 author: Duang
 pubDatetime: 2026-08-29T15:30:00+08:00
+modDatetime: 2026-08-29T15:45:00+08:00
 title: Agent 系统架构设计（二）：上下文工程
 featured: true
 draft: false
 tags:
   - Agent 系统架构设计
 description: 模型是引擎，上下文是燃料。每一步该往窗口里塞什么 token、丢什么、放在哪，以及长任务的三种对策。
+revisions:
+  - date: 2026-08-29
+    note: 首发。飞书论述按原稿对齐；边注、图解与词卡另加，不改论述。
 ---
 
 **系列说明**｜这是 [Agent 系统架构设计](/posts/agent-system-architecture/) 六篇里的第二篇。上一篇：[定义、光谱与最小内核](/posts/agent-arch-definition/)。前一篇讲 Agent Loop 长什么样，这一篇讲循环每一步往模型里塞什么。建议先读第一篇再读本篇。
@@ -38,6 +42,24 @@ description: 模型是引擎，上下文是燃料。每一步该往窗口里塞�
 
 > **一句话记住本篇主旨：模型是引擎，上下文是燃料和仪表盘。** 选错引擎会慢，但喂错燃料、看错仪表盘，车根本到不了目的地。这一篇是整套系列里性价比最高的一篇。
 
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      data-bottle-id="budget"
+      src="/images/childlike-sketch-budget-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">燃料瓶</span>
+  </div>
+  <p class="duang-whisper-body">模型换了，上限动一寸。窗口塞错，整趟白跑。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
+
 ---
 
 ## 二、重新定义：Context ≠ Prompt
@@ -59,6 +81,13 @@ description: 模型是引擎，上下文是燃料。每一步该往窗口里塞�
 
 理解这一点很关键：当 Agent 在多次推理循环、长时间轴上运行时，你要管理的不再是一段 prompt，而是整个上下文状态——system instructions、tools、MCP、external data、message history 全部交织在一起。上下文工程是提示工程的自然演进，不是替代。
 
+<details class="marginalia interview" open>
+  <summary>面试怎么分</summary>
+  <div class="marginalia-body">
+    提示工程问「这句话怎么写」。上下文工程问「这一步窗口里该有什么、不该有什么」。多轮循环只答前者，会被认为还停在单轮聊天。
+  </div>
+</details>
+
 ---
 
 ## 三、核心机理：注意力预算与 Context Rot
@@ -71,6 +100,31 @@ description: 模型是引擎，上下文是燃料。每一步该往窗口里塞�
 
 - **Context Rot（上下文腐烂）**：来自 needle-in-a-haystack 类基准。指「随着上下文窗口 token 数增加，模型准确回忆信息的能力下降」。所有模型都有，只是有的退化更平缓。
 - **Lost in the Middle（中途丢失）**：Liu 等人 2023 年的研究给出了一组经典数字——模型对**开头和结尾**的信息权重最高，中间最低。检索准确率在上下文前 10% 约 85%–95%，掉到中间只剩 55%–70%，最后 10% 又回升到 80%–90%。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：Lost in the Middle · 首尾高，中间掉</p>
+  <p class="article-embed-note-lead">同一条检索，放窗口前段或尾段更容易被看见；塞进正中间，召回先塌一截。</p>
+  <figure class="mixup-figure">
+    <div class="mixup-scene">
+      <svg class="mixup-svg" viewBox="0 0 640 210" role="img" aria-label="上下文位置与召回：两端高、中间低">
+        <rect class="mixup-bar is-heavy" x="48" y="42" width="88" height="118" rx="8"/>
+        <rect class="mixup-bar" x="156" y="72" width="88" height="88" rx="8"/>
+        <rect class="mixup-bar is-light" x="264" y="108" width="88" height="52" rx="8"/>
+        <rect class="mixup-bar" x="372" y="72" width="88" height="88" rx="8"/>
+        <rect class="mixup-bar is-heavy" x="480" y="42" width="88" height="118" rx="8"/>
+        <text class="mixup-caption" x="92" y="182" text-anchor="middle">前 10%</text>
+        <text class="mixup-caption" x="200" y="182" text-anchor="middle">靠前</text>
+        <text class="mixup-caption" x="308" y="182" text-anchor="middle">中间</text>
+        <text class="mixup-caption" x="416" y="182" text-anchor="middle">靠后</text>
+        <text class="mixup-caption" x="524" y="182" text-anchor="middle">后 10%</text>
+        <text class="mixup-label" x="92" y="34" text-anchor="middle">~90%</text>
+        <text class="mixup-label" x="308" y="98" text-anchor="middle">~60%</text>
+        <text class="mixup-label" x="524" y="34" text-anchor="middle">~85%</text>
+      </svg>
+    </div>
+  </figure>
+  <p class="article-embed-note-foot">关键指令放开头，当前问题和最相关检索放结尾。中间留给撑场面的材料。</p>
+</section>
 
 <details class="marginalia" open>
   <summary>Context Rot</summary>
@@ -100,15 +154,87 @@ description: 模型是引擎，上下文是燃料。每一步该往窗口里塞�
 | 检索注入 | RAG 文档、工具返回结果 | 每请求浮动，可突增 |
 | 输出预留 | 你设的 max_tokens | 常占 30%–50% |
 
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：窗口预算 · 固定前缀 vs 无界尾巴</p>
+  <p class="article-embed-note-lead">前面三截相对稳，适合缓存。历史和检索才是会把预算吃穿的那截。</p>
+  <figure class="mixup-figure">
+    <div class="mixup-scene">
+      <svg class="mixup-svg" viewBox="0 0 640 220" role="img" aria-label="上下文窗口四大区域占比示意">
+        <rect class="mixup-panel is-accent" x="40" y="36" width="140" height="128" rx="10"/>
+        <text class="mixup-title" x="110" y="88" text-anchor="middle">System</text>
+        <text class="mixup-caption" x="110" y="112" text-anchor="middle">200–800</text>
+        <rect class="mixup-panel is-accent" x="188" y="36" width="120" height="128" rx="10"/>
+        <text class="mixup-title" x="248" y="88" text-anchor="middle">Tools</text>
+        <text class="mixup-caption" x="248" y="112" text-anchor="middle">每项 100–400</text>
+        <rect class="mixup-panel" x="316" y="36" width="110" height="128" rx="10"/>
+        <text class="mixup-title" x="371" y="88" text-anchor="middle">记忆</text>
+        <text class="mixup-caption" x="371" y="112" text-anchor="middle">500–2k</text>
+        <rect class="mixup-panel is-soft" x="434" y="36" width="166" height="128" rx="10"/>
+        <text class="mixup-title" x="517" y="80" text-anchor="middle">历史 + 检索</text>
+        <text class="mixup-caption" x="517" y="104" text-anchor="middle">无上界</text>
+        <text class="mixup-caption" x="517" y="126" text-anchor="middle">最易溢出</text>
+        <circle class="mixup-dot is-live" cx="110" cy="28" r="5"/>
+        <circle class="mixup-dot is-live" cx="248" cy="28" r="5"/>
+        <text class="mixup-sub" x="320" y="192" text-anchor="middle">实心前缀可缓存 · 虚线尾巴按轮次涨</text>
+      </svg>
+    </div>
+  </figure>
+  <p class="article-embed-note-foot">固定成本先算清楚。Manus 那句 100:1 输入输出比，意思是这张图会被循环乘上几十上百遍。</p>
+</section>
+
 举个具体例子：一个 400 token 的 system prompt、8 个平均 200 token 的工具、200 token 的安全指令，固定成本就是 400 + 1,600 + 200 = **2,200 token**。这部分天然是缓存的最佳候选。而 Manus 披露过一个更震撼的数字：在他们的 Agent 里，平均**输入:输出 token 比约为 100:1**——因为输出通常只是结构化的函数调用，很短。这意味着上下文工程的每一分优化，都会被乘以几十上百次推理循环。
 
 > **架构师法则：** 如果你说不清这四个区域各自占多少 token，你就没有「上下文规格」，你只有「上下文祈祷」。上线前先做一次预算建模——这等价于容量规划，能让你在收到意外账单之前就知道 token 去哪了。
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      data-bottle-id="budget"
+      src="/images/childlike-sketch-budget-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">预算瓶</span>
+  </div>
+  <p class="duang-whisper-body">说不清四块各花多少，就是在许愿。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
 
 ---
 
 ## 五、工程师的五把扳手（Levers）
 
 区域拆开后，你手上有五把可调的扳手。这五件事，决定了上下文的质量与成本。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：五把扳手 · 选、排、切、压、缓存</p>
+  <p class="article-embed-note-lead">质量差通常先出在 Selection。成本差通常先出在 Caching 和 Compression。</p>
+  <figure class="mixup-figure">
+    <div class="mixup-scene">
+      <svg class="mixup-svg" viewBox="0 0 640 170" role="img" aria-label="上下文工程五把扳手">
+        <rect class="mixup-chip is-accent" x="16" y="36" width="112" height="88" rx="10"/>
+        <text class="mixup-title" x="72" y="78" text-anchor="middle">选</text>
+        <text class="mixup-caption" x="72" y="102" text-anchor="middle">Selection</text>
+        <rect class="mixup-chip" x="140" y="36" width="112" height="88" rx="10"/>
+        <text class="mixup-title" x="196" y="78" text-anchor="middle">排</text>
+        <text class="mixup-caption" x="196" y="102" text-anchor="middle">Ordering</text>
+        <rect class="mixup-chip" x="264" y="36" width="112" height="88" rx="10"/>
+        <text class="mixup-title" x="320" y="78" text-anchor="middle">切</text>
+        <text class="mixup-caption" x="320" y="102" text-anchor="middle">Structure</text>
+        <rect class="mixup-chip" x="388" y="36" width="112" height="88" rx="10"/>
+        <text class="mixup-title" x="444" y="78" text-anchor="middle">压</text>
+        <text class="mixup-caption" x="444" y="102" text-anchor="middle">Compression</text>
+        <rect class="mixup-chip is-accent" x="512" y="36" width="112" height="88" rx="10"/>
+        <text class="mixup-title" x="568" y="78" text-anchor="middle">缓存</text>
+        <text class="mixup-caption" x="568" y="102" text-anchor="middle">Caching</text>
+      </svg>
+    </div>
+  </figure>
+</section>
 
 ### 1. Selection（选什么进来）
 
@@ -141,6 +267,13 @@ system prompt 怎么写，本身就是一个上下文工程问题。Anthropic �
 - **一端（太低 / 太死）**：工程师用复杂脆弱的硬编码 if-else 逻辑去精确控制行为。结果脆化、难维护，模型一遇到没枚举的情况就崩。
 - **另一端（太高 / 太虚）**：只给模糊的高层指导，假装人和模型「共享语境」。结果模型拿不到具体信号，行为漂移。
 - **黄金高度**：足够具体以引导行为，又足够灵活以提供强启发式（strong heuristics）。“specific enough to guide behavior effectively, yet flexible enough to provide the model with strong heuristics”。
+
+<details class="marginalia" open>
+  <summary>黄金高度</summary>
+  <div class="marginalia-body">
+    太死像写 if-else，太虚像两人以为彼此懂。先用最强模型测最小 prompt，再按真实失败往上加，别一上来堆边界清单。
+  </div>
+</details>
 
 三个可落地的写法建议：
 
@@ -188,6 +321,50 @@ Manus 的创始人季逸超有一个论断：如果只选一个指标，**KV-cac
 - **保持 prompt 前缀稳定**：自回归特性下，哪怕一个 token 的差异也会让该 token 之后的缓存全部失效。常见错误是在 system prompt 开头放秒级时间戳——模型是能报时了，但缓存命中率直接崩。
 - **让上下文只追加（append-only）**：绝不修改之前的 action 或 observation；序列化必须确定性（很多 JSON 库不保证 key 顺序，会悄悄破坏缓存）。
 - **显式标记缓存断点**：部分框架不支持自动前缀缓存，需手动插入断点，至少覆盖 system prompt 结尾。
+
+<section class="article-embed-note">
+  <p class="article-embed-note-title">图解：前缀一抖，缓存整段作废</p>
+  <p class="article-embed-note-lead">左边前缀钉死，后面可以复用。右边在开头写了现在几点，后面那截 KV 全得重算。</p>
+  <figure class="mixup-figure">
+    <div class="mixup-scene">
+      <svg class="mixup-svg" viewBox="0 0 640 200" role="img" aria-label="稳定前缀命中缓存，动态时间戳打穿缓存">
+        <rect class="mixup-panel is-accent" x="28" y="40" width="170" height="70" rx="10"/>
+        <text class="mixup-title" x="113" y="72" text-anchor="middle">稳定前缀</text>
+        <text class="mixup-caption" x="113" y="94" text-anchor="middle">system + tools</text>
+        <rect class="mixup-pipe" x="206" y="62" width="54" height="22" rx="8"/>
+        <circle class="mixup-dot is-live" cx="233" cy="73" r="5"/>
+        <rect class="mixup-panel" x="268" y="40" width="70" height="70" rx="10"/>
+        <text class="mixup-label" x="303" y="80" text-anchor="middle">命中</text>
+        <rect class="mixup-panel is-soft" x="368" y="40" width="170" height="70" rx="10"/>
+        <text class="mixup-title" x="453" y="72" text-anchor="middle">15:03:09</text>
+        <text class="mixup-caption" x="453" y="94" text-anchor="middle">秒级时间戳</text>
+        <rect class="mixup-pipe" x="546" y="62" width="54" height="22" rx="8"/>
+        <circle class="mixup-dot is-wait" cx="573" cy="73" r="5"/>
+        <text class="mixup-caption" x="180" y="148" text-anchor="middle">append-only · 可复用</text>
+        <text class="mixup-caption" x="500" y="148" text-anchor="middle">一个 token 差，后面全废</text>
+      </svg>
+    </div>
+  </figure>
+  <p class="article-embed-note-foot">JSON key 顺序不稳、中途增删工具定义，杀伤力和时间戳一样。</p>
+</section>
+
+<aside class="duang-whisper" aria-label="Duang">
+  <div class="duang-whisper-jar-row">
+    <img
+      class="duang-whisper-jar"
+      data-bottle-id="budget"
+      src="/images/childlike-sketch-budget-bottle.png"
+      alt=""
+      width="88"
+      height="88"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="duang-whisper-jar-note">前缀瓶</span>
+  </div>
+  <p class="duang-whisper-body">开头写了现在几点，缓存当场去世。</p>
+  <p class="duang-whisper-sign">Duang</p>
+</aside>
 
 > **Mask, Don't Remove（遮蔽，而非移除）：** 工具多了之后，一个自然反应是「按需动态增删工具」（类似 RAG 加载）。Manus 的实验给出了明确规则：**除非绝对必要，不要在迭代中动态增删工具。** 原因有二：① 工具定义通常位于上下文前部，任何改动都会让后面所有 action/observation 的 KV 缓存失效；② 当旧 action 还引用一个已不存在的工具时，模型会困惑，产生模式违规或幻觉动作。正确做法是**遮住 logits**——用 response prefill 约束动作空间，而不是改工具定义。
 
@@ -258,6 +435,13 @@ def run_task(task):
 
 三种策略不是互斥的。现实系统往往组合使用：用结构化笔记维持跨会话状态，用 compaction 控制单次窗口，用子智能体隔离昂贵的并行探索。
 
+<details class="marginalia interview" open>
+  <summary>怎么选题</summary>
+  <div class="marginalia-body">
+    要跨晚上还记得 → 笔记。窗口就快满、还在同一会话里磨 → 压缩。要并行挖互不依赖的子问题 → 子 Agent。别默认三条一起上。
+  </div>
+</details>
+
 ---
 
 ## 九、两条反直觉原则（来自 Manus 的实战）
@@ -269,6 +453,13 @@ def run_task(task):
 Agent 一定会犯错——幻觉、环境报错、工具异常、边界情况，在多步任务里失败不是例外，而是循环的一部分。一个常见的冲动是「擦掉痕迹、重试、调温度」，但这有代价：**擦除失败等于移除证据**，模型没有证据就无法适应。
 
 Manus 的做法相反：**把错误的尝试留在上下文里**。当模型看到一个失败的动作及其观察 / 堆栈，它会隐式更新内部信念，降低重复同样错误的概率。Manus 甚至认为——**错误恢复能力是衡量「真正 agentic 行为」最清晰的信号之一**，尽管大多数学术基准只测理想条件下的成功率，严重低估了这一点。
+
+<details class="marginalia" open>
+  <summary>别当展厅</summary>
+  <div class="marginalia-body">
+    上下文不是只摆标准答案的橱窗。错题留着，下次才绕得开；样例太齐，它只会抄节奏。
+  </div>
+</details>
 
 ### 原则 2：别被 few-shot 困住
 
