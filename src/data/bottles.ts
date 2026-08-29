@@ -150,6 +150,13 @@ export const BOTTLES: BottleDef[] = [
     foundIn: "Pi 深度解析 · pi-ai 协议归一",
   },
   {
+    id: "handoff",
+    name: "交接瓶",
+    note: "瓶口封着一块蜡。同厂才认，换厂就拆封降级。",
+    src: "/images/childlike-sketch-handoff-bottle.png",
+    foundIn: "Pi 深度解析 · pi-ai 上下文流动",
+  },
+  {
     id: "dsh",
     name: "插件瓶",
     note: "瓶肚里挂着一棵小插件树。卸下来，树上那截也跟着没了。",

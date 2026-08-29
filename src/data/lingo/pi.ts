@@ -1,6 +1,6 @@
 import type { LingoTerm } from "./types";
 
-/** Pi / pi-ai 协议归一与模型接入域词包。 */
+/** Pi / pi-ai 协议归一、上下文交接与模型接入域词包。 */
 export const PI_LINGO: LingoTerm[] = [
   {
     id: "pi-ai",
@@ -203,6 +203,89 @@ export const PI_LINGO: LingoTerm[] = [
       "models.generated.ts",
       "模型目录生成",
       "builtinModels",
+    ],
+  },
+  {
+    id: "system-prompt-field",
+    title: "systemPrompt",
+    subtitle: "独立于 messages 的系统提示",
+    definition:
+      "Context 的顶层字段，而不是 Message 联合里的 system role。OpenAI、Anthropic、Google 对系统提示的塞法不同；抽成独立字段后，transformMessages 只管 messages，各厂商适配器自己决定怎么写进请求体。",
+    aliases: [
+      "systemPrompt",
+      "没有 system role",
+      "system 这个 role",
+    ],
+  },
+  {
+    id: "thinking-signature",
+    title: "thinkingSignature",
+    subtitle: "推理回放的不透明签名",
+    definition:
+      "pi-ai 把各家推理回放数据收成同一个字段：Anthropic 的 signature、OpenAI Responses 的 encrypted_content、被抹除时的密文。上层不解析内容，只在同模型时原样回传。",
+    aliases: [
+      "thinkingSignature",
+      "签名 blob",
+      "不透明 blob",
+      "encrypted_content",
+    ],
+  },
+  {
+    id: "thought-signature",
+    title: "thoughtSignature",
+    subtitle: "Google 思想签名",
+    definition:
+      "Google 专用、绑在 toolCall 或思考块上的 base64 不透明签名。跨模型必须剥离；即便同厂商，也要同 model 且合法 base64 才保留。",
+    aliases: ["thoughtSignature", "thought signature"],
+  },
+  {
+    id: "redacted-thinking",
+    title: "redacted thinking",
+    subtitle: "被安全滤波抹除的推理",
+    definition:
+      "厂商把推理文本抹掉后，密文仍可能留在 thinkingSignature 里供同模型多轮回放。跨模型既不能降级成纯文本，也不能回放，只能丢弃。",
+    aliases: [
+      "redacted thinking",
+      "redacted",
+      "被安全滤波抹除",
+    ],
+  },
+  {
+    id: "normalize-tool-call-id",
+    title: "normalizeToolCallId",
+    subtitle: "跨厂商 tool call id 规范化",
+    definition:
+      "transformMessages 在跨模型时调用的回调：把 OpenAI Responses 那种 450+ 字符、带管道符的长 id，收成目标厂商能接受的短 id（Anthropic 最长 64、字符集受限）。同一次对话里用映射表把 toolResult.toolCallId 一起改掉。",
+    aliases: [
+      "normalizeToolCallId",
+      "tool call id 规范化",
+      "规范化 tool call id",
+    ],
+  },
+  {
+    id: "abort-signal",
+    title: "AbortSignal",
+    subtitle: "中断透传",
+    definition:
+      "从 ProviderRequestOptions.signal 一路传到 provider.stream。中断时 emit error 事件，reason 为 aborted，并携带已生成的部分 AssistantMessage。和真实失败的 error 分开，方便上层丢弃残缺轮次。",
+    aliases: [
+      "AbortSignal",
+      "aborted vs error",
+      "stopReason:\"aborted\"",
+      "reason:\"aborted\"",
+    ],
+  },
+  {
+    id: "tool-result-details",
+    title: "ToolResult.details",
+    subtitle: "给 UI 的富结果",
+    definition:
+      "ToolResultMessage 把给模型读的文本放在 content，把给界面渲染的结构放在 details。pi-ai 只定契约、不解释 details；真正劈成两面的逻辑在 pi-agent-core。",
+    aliases: [
+      "ToolResult.details",
+      "details 给 UI",
+      "details 喂 UI",
+      "content 和 details",
     ],
   },
 ];

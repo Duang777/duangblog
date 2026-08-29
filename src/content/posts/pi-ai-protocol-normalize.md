@@ -14,7 +14,7 @@ revisions:
 
 **系列说明**｜这是 [Pi 深度解析](/posts/pi-deep-dive/) 的第二篇（系列第 2/7）。第一篇：[Pi 的包怎么分层，以及它故意不做的那些事](/posts/pi-overview/)。本篇只进 `pi-ai`：四种协议怎么归一、模型目录怎么生成、本地引擎怎么接进来。
 
-Pi 深度解析系列进度：上一篇《Pi 的包怎么分层，以及它故意不做的那些事》（项目全景，系列第 1/7 篇）已经把四层包结构、作者重写动机、以及"故意不做"的清单铺开了。本篇是系列第 2/7 篇，进入最底层 pi-ai，只讲一件事：四家厂商四种协议（OpenAI Completions / OpenAI Responses / Anthropic Messages / Google Generative AI）是怎么被归一化成同一个调用接口的，模型目录又是怎么生成的，最后你怎么把自己的本地引擎（Ollama / vLLM）接进来。下一篇（第 3/7 篇）是 pi-ai 之二，讲上下文对象、跨厂商交接、中断与工具分流。
+Pi 深度解析系列进度：上一篇《Pi 的包怎么分层，以及它故意不做的那些事》（项目全景，系列第 1/7 篇）已经把四层包结构、作者重写动机、以及"故意不做"的清单铺开了。本篇是系列第 2/7 篇，进入最底层 pi-ai，只讲一件事：四家厂商四种协议（OpenAI Completions / OpenAI Responses / Anthropic Messages / Google Generative AI）是怎么被归一化成同一个调用接口的，模型目录又是怎么生成的，最后你怎么把自己的本地引擎（Ollama / vLLM）接进来。下一篇（第 3/7 篇）是 [pi-ai 之二：上下文怎么在厂商之间流动](/posts/pi-ai-context-flow/)。
 
 先接住上一篇结尾抛出来的几件事。第一篇第二节专门讲了"自托管模型的工具调用为什么容易坑"：托管 API 直接吐 tool_calls，自托管引擎（vLLM 等）吐纯文本，靠 tool call parser 反解；坑在于 parser 和 chat template 不匹配、流式和非流式不一致、参数不受 schema 约束、响应体缺字段。第一篇第三节又给 pi-ai 列了一串能力：四种协议归一、模型目录生成、compat 矩阵、跨厂商上下文交接、中断与部分结果、工具结果分两份、流式 JSON 部分解析，以及"为什么不用 Vercel AI SDK"。本篇就把"四种协议归一 + 模型目录生成 + 自定义模型接入"这三块拆开讲透。第一篇文末的"下一篇"指向了一个 pi-deep-dive 占位链接，真实的第二篇就是本篇。
 
@@ -611,7 +611,7 @@ models.json / registerProvider 的加载器不在 pi-ai 包内：它只出现在
 
 ## 九、下一篇预告与待解问题
 
-下一篇是系列第 3/7 篇：pi-ai 之二，讲上下文对象结构、跨厂商上下文交接（签名 blob 回放）、中断与部分结果（AbortSignal）、工具结果分两份（TypeBox / AJV 校验）、流式 JSON 部分解析的细节。本篇留几个待解问题，下篇开头会逐条接住：
+下一篇是系列第 3/7 篇：[pi-ai 之二：上下文怎么在厂商之间流动](/posts/pi-ai-context-flow/)。讲上下文对象结构、跨厂商上下文交接（签名 blob 回放）、中断与部分结果（AbortSignal）、工具结果分两份、流式 JSON 部分解析的细节。本篇留几个待解问题，下篇开头会逐条接住：
 
 - Context 里的 Message 到底有哪几种 content block？text / thinking / toolCall / toolResult 各自长什么样？
 - 跨厂商切换模型时，那个"签名 blob"是怎么生成、又怎么回放来保证 thinking 不丢的？
