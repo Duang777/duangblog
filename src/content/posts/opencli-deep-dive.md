@@ -324,12 +324,12 @@ export OPENCLI_CDP_TARGET="example.com"
 
 | 策略 | 含义 | 稳定性倾向 | 优点 | 主要代价 |
 | --- | --- | --- | --- | --- |
-| `PUBLIC_API` | 不需要登录，Node 侧直接请求公开 API | 高 | 快、简单、适合 CI | 只能拿公开能力 |
-| `COOKIE_API` | 带浏览器 Cookie/CSRF 信息访问接口 | 较高 | 结构化、速度快、复用登录态 | 会话过期、认证细节需维护 |
-| `DOM_STATE` | 读取 SSR HTML、hydration/bootstrap JSON 或页面状态 | 中 | 不一定依赖私有接口 | 页面结构或状态字段可能变化 |
-| `UI_SELECTOR` | 通过可见 UI、DOM 或无障碍语义执行操作 | 中 | 对写操作和用户可见流程自然 | 需要处理弹窗、页面状态和选择器漂移 |
-| `PAGE_FETCH` | 在页面同源上下文中发起 fetch | 中低 | 可以借用页面运行时和同源权限 | 内部 API 无外部契约，改版易坏 |
-| `INTERCEPT` | 触发页面自然动作并拦截目标网络响应 | 中低 | 能处理复杂签名或请求生成 | 归因、分页、响应匹配和回归成本高 |
+| PUBLIC_API | 不需要登录，Node 侧直接请求公开 API | 高 | 快、简单、适合 CI | 只能拿公开能力 |
+| COOKIE_API | 带浏览器 Cookie/CSRF 信息访问接口 | 较高 | 结构化、速度快、复用登录态 | 会话过期、认证细节需维护 |
+| DOM_STATE | 读取 SSR HTML、hydration/bootstrap JSON 或页面状态 | 中 | 不一定依赖私有接口 | 页面结构或状态字段可能变化 |
+| UI_SELECTOR | 通过可见 UI、DOM 或无障碍语义执行操作 | 中 | 对写操作和用户可见流程自然 | 需要处理弹窗、页面状态和选择器漂移 |
+| PAGE_FETCH | 在页面同源上下文中发起 fetch | 中低 | 可以借用页面运行时和同源权限 | 内部 API 无外部契约，改版易坏 |
+| INTERCEPT | 触发页面自然动作并拦截目标网络响应 | 中低 | 能处理复杂签名或请求生成 | 归因、分页、响应匹配和回归成本高 |
 
 官方 adapter-author 流程建议优先 `PUBLIC_API` / `COOKIE_API`；只有公开接口不可用、UI 无法表达目标或页面请求必须由运行时产生时，才承担 `PAGE_FETCH` / `INTERCEPT` 的维护成本。
 
