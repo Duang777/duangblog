@@ -163,6 +163,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-dsh-bottle.png",
     foundIn: "最新速递 · DeepSeek Harness",
   },
+  {
+    id: "opencli",
+    name: "命令瓶",
+    note: "瓶肚一边是命令行，一边是小窗口。登录态还在浏览器里。",
+    src: "/images/childlike-sketch-opencli-bottle.png",
+    foundIn: "Agent 拆解 · OpenCLI",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

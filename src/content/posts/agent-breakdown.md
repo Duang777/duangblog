@@ -20,6 +20,7 @@ description: 把真正有意思的 Agent 项目拆开看：从单轮循环到多
 
 已写：
 
+- [OpenCLI 深度解析：把浏览能力收成 Agent 能调用的命令](/posts/opencli-deep-dive/) — jackwener/OpenCLI，把网站、已登录 Chrome 和本地工具收成同一棵命令树，看它怎么把“人能在浏览器里完成的事”变成 Agent 可重复调用的 CLI。
 - [Prime Agent 深度解析：自进化的递归语言模型智能体](/posts/prime-agent-deep-dive/) — PrimeIntellect-ai/prime-agent，核心两个抽象：递归语言模型（RLM）和持续框架（Continual Harness），看它怎么让 LLM 自己管理上下文，而不是用脚手架替它管。
 - [ego-lite 深度解析：为 AI Agent 重写的人机共享浏览器](/posts/ego-lite-deep-dive/) — citrolabs/ego-lite，闭源浏览器 + 开源 Node.js/CDP harness，三层结构 + 任务空间所有权 + 强快照 + learning 子系统，看它怎么同时解决登录态、抢 tab、token 三件老大难。
 

@@ -232,6 +232,8 @@ End without a corporate-sounding checklist if the body already made the points. 
 - Pi 深度解析 (overview): `src/content/posts/pi-overview.md`
 - Pi 深度解析 (二): `src/content/posts/pi-ai-protocol-normalize.md`
 - Pi 深度解析 (三): `src/content/posts/pi-ai-context-flow.md`
+- Agent 拆解专栏 hub: `src/content/posts/agent-breakdown.md`
+- OpenCLI 深度解析: `src/content/posts/opencli-deep-dive.md`
 - Agent 系统架构设计 hub: `src/content/posts/agent-system-architecture.md`
 - Agent 系统架构设计 (一): `src/content/posts/agent-arch-definition.md`
 - Agent 系统架构设计 (二): `src/content/posts/agent-arch-context.md`
