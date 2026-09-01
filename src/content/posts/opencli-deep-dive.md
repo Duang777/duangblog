@@ -131,7 +131,7 @@ opencli twitter profile openai -f yaml
 
 ### 3.2 Adapter-first：用适配器隔离站点差异
 
-**Adapter（适配器）**是把某个站点或应用的具体协议，转换成 OpenCLI 统一命令契约的代码或配置。调用者只需要知道“搜索、读取、下载”等意图，不需要知道站点内部 API、Cookie 名称、DOM 结构或字段编码。
+<strong>Adapter（适配器）</strong>是把某个站点或应用的具体协议，转换成 OpenCLI 统一命令契约的代码或配置。调用者只需要知道“搜索、读取、下载”等意图，不需要知道站点内部 API、Cookie 名称、DOM 结构或字段编码。
 
 适配器负责：
 
@@ -307,7 +307,7 @@ Browser Bridge 执行的是页面上下文中的 JavaScript 和浏览器动作�
 
 ### 5.4 直接 CDP：连接远程 Chrome 或 Electron
 
-**CDP（Chrome DevTools Protocol，Chrome DevTools 调试协议）**是 Chrome、Chromium 和 Electron 暴露的调试接口，支持导航、执行 JavaScript、读取 DOM、获取网络信息和控制页面。
+<strong>CDP（Chrome DevTools Protocol，Chrome DevTools 调试协议）</strong>是 Chrome、Chromium 和 Electron 暴露的调试接口，支持导航、执行 JavaScript、读取 DOM、获取网络信息和控制页面。
 
 OpenCLI 在不能使用扩展、需要远程浏览器或需要控制 Electron 应用时，可以通过：
 
@@ -595,7 +595,7 @@ network 观察
             → interceptor 兜底
 ```
 
-**Hydration（注水）**是 SSR 页面把服务器初始数据交给前端 JavaScript 接管的过程；很多 SPA 会把初始数据放在脚本或全局状态里。它有时比抓最终 DOM 更稳定，但不代表字段格式就是公开契约。
+<strong>Hydration（注水）</strong>是 SSR 页面把服务器初始数据交给前端 JavaScript 接管的过程；很多 SPA 会把初始数据放在脚本或全局状态里。它有时比抓最终 DOM 更稳定，但不代表字段格式就是公开契约。
 
 ### 8.2 用证据而不是猜测写 adapter
 
