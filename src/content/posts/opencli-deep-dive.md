@@ -108,6 +108,8 @@ OpenCLI 的做法是：**第一次通过浏览器侦察和适配器开发解决�
 
 <details class="marginalia" open>
   <summary>谁转成命令</summary>
+  <div class="marginalia-body">
+    OpenCLI 执行，Agent 负责把自然语言变成命令。
   </div>
 </details>
 
@@ -715,6 +717,8 @@ esac
 
 <details class="marginalia interview" open>
   <summary>写操作别盲着重放</summary>
+  <div class="marginalia-body">
+    写操作超时后不能当没发生过，远端可能已经生效。
   </div>
 </details>
 
@@ -781,6 +785,8 @@ OpenCLI 的优势是复用浏览器登录态，减少把密码、OAuth token 或
 
 <details class="marginalia" open>
   <summary>别跟 OCS 混</summary>
+  <div class="marginalia-body">
+    名字里的 OpenCLI Specification 不是这个仓库。
   </div>
 </details>
 
