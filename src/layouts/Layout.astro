@@ -152,34 +152,6 @@ const searchHref =
     data-search-href={searchHref}
   >
     <slot />
-    <script is:inline>
-      (function () {
-        var last = "";
-        function send() {
-          try {
-            if (navigator.webdriver) return;
-            var p = location.pathname || "/";
-            if (p.indexOf("/api/") === 0 || p === "/traffic" || p === "/traffic/") return;
-            var stamp = p + "@" + Math.floor(Date.now() / 1500);
-            if (stamp === last) return;
-            last = stamp;
-            var body = JSON.stringify({ p: p });
-            if (navigator.sendBeacon) {
-              navigator.sendBeacon("/api/hit", new Blob([body], { type: "application/json" }));
-            } else {
-              fetch("/api/hit", {
-                method: "POST",
-                body: body,
-                keepalive: true,
-                headers: { "content-type": "application/json" },
-              });
-            }
-          } catch (e) {}
-        }
-        send();
-        document.addEventListener("astro:after-swap", send);
-      })();
-    </script>
     <script>
       import "@/scripts/theme";
       import { bindSearchHotkey } from "@/scripts/search-hotkey";
