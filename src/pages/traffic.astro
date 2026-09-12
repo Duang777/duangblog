@@ -1,0 +1,86 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Footer from "@/components/Footer.astro";
+---
+
+<Layout title="流量 | Duang" description="这个站点最近的页面浏览。">
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+  <Header />
+  <Main pageTitle="流量" pageDesc="不种 cookie，只记路径和次数。今天按上海时区算。">
+    <p id="traffic-meta" class="text-muted-foreground mb-6 text-sm">读取中…</p>
+    <div class="app-prose">
+      <h2>最近 7 天</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>浏览</th>
+          </tr>
+        </thead>
+        <tbody id="traffic-days"></tbody>
+      </table>
+      <h2>页面</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>路径</th>
+            <th>今天</th>
+            <th>累计</th>
+          </tr>
+        </thead>
+        <tbody id="traffic-paths"></tbody>
+      </table>
+    </div>
+  </Main>
+  <Footer />
+</Layout>
+
+<script>
+  const meta = document.getElementById("traffic-meta");
+  const daysBody = document.getElementById("traffic-days");
+  const pathsBody = document.getElementById("traffic-paths");
+
+  function cell(text: string) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    return td;
+  }
+
+  try {
+    const res = await fetch("/api/stats", { cache: "no-store" });
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    if (meta) {
+      meta.textContent = `今天 ${data.todayTotal ?? 0} 次浏览，近 7 天 ${data.rangeTotal ?? 0} 次。`;
+    }
+    for (const day of data.days ?? []) {
+      const tr = document.createElement("tr");
+      tr.append(cell(day.date), cell(String(day.total)));
+      daysBody?.append(tr);
+    }
+    for (const row of data.paths ?? []) {
+      const tr = document.createElement("tr");
+      const pathCell = document.createElement("td");
+      const a = document.createElement("a");
+      a.href = row.path;
+      a.textContent = row.path;
+      pathCell.append(a);
+      tr.append(pathCell, cell(String(row.today)), cell(String(row.total)));
+      pathsBody?.append(tr);
+    }
+    if ((data.paths ?? []).length === 0 && pathsBody) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.textContent = "还没有记录。打开几篇文章后再刷新这里。";
+      tr.append(td);
+      pathsBody.append(tr);
+    }
+  } catch {
+    if (meta) meta.textContent = "统计接口还没起来，等这次部署完成后再刷新。";
+  }
+</script>
