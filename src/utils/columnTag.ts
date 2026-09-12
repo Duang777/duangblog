@@ -3,6 +3,7 @@
  * Jar columns are listed first so article pages match tag-page bottles.
  */
 const COLUMN_PRIORITY = [
+  "thinking",
   "最新速递",
   "请求过境",
   "进程",

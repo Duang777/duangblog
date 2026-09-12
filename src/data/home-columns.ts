@@ -2,6 +2,7 @@ import { getTagIntro } from "@/data/tag-intros";
 
 export type HomeColumnScent =
   | "digest"
+  | "thinking"
   | "backend"
   | "frontend"
   | "agent"
@@ -47,6 +48,7 @@ type ColumnCopy = { title: string; intro: string };
 const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
   "zh-CN": {
     digest: { title: "最新速递", intro: getTagIntro("最新速递") },
+    thinking: { title: "thinking", intro: getTagIntro("thinking") },
     backend: { title: "后端专栏", intro: getTagIntro("后端专栏") },
     frontend: { title: "前端实验室", intro: getTagIntro("前端实验室") },
     agent: { title: "Agent 拆解", intro: getTagIntro("Agent") },
@@ -70,6 +72,10 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     digest: {
       title: "Latest Digest",
       intro: "What I've been reading lately.",
+    },
+    thinking: {
+      title: "thinking",
+      intro: "Read a long piece, take it apart, write down the judgment.",
     },
     backend: {
       title: "Backend Notes",
@@ -122,6 +128,7 @@ function copyFor(locale: string, id: string): ColumnCopy {
 /** Homepage column order: one section per mega-column. */
 export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
   const digest = copyFor(locale, "digest");
+  const thinking = copyFor(locale, "thinking");
   const backend = copyFor(locale, "backend");
   const frontend = copyFor(locale, "frontend");
   const agent = copyFor(locale, "agent");
@@ -143,6 +150,15 @@ export function getHomeColumns(locale: string = "zh-CN"): HomeColumnDef[] {
       scent: "digest",
       limit: 2,
       match: tags => tags.includes("最新速递"),
+    },
+    {
+      id: "thinking",
+      title: thinking.title,
+      intro: thinking.intro,
+      hubSlug: "thinking",
+      scent: "thinking",
+      limit: 2,
+      match: tags => tags.includes("thinking"),
     },
     {
       id: "agent",
