@@ -6,10 +6,10 @@ featured: true
 draft: false
 tags:
   - thinking
-description: 读长文、拆手册、记下自己的判断。
+description: 精读长文和手册，把方法拆开，留下自己的判断。
 ---
 
-读长文、拆手册、记下自己的判断。标签：[thinking](/tags/thinking/)。
+精读长文和手册，把方法拆开，留下自己的判断。标签：[thinking](/tags/thinking/)。
 
 已整理：
 
