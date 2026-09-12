@@ -75,7 +75,7 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     },
     thinking: {
       title: "thinking",
-      intro: "Read long pieces and playbooks closely, take the methods apart, and write down my judgment.",
+      intro: "A few small thoughts.",
     },
     backend: {
       title: "Backend Notes",

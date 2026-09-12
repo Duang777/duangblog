@@ -6,10 +6,10 @@ featured: true
 draft: false
 tags:
   - thinking
-description: 精读长文和手册，把方法拆开，留下自己的判断。
+description: 一点小想法。
 ---
 
-精读长文和手册，把方法拆开，留下自己的判断。标签：[thinking](/tags/thinking/)。
+一点小想法。标签：[thinking](/tags/thinking/)。
 
 已整理：
 
