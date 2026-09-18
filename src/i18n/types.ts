@@ -85,5 +85,13 @@ export interface UIStrings {
     columnGroup: string;
     /** Group heading for the latest posts */
     recentGroup: string;
+    /**
+     * Footer row that leaves the palette for Pagefind. The palette only holds
+     * navigation, columns and recent posts, so this is the one way to search
+     * the article text itself. `{q}` is replaced with the current query.
+     */
+    fullSearch: string;
+    /** Same row while the query is still empty, so no `{q}` is left dangling. */
+    fullSearchEmpty: string;
   };
 }

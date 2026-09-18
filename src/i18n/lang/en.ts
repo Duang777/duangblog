@@ -83,5 +83,7 @@ export default {
     navGroup: "Navigation",
     columnGroup: "Columns",
     recentGroup: "Recent posts",
+    fullSearch: "Search all posts for {q}",
+    fullSearchEmpty: "Search all posts",
   },
 } satisfies UIStrings;

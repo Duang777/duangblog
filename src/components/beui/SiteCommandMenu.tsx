@@ -7,8 +7,12 @@
 // The ⌘K / Ctrl+K shortcut is deliberately NOT handled here: CommandPalette
 // already owns it internally and toggles the same `open` state, so a second
 // listener would just race the palette's own handler for no gain.
+//
+// The palette only indexes navigation, columns and the six latest posts, so it
+// cannot answer a query about article text. A pinned row hands the query to the
+// Pagefind page instead.
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CommandPalette, type CommandItem } from "./command-palette";
 import {
   Home,
@@ -18,6 +22,7 @@ import {
   User,
   BookOpen,
   Newspaper,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +51,12 @@ export interface SiteCommandMenuProps {
   recentGroup?: string;
   placeholder?: string;
   emptyMessage?: string;
+  /** Where Pagefind lives. Omit and the pinned row is not rendered at all. */
+  searchHref?: string;
+  /** Row label carrying the query, with a `{q}` placeholder. */
+  fullSearchLabel?: string;
+  /** Same row while the query is empty. */
+  fullSearchLabelEmpty?: string;
 }
 
 export function SiteCommandMenu({
@@ -54,6 +65,9 @@ export function SiteCommandMenu({
   recentGroup = "Recent",
   placeholder,
   emptyMessage,
+  searchHref,
+  fullSearchLabel,
+  fullSearchLabelEmpty,
 }: SiteCommandMenuProps) {
   const [open, setOpen] = useState(false);
 
@@ -61,14 +75,14 @@ export function SiteCommandMenu({
   // site runs Astro's ClientRouter, which intercepts clicks on same-origin
   // links, so a synthesised click keeps the soft navigation (and its view
   // transition). A bare `location.href` reloads the whole document.
-  const go = (href: string) => {
+  const go = useCallback((href: string) => {
     const a = document.createElement("a");
     a.href = href;
     a.style.display = "none";
     document.body.append(a);
     a.click();
     a.remove();
-  };
+  }, []);
 
   useEffect(() => {
     const onOpen = () => setOpen(true);
@@ -95,6 +109,27 @@ export function SiteCommandMenu({
     })),
   ];
 
+  // Wrapped in `useCallback` so the palette's own memo on the pinned rows keeps
+  // its identity between keystrokes.
+  const trailingItems = useCallback(
+    (query: string) => {
+      const q = query.trim();
+      if (!searchHref || !fullSearchLabel) return [];
+      return [
+        {
+          id: "full-search",
+          label: q
+            ? fullSearchLabel.replace("{q}", q)
+            : (fullSearchLabelEmpty ?? fullSearchLabel),
+          icon: Search,
+          onSelect: () =>
+            go(q ? `${searchHref}?q=${encodeURIComponent(q)}` : searchHref),
+        },
+      ];
+    },
+    [searchHref, fullSearchLabel, fullSearchLabelEmpty, go],
+  );
+
   return (
     <CommandPalette
       items={items}
@@ -102,6 +137,7 @@ export function SiteCommandMenu({
       onOpenChange={setOpen}
       placeholder={placeholder}
       emptyMessage={emptyMessage}
+      trailingItems={trailingItems}
     />
   );
 }

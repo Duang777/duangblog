@@ -38,6 +38,14 @@ export interface CommandPaletteProps {
   shortcut?: string;
   placeholder?: string;
   emptyMessage?: string;
+  /**
+   * Rows pinned below the filtered list, behind a hairline. Unlike `items`
+   * they are never filtered out, so they stay reachable when nothing local
+   * matches. Receives the current query so a row can carry it somewhere else:
+   * the site uses it to hand off to Pagefind, whose index covers the article
+   * text this palette has no access to.
+   */
+  trailingItems?: (query: string) => CommandItem[];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -56,6 +64,7 @@ export function CommandPalette({
   shortcut = "k",
   placeholder = "Type a command or search…",
   emptyMessage = "No results found.",
+  trailingItems,
   open: controlledOpen,
   onOpenChange,
 }: CommandPaletteProps) {
@@ -114,6 +123,11 @@ export function CommandPalette({
 
   const filtered = useMemo(() => searchCommands(items, query), [items, query]);
 
+  const trailing = useMemo(
+    () => trailingItems?.(query) ?? [],
+    [trailingItems, query],
+  );
+
   // Reserve the icon column only when at least one item brings an icon, so
   // icon-less lists don't render a dead gap before every label.
   const hasIcons = useMemo(() => items.some((it) => it.icon), [items]);
@@ -132,8 +146,12 @@ export function CommandPalette({
   // Grouping reorders the list, so the rendered order is not the filtered
   // order whenever two groups interleave. Everything that has to agree on
   // "which row" — the highlight, the ids, Enter, the scroll — reads this one
-  // array, so they cannot drift apart.
-  const rows = useMemo(() => grouped.flatMap(([, list]) => list), [grouped]);
+  // array, so they cannot drift apart. The pinned rows join it even though
+  // they render outside the grouped block, so the arrow keys reach them.
+  const rows = useMemo(
+    () => [...grouped.flatMap(([, list]) => list), ...trailing],
+    [grouped, trailing],
+  );
 
   const { activeIndex: active, moveTo, moveActive } = useRowCursor(rows, query);
 
@@ -174,6 +192,67 @@ export function CommandPalette({
     );
     el?.scrollIntoView({ block: "nearest" });
   }, [active, open]);
+
+  // One row renderer for both the grouped list and the pinned rows below it:
+  // the highlight, the ids and the pointer target all come from the same
+  // `rows` array, so the two blocks cannot disagree about which row is which.
+  const renderRow = (it: CommandItem) => {
+    // `rows` holds these very objects, in render order.
+    const idx = rows.indexOf(it);
+    const isActive = idx === active;
+    const Icon = it.icon;
+    return (
+      <button
+        key={it.id}
+        type="button"
+        id={`${uid}-opt-${idx}`}
+        role="option"
+        aria-selected={isActive}
+        data-index={idx}
+        onMouseEnter={() => moveTo(it.id)}
+        onClick={() => {
+          it.onSelect();
+          setOpen(false);
+        }}
+        className={cn(
+          "relative isolate flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors",
+          isActive ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        {isActive ? (
+          <motion.span
+            layoutId={`${uid}-active`}
+            className="absolute inset-0 z-0 rounded-md bg-primary/[0.05]"
+            transition={
+              reduce
+                ? { duration: 0 }
+                : // Tracks rapid arrow-key navigation — keep it tighter
+                  // than SPRING_LAYOUT so it never lags the active row.
+                  {
+                    type: "spring",
+                    stiffness: 480,
+                    damping: 38,
+                  }
+            }
+          />
+        ) : null}
+        {Icon ? (
+          <Icon className="relative z-10 h-4 w-4" />
+        ) : hasIcons ? (
+          <span className="relative z-10 h-4 w-4" />
+        ) : null}
+        <span className="relative z-10 flex-1 truncate">{it.label}</span>
+        {it.badge ? (
+          <span className="relative z-10 shrink-0">{it.badge}</span>
+        ) : null}
+        {it.hint ? (
+          <kbd className="relative z-10 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            {it.hint}
+          </kbd>
+        ) : null}
+      </button>
+    );
+  };
 
   if (!mounted) return null;
 
@@ -274,8 +353,15 @@ export function CommandPalette({
                   aria-label="Commands"
                   className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
-                  {rows.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-muted-foreground">
+                  {filtered.length === 0 ? (
+                    // Keyed off the local matches, not `rows`: the pinned rows
+                    // are always there, and "no results" is about the query.
+                    <div
+                      className={cn(
+                        "text-center text-sm text-muted-foreground",
+                        trailing.length > 0 ? "px-8 py-4" : "p-8",
+                      )}
+                    >
                       {emptyMessage}
                     </div>
                   ) : (
@@ -287,72 +373,17 @@ export function CommandPalette({
                         >
                           {group}
                         </div>
-                        {list.map((it) => {
-                          // `rows` holds these very objects, in render order.
-                          const idx = rows.indexOf(it);
-                          const isActive = idx === active;
-                          const Icon = it.icon;
-                          return (
-                            <button
-                              key={it.id}
-                              type="button"
-                              id={`${uid}-opt-${idx}`}
-                              role="option"
-                              aria-selected={isActive}
-                              data-index={idx}
-                              onMouseEnter={() => moveTo(it.id)}
-                              onClick={() => {
-                                it.onSelect();
-                                setOpen(false);
-                              }}
-                              className={cn(
-                                "relative isolate flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors",
-                                isActive
-                                  ? "text-foreground"
-                                  : "text-muted-foreground",
-                              )}
-                            >
-                              {isActive ? (
-                                <motion.span
-                                  layoutId={`${uid}-active`}
-                                  className="absolute inset-0 z-0 rounded-md bg-primary/[0.05]"
-                                  transition={
-                                    reduce
-                                      ? { duration: 0 }
-                                      : // Tracks rapid arrow-key navigation — keep it tighter
-                                        // than SPRING_LAYOUT so it never lags the active row.
-                                        {
-                                          type: "spring",
-                                          stiffness: 480,
-                                          damping: 38,
-                                        }
-                                  }
-                                />
-                              ) : null}
-                              {Icon ? (
-                                <Icon className="relative z-10 h-4 w-4" />
-                              ) : hasIcons ? (
-                                <span className="relative z-10 h-4 w-4" />
-                              ) : null}
-                              <span className="relative z-10 flex-1 truncate">
-                                {it.label}
-                              </span>
-                              {it.badge ? (
-                                <span className="relative z-10 shrink-0">
-                                  {it.badge}
-                                </span>
-                              ) : null}
-                              {it.hint ? (
-                                <kbd className="relative z-10 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                                  {it.hint}
-                                </kbd>
-                              ) : null}
-                            </button>
-                          );
-                        })}
+                        {list.map(renderRow)}
                       </div>
                     ))
                   )}
+                  {trailing.length > 0 ? (
+                    // Behind a hairline rather than under a heading: these are
+                    // not another section of results, they are the way out.
+                    <div className="mt-1 border-t border-border pt-1">
+                      {trailing.map(renderRow)}
+                    </div>
+                  ) : null}
                 </div>
               </motion.div>
             </div>

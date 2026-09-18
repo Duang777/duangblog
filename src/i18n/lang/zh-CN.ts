@@ -82,5 +82,7 @@ export default {
     navGroup: "导航",
     columnGroup: "专栏",
     recentGroup: "最近文章",
+    fullSearch: "在全部文章里搜索：{q}",
+    fullSearchEmpty: "在全部文章里搜索",
   },
 } satisfies UIStrings;

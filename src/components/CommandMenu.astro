@@ -37,6 +37,13 @@ const posts = await getCollection("posts");
 const recentPosts = getSortedPosts(posts, locale)
   .slice(0, 6)
   .map((p) => ({ label: p.data.title, href: getPostUrl(p.id, p.filePath, locale) }));
+
+// Same shape Layout writes into `body[data-search-href]` for the `/` hotkey.
+// The palette cannot search article text, so its pinned row hands off here.
+const searchHref =
+  config.features.search === "pagefind"
+    ? getRelativeLocaleUrl(locale, "search")
+    : undefined;
 ---
 
 <button
@@ -71,6 +78,9 @@ const recentPosts = getSortedPosts(posts, locale)
   recentGroup={t.command.recentGroup}
   placeholder={t.a11y.searchPlaceholder}
   emptyMessage={t.a11y.noResults}
+  searchHref={searchHref}
+  fullSearchLabel={t.command.fullSearch}
+  fullSearchLabelEmpty={t.command.fullSearchEmpty}
 />
 
 <script>
