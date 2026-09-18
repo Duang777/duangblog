@@ -107,12 +107,7 @@ export const AGENT_OBS_LINGO: LingoTerm[] = [
     subtitle: "traceparent / tracestate",
     definition:
       "浏览器与服务之间传递分布式追踪上下文的 W3C 标准。核心是 HTTP 头 `traceparent`（版本、trace-id、parent-id、flags），可选 `tracestate` 携带厂商扩展。\n\nMCP 客户端、网关、子 Agent HTTP 调用若要接得上同一条因果链，通常按这套头注入与提取。",
-    aliases: [
-      "W3C Trace Context",
-      "W3C Trace",
-      "traceparent",
-      "tracestate",
-    ],
+    aliases: ["W3C Trace Context", "W3C Trace", "traceparent", "tracestate"],
     source: {
       label: "W3C Trace Context",
       url: "https://www.w3.org/TR/trace-context/",
@@ -275,12 +270,7 @@ export const AGENT_OBS_LINGO: LingoTerm[] = [
     subtitle: "用模型评模型",
     definition:
       "另起一个模型（或同一模型另一套提示）给回答打分或写评语，用于事实性、相关性等难用正则判定的维度。要进线上闭环，通常把结果写成 score 挂回原 trace。",
-    aliases: [
-      "LLM-as-judge",
-      "LLM as judge",
-      "llm-as-judge",
-      "用模型评模型",
-    ],
+    aliases: ["LLM-as-judge", "LLM as judge", "llm-as-judge", "用模型评模型"],
   },
   {
     id: "prompt-versioning",
@@ -301,12 +291,7 @@ export const AGENT_OBS_LINGO: LingoTerm[] = [
     subtitle: "提示词缓存",
     definition:
       "对重复的长前缀提示做缓存计费 / 加速的能力（各模型厂商实现不同）。核算真实成本时，要把缓存命中与否打进 trace 维度，否则账单和用量对不上体感。",
-    aliases: [
-      "Prompt Caching",
-      "prompt caching",
-      "提示词缓存",
-      "prompt cache",
-    ],
+    aliases: ["Prompt Caching", "prompt caching", "提示词缓存", "prompt cache"],
   },
   {
     id: "human-in-the-loop",

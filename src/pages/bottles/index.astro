@@ -8,10 +8,7 @@ import config from "@/config";
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const mixupHref = getRelativeLocaleUrl(locale, "tags/易混专栏");
-const mysqlHref = getRelativeLocaleUrl(
-  locale,
-  "posts/mysql-index-design"
-);
+const mysqlHref = getRelativeLocaleUrl(locale, "posts/mysql-index-design");
 ---
 
 <Layout
@@ -73,7 +70,9 @@ const mysqlHref = getRelativeLocaleUrl(
   }
 
   function renderCabinet() {
-    const grid = document.querySelector<HTMLUListElement>("[data-cabinet-grid]");
+    const grid = document.querySelector<HTMLUListElement>(
+      "[data-cabinet-grid]"
+    );
     const empty = document.querySelector<HTMLElement>("[data-cabinet-empty]");
     const progress = document.querySelector<HTMLElement>(
       "[data-cabinet-progress]"

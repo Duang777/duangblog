@@ -11,11 +11,7 @@ export const AGENT_ARCH_LINGO: LingoTerm[] = [
     subtitle: "上下文工程",
     definition:
       "在每次推理时，从不断变化的信息宇宙里策展并维护「最优 token 集合」的一套策略：选什么进窗口、按什么顺序放、用什么结构切开、怎么压缩、哪一段可缓存。\n\n它管的是模型实际看见的全部 token，不只是你事先写好的那段 prompt。",
-    aliases: [
-      "Context Engineering",
-      "context engineering",
-      "上下文工程",
-    ],
+    aliases: ["Context Engineering", "context engineering", "上下文工程"],
   },
   {
     id: "prompt-engineering",
@@ -23,11 +19,7 @@ export const AGENT_ARCH_LINGO: LingoTerm[] = [
     subtitle: "提示工程",
     definition:
       "为获得更好结果而编写和组织模型指令的方法，焦点通常是 system prompt 怎么写。它是一次写好的「怎么说」；多轮 Agent 里还要叠上下文工程，管每一步「该提供什么」。",
-    aliases: [
-      "Prompt Engineering",
-      "prompt engineering",
-      "提示工程",
-    ],
+    aliases: ["Prompt Engineering", "prompt engineering", "提示工程"],
     source: {
       label: "Wikipedia: Prompt engineering",
       url: "https://en.wikipedia.org/wiki/Prompt_engineering",
@@ -47,11 +39,7 @@ export const AGENT_ARCH_LINGO: LingoTerm[] = [
     subtitle: "中途丢失",
     definition:
       "长上下文里，模型对开头和结尾的信息权重更高，对中间段召回更差。工程上意味着：关键指令和工具 schema 放前，当前问题和最相关检索放后，支撑材料不要堵在正中间。",
-    aliases: [
-      "Lost in the Middle",
-      "lost in the middle",
-      "中途丢失",
-    ],
+    aliases: ["Lost in the Middle", "lost in the middle", "中途丢失"],
     source: {
       label: "arXiv: Lost in the Middle",
       url: "https://arxiv.org/abs/2307.03172",

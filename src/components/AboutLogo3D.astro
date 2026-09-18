@@ -91,9 +91,8 @@
 
   async function mountLogo(stage: HTMLElement) {
     if (dispose) return;
-    const { mountAboutLogo } = await import(
-      "@/components/about-logo-3d/load-about-logo.ts"
-    );
+    const { mountAboutLogo } =
+      await import("@/components/about-logo-3d/load-about-logo.ts");
     if (dispose) return;
     if (!document.contains(stage)) return;
     dispose = mountAboutLogo(stage, { compact: true });

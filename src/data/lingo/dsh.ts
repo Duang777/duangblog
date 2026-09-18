@@ -72,11 +72,7 @@ export const DSH_LINGO: LingoTerm[] = [
     subtitle: "model-visible is logged",
     definition:
       "dsh 会话日志的硬约束：抵达模型请求的一切，都必须能从 append-only 日志重建，并由运行时不变量断言。新增模型可见输入，就要新增对应的会话事件。",
-    aliases: [
-      "模型可见即已记录",
-      "model-visible is logged",
-      "model-visible",
-    ],
+    aliases: ["模型可见即已记录", "model-visible is logged", "model-visible"],
   },
   {
     id: "capability-seam",

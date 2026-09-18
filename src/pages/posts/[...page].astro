@@ -49,19 +49,13 @@ const localePage = {
     prev:
       currentPage > 1
         ? currentPage === 2
-          ? page.url.first ?? page.url.current.replace(/\/\d+\/?$/, "/")
-          : page.url.current.replace(
-              /\/\d+\/?$/,
-              `/${currentPage - 1}/`
-            )
+          ? (page.url.first ?? page.url.current.replace(/\/\d+\/?$/, "/"))
+          : page.url.current.replace(/\/\d+\/?$/, `/${currentPage - 1}/`)
         : undefined,
     next:
       currentPage < lastPage
         ? page.url.current.includes(`/${currentPage}`)
-          ? page.url.current.replace(
-              `/${currentPage}`,
-              `/${currentPage + 1}`
-            )
+          ? page.url.current.replace(`/${currentPage}`, `/${currentPage + 1}`)
           : `${page.url.current.replace(/\/?$/, "/")}${currentPage + 1}/`
         : undefined,
   },

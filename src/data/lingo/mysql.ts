@@ -16,7 +16,15 @@ export const MYSQL_LINGO: LingoTerm[] = [
     subtitle: "表空间",
     definition:
       "Tablespace 是存放数据库对象实际数据的存储位置。它在物理文件与逻辑对象（表、索引等 segment）之间提供一层抽象：创建 tablespace 后，可以按名称把表或索引放到指定存储位置。\n\nTablespace 管的是“数据落在哪块存储”，不是 schema 本身。InnoDB 里常见系统表空间（如 ibdata1）以及开启 file-per-table 后每张表一个 .ibd 的独立表空间。",
-    aliases: ["独立表空间", "系统表空间", "表空间", "Tablespace", "tablespace", "ibdata1", ".ibd"],
+    aliases: [
+      "独立表空间",
+      "系统表空间",
+      "表空间",
+      "Tablespace",
+      "tablespace",
+      "ibdata1",
+      ".ibd",
+    ],
     source: {
       label: "Wikipedia: Tablespace",
       url: "https://en.wikipedia.org/wiki/Tablespace",
@@ -388,7 +396,12 @@ export const MYSQL_LINGO: LingoTerm[] = [
     subtitle: "ICP · Index Condition Pushdown",
     definition:
       "MySQL 5.6+ 把本可在索引列上判断的 WHERE 条件下推到存储引擎：在二级索引里先过滤，再对幸存行回表。相比旧路径“先大量回表、再回服务层过滤”，能明显少 IO。\n\nEXPLAIN Extra 出现 Using index condition 表示 ICP 生效。它和 Using index（覆盖、零回表）不是一回事。",
-    aliases: ["索引下推", "ICP", "Index Condition Pushdown", "Using index condition"],
+    aliases: [
+      "索引下推",
+      "ICP",
+      "Index Condition Pushdown",
+      "Using index condition",
+    ],
   },
   {
     id: "composite-index",

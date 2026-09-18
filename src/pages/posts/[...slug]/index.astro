@@ -25,10 +25,7 @@ import WrittenStamp from "@/components/WrittenStamp.astro";
 import { getReadingMinutes } from "@/utils/readingTime";
 import { formatWrittenStamp } from "@/utils/writtenStamp";
 import { pickColumnTag } from "@/utils/columnTag";
-import {
-  pickJarColumnTag,
-  resolveColumnJar,
-} from "@/data/column-jars";
+import { pickJarColumnTag, resolveColumnJar } from "@/data/column-jars";
 import HomeIdeaJarMini from "@/components/HomeIdeaJarMini.astro";
 import config from "@/config";
 
@@ -202,13 +199,10 @@ if (!post) {
 }
 
 const allForLocale = getSortedPosts(await getCollection("posts"), locale);
-const {
-  relatedPosts,
-  jarTag,
-  jarSlugs,
-  prevPost,
-  nextPost,
-} = buildAdjacent(post, allForLocale);
+const { relatedPosts, jarTag, jarSlugs, prevPost, nextPost } = buildAdjacent(
+  post,
+  allForLocale
+);
 
 const {
   title,
@@ -224,8 +218,7 @@ const {
 } = post.data;
 
 const postSlugPath = getPostSlugPath(post.id, post.filePath);
-const postSlug =
-  postSlugPath.split("/").filter(Boolean).pop() ?? post.id;
+const postSlug = postSlugPath.split("/").filter(Boolean).pop() ?? post.id;
 
 const { Content } = await render(post);
 
@@ -283,14 +276,17 @@ const ogImage = ogImageUrl
       <div class="post-head-main">
         <h1
           transition:name={toTransitionName(title)}
-          class="text-accent font-serif inline-block text-2xl font-bold sm:text-3xl"
+          class="text-accent inline-block font-serif text-2xl font-bold sm:text-3xl"
         >
           {title}
         </h1>
 
         <div class="my-2 flex items-center gap-2">
           <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
-          <span class="post-reading-time font-mono" aria-label={`预计阅读 ${readingMinutes} 分钟`}>
+          <span
+            class="post-reading-time font-mono"
+            aria-label={`预计阅读 ${readingMinutes} 分钟`}
+          >
             约 {readingMinutes} 分钟
           </span>
           <span
@@ -509,7 +505,7 @@ const ogImage = ogImageUrl
     function isLightboxExcluded(image) {
       return Boolean(
         image.classList.contains("duang-whisper-jar") ||
-          image.closest(".duang-whisper")
+        image.closest(".duang-whisper")
       );
     }
 
@@ -784,7 +780,10 @@ const ogImage = ogImageUrl
 </script>
 
 <script>
-  import { bindPostEnhancements, initPostEnhancements } from "@/scripts/post-enhance";
+  import {
+    bindPostEnhancements,
+    initPostEnhancements,
+  } from "@/scripts/post-enhance";
   bindPostEnhancements();
   initPostEnhancements();
 </script>

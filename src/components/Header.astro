@@ -34,7 +34,6 @@ const isActive = (path: string) => {
   const pathArray = path.split("/").filter(p => p.trim());
   return currentPath === path || currentPathArray[0] === pathArray[0];
 };
-
 ---
 
 <a
@@ -85,11 +84,7 @@ const isActive = (path: string) => {
         {
           site.landingUrl && (
             <li class="col-span-2">
-              <a
-                href={site.landingUrl}
-                title={t.nav.works}
-                rel="noopener"
-              >
+              <a href={site.landingUrl} title={t.nav.works} rel="noopener">
                 {t.nav.works}
               </a>
             </li>

@@ -1,7 +1,12 @@
 "use client";
 // beui.dev/components/motion/text-animation
 
-import { motion, type Transition, useInView, useReducedMotion } from "motion/react";
+import {
+  motion,
+  type Transition,
+  useInView,
+  useReducedMotion,
+} from "motion/react";
 import { useRef, type ElementType, type ReactNode } from "react";
 import { EASE_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
@@ -36,7 +41,7 @@ type WordGroup = { text: string; trailing: string };
  */
 function toWordGroups(line: string): WordGroup[] {
   const chunks = line.match(/\S+\s*|\s+/g) ?? [];
-  return chunks.map((chunk) => {
+  return chunks.map(chunk => {
     const text = chunk.replace(/\s+$/, "");
     return { text, trailing: chunk.slice(text.length) };
   });
@@ -69,7 +74,7 @@ export function TextReveal({
 
   return (
     <Comp ref={ref} className={cn("block", className)}>
-      {lines.map((line) => {
+      {lines.map(line => {
         const lineCount = lineCounts.get(line) ?? 0;
         lineCounts.set(line, lineCount + 1);
         const lineKey = `${line}-${lineCount}`;
@@ -117,7 +122,7 @@ export function TextReveal({
 
         return (
           <span key={lineKey} className="block">
-            {groups.map((group) => {
+            {groups.map(group => {
               const whole = group.text + group.trailing;
               // Characters animate one at a time, but each word (plus the
               // space that follows it) sits in its own inline-block so a long
@@ -131,7 +136,7 @@ export function TextReveal({
                   key={`${whole}-${groupCount}`}
                   className="inline-block whitespace-pre"
                 >
-                  {Array.from(whole).map((char) => renderUnit(char))}
+                  {Array.from(whole).map(char => renderUnit(char))}
                 </span>
               );
             })}

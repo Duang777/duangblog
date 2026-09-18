@@ -18,25 +18,64 @@ const t = useTranslations(locale);
 
 const columns = getHomeColumns(locale);
 const navItems = [
-  { id: "home", label: t.nav.home, group: t.command.navGroup, href: getRelativeLocaleUrl(locale, ""), icon: "home" },
-  { id: "posts", label: t.nav.posts, group: t.command.navGroup, href: getRelativeLocaleUrl(locale, "posts"), icon: "posts" },
-  { id: "tags", label: t.nav.tags, group: t.command.navGroup, href: getRelativeLocaleUrl(locale, "tags"), icon: "tags" },
-  { id: "archives", label: t.nav.archives, group: t.command.navGroup, href: getRelativeLocaleUrl(locale, "archives"), icon: "archive" },
-  { id: "about", label: t.nav.about, group: t.command.navGroup, href: getRelativeLocaleUrl(locale, "about"), icon: "about" },
-  ...columns.map((c) => {
+  {
+    id: "home",
+    label: t.nav.home,
+    group: t.command.navGroup,
+    href: getRelativeLocaleUrl(locale, ""),
+    icon: "home",
+  },
+  {
+    id: "posts",
+    label: t.nav.posts,
+    group: t.command.navGroup,
+    href: getRelativeLocaleUrl(locale, "posts"),
+    icon: "posts",
+  },
+  {
+    id: "tags",
+    label: t.nav.tags,
+    group: t.command.navGroup,
+    href: getRelativeLocaleUrl(locale, "tags"),
+    icon: "tags",
+  },
+  {
+    id: "archives",
+    label: t.nav.archives,
+    group: t.command.navGroup,
+    href: getRelativeLocaleUrl(locale, "archives"),
+    icon: "archive",
+  },
+  {
+    id: "about",
+    label: t.nav.about,
+    group: t.command.navGroup,
+    href: getRelativeLocaleUrl(locale, "about"),
+    icon: "about",
+  },
+  ...columns.map(c => {
     const href = c.hubSlug
       ? getPostUrl(c.hubSlug, undefined, locale)
       : c.tagHrefName
         ? getRelativeLocaleUrl(locale, `tags/${slugifyStr(c.tagHrefName)}`)
         : getRelativeLocaleUrl(locale, "posts");
-    return { id: `col-${c.id}`, label: c.title, group: t.command.columnGroup, href, icon: "column" };
+    return {
+      id: `col-${c.id}`,
+      label: c.title,
+      group: t.command.columnGroup,
+      href,
+      icon: "column",
+    };
   }),
 ];
 
 const posts = await getCollection("posts");
 const recentPosts = getSortedPosts(posts, locale)
   .slice(0, 6)
-  .map((p) => ({ label: p.data.title, href: getPostUrl(p.id, p.filePath, locale) }));
+  .map(p => ({
+    label: p.data.title,
+    href: getPostUrl(p.id, p.filePath, locale),
+  }));
 
 // Same shape Layout writes into `body[data-search-href]` for the `/` hotkey.
 // The palette cannot search article text, so its pinned row hands off here.
@@ -49,7 +88,7 @@ const searchHref =
 <button
   type="button"
   id="site-command-trigger"
-  class="focus-outline relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-accent"
+  class="focus-outline text-muted-foreground hover:text-accent relative flex size-8 items-center justify-center rounded-full transition-colors"
   aria-label={t.nav.search}
   title={`${t.nav.search} (⌘K)`}
 >

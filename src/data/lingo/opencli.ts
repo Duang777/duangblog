@@ -16,11 +16,7 @@ export const OPENCLI_LINGO: LingoTerm[] = [
     subtitle: "OCS",
     definition:
       "定义 CLI 应如何被机器理解和调用的规范。与 GitHub 上的 jackwener/OpenCLI 是不同项目，只是名字相近。",
-    aliases: [
-      "OpenCLI Specification",
-      "OCS",
-      "OpenCLI Specification（OCS）",
-    ],
+    aliases: ["OpenCLI Specification", "OCS", "OpenCLI Specification（OCS）"],
   },
   {
     id: "browser-bridge",
@@ -36,7 +32,13 @@ export const OPENCLI_LINGO: LingoTerm[] = [
     subtitle: "站点适配器",
     definition:
       "把某个站点或应用的具体协议，转成 OpenCLI 统一命令契约的代码或配置。调用者只表达搜索、读取、下载等意图，不必知道站点内部 API、Cookie 名称或 DOM 结构。",
-    aliases: ["站点适配器", "OpenCLI adapter", "TypeScript adapter", "Adapter（适配器）", "Adapter"],
+    aliases: [
+      "站点适配器",
+      "OpenCLI adapter",
+      "TypeScript adapter",
+      "Adapter（适配器）",
+      "Adapter",
+    ],
   },
   {
     id: "command-registry",
@@ -100,7 +102,12 @@ export const OPENCLI_LINGO: LingoTerm[] = [
     subtitle: "标签页租约",
     definition:
       "运行时暂时占用某个 tab 的所有权，把命令路由到指定标签。命令结束或显式 close 后释放，避免并行任务抢同一个页面。",
-    aliases: ["Tab lease", "标签页租约", "tab lease", "Tab lease（标签页租约）"],
+    aliases: [
+      "Tab lease",
+      "标签页租约",
+      "tab lease",
+      "Tab lease（标签页租约）",
+    ],
   },
   {
     id: "cdp",
@@ -448,6 +455,11 @@ export const OPENCLI_LINGO: LingoTerm[] = [
     subtitle: "声明式管道",
     definition:
       "用 YAML 描述 fetch、download、browser、intercept、tap、transform 等步骤。适合简单的数据抓取和字段映射；复杂站点更适合 TypeScript adapter。",
-    aliases: ["YAML pipeline", "声明式管道", "声明式 pipeline", "YAML pipeline（声明式管道）"],
+    aliases: [
+      "YAML pipeline",
+      "声明式管道",
+      "声明式 pipeline",
+      "YAML pipeline（声明式管道）",
+    ],
   },
 ];

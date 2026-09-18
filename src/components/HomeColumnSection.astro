@@ -55,7 +55,10 @@ const countLabel = useSubTopics
   <div class="home-column-head">
     <div class="home-column-titles">
       <div class="home-column-title-row">
-        <h2 id={`home-column-${column.id}`} class="home-column-title font-serif">
+        <h2
+          id={`home-column-${column.id}`}
+          class="home-column-title font-serif"
+        >
           {column.title}
         </h2>
         <span class="home-column-count font-mono" aria-label={countLabel}>
@@ -87,7 +90,9 @@ const countLabel = useSubTopics
                 <span class="home-subtopic-title-row">
                   <h3 class="home-subtopic-title font-serif">{topic.title}</h3>
                   {topicCount && (
-                    <span class="home-subtopic-count font-mono">{topicCount}</span>
+                    <span class="home-subtopic-count font-mono">
+                      {topicCount}
+                    </span>
                   )}
                 </span>
                 <p class="home-subtopic-intro">{topic.intro}</p>

@@ -52,9 +52,7 @@ if (tags.some(tag => tag === "thinking")) {
   column = "digest";
 } else if (tags.some(tag => tag.includes("高性能后端实战"))) {
   column = "perf";
-} else if (
-  tags.some(tag => tag.includes("易混专栏") || tag === "进程")
-) {
+} else if (tags.some(tag => tag.includes("易混专栏") || tag === "进程")) {
   column = "mixup";
 } else if (tags.some(tag => tag.includes("后端") || tag.includes("请求过境"))) {
   column = "backend";
@@ -95,7 +93,7 @@ if (tags.some(tag => tag === "thinking")) {
     draggable="true"
     data-term-slug={slug}
     class:list={[
-      "text-accent font-serif inline-block text-lg font-medium",
+      "text-accent inline-block font-serif text-lg font-medium",
       "decoration-dashed underline-offset-4 hover:underline",
       "focus-visible:no-underline focus-visible:underline-offset-0",
     ]}
@@ -109,7 +107,11 @@ if (tags.some(tag => tag === "thinking")) {
     </Heading>
     {
       isFresh && (
-        <span class="post-card-ink font-mono" title="近两天发布" aria-label="新">
+        <span
+          class="post-card-ink font-mono"
+          title="近两天发布"
+          aria-label="新"
+        >
           新
         </span>
       )

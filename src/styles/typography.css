@@ -12,7 +12,7 @@
     h3,
     h4,
     th {
-      @apply font-serif text-foreground mb-3;
+      @apply text-foreground mb-3 font-serif;
     }
 
     h3 {
@@ -82,7 +82,7 @@
     }
 
     code {
-      @apply bg-muted/75 font-mono text-foreground rounded p-1 wrap-break-word before:content-none after:content-none;
+      @apply bg-muted/75 text-foreground rounded p-1 font-mono wrap-break-word before:content-none after:content-none;
     }
 
     .astro-code code {

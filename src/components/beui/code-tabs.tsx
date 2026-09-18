@@ -7,7 +7,12 @@
 // throw "Tabs.* must be used inside <Tabs>". Keeping the whole tree here keeps
 // provider and consumers in the same React tree.
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/beui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/beui/tabs";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -33,8 +38,8 @@ export function CodeTabs({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-border bg-card",
-        className,
+        "border-border bg-card overflow-hidden rounded-2xl border",
+        className
       )}
     >
       <Tabs defaultValue={defaultValue} variant="pill">

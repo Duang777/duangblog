@@ -25,7 +25,13 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "薄路由 / 薄 handler",
     definition:
       "接入层的路由函数只做协议转换：把 HTTP 请求解析成内部对象，调用 Service，把结果组装成 HTTP 响应。不写校验、不拼 SQL、不开事务。这样接口契约一眼能看全，协议相关逻辑也集中在一处。",
-    aliases: ["薄路由", "薄 handler", "Thin Controller", "thin controller", "thin route"],
+    aliases: [
+      "薄路由",
+      "薄 handler",
+      "Thin Controller",
+      "thin controller",
+      "thin route",
+    ],
   },
   {
     id: "dependency-injection",
@@ -163,7 +169,13 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Python ORM",
     definition:
       "Python 生态最成熟的 ORM。支持声明式模型映射（class 继承 Base，字段用 Column 定义）和链式查询。2.x 风格用 Mapped/mapped_column 做类型注解。关键能力：joinedload/selectinload 解决 N+1、session 管理事务边界、连接池内建。",
-    aliases: ["SQLAlchemy", "sqlalchemy", "joinedload", "selectinload", "sessionmaker"],
+    aliases: [
+      "SQLAlchemy",
+      "sqlalchemy",
+      "joinedload",
+      "selectinload",
+      "sessionmaker",
+    ],
   },
 
   // ── Go 特有概念 ──
@@ -229,7 +241,14 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go 错误处理",
     definition:
       "Go 不用 try/except，函数同时返回值和 error：result, err := doSomething()，调用方必须检查 if err != nil。虽然啰嗦，但错误路径是显式的、可审计的。哨兵错误（var ErrNotFound = errors.New(...)）配合 errors.Is 做错误匹配，是 Go 的惯用模式。",
-    aliases: ["if err != nil", "Go error", "errors.New", "errors.Is", "哨兵错误", "sentinel error"],
+    aliases: [
+      "if err != nil",
+      "Go error",
+      "errors.New",
+      "errors.Is",
+      "哨兵错误",
+      "sentinel error",
+    ],
   },
   {
     id: "gorm",
@@ -301,7 +320,14 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "go.mod 依赖管理",
     definition:
       "Go 1.11+ 的依赖管理方案。一个 go.mod 文件声明 module 路径和依赖版本，go.sum 记录每个依赖的哈希保证可复现构建。go get 添加/升级依赖，go mod tidy 清理未用依赖。和 Python 的 requirements.txt + venv 比，Go module 是语言内置的，不需要额外工具，且编译时把依赖打进二进制，运行时不再需要依赖文件。",
-    aliases: ["go.mod", "go.sum", "go module", "Go Module", "go get", "go mod tidy"],
+    aliases: [
+      "go.mod",
+      "go.sum",
+      "go module",
+      "Go Module",
+      "go get",
+      "go mod tidy",
+    ],
   },
   {
     id: "graceful-shutdown",
@@ -309,7 +335,13 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "优雅关闭",
     definition:
       "进程收到停止信号（SIGTERM）时不立刻断连，而是：1) 停止接受新请求；2) 等正在处理的请求跑完；3) 超时强制杀。Go 里用 http.Server.Shutdown(ctx)，Python 里 gunicorn 用 --graceful-timeout。K8s 滚动更新时，没有优雅关闭会导致正在处理的请求被中途掐断，用户看到 502。",
-    aliases: ["优雅关闭", "Graceful Shutdown", "graceful shutdown", "Shutdown", "SIGTERM"],
+    aliases: [
+      "优雅关闭",
+      "Graceful Shutdown",
+      "graceful shutdown",
+      "Shutdown",
+      "SIGTERM",
+    ],
   },
   {
     id: "idempotency",
@@ -325,7 +357,15 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "限流",
     definition:
       "控制单位时间内的请求数量，防止下游被打爆或被恶意刷。常见算法：令牌桶（按固定速率发令牌，桶满了丢弃，允许突发）、漏桶（请求匀速流出，超量排队或拒绝）。实现位置：网关层（Nginx limit_req）、应用层（Redis 计数器）、客户端层。限流要返回 429 并带 Retry-After header，让客户端知道等多久重试。",
-    aliases: ["限流", "Rate Limiting", "rate limit", "令牌桶", "token bucket", "漏桶", "429"],
+    aliases: [
+      "限流",
+      "Rate Limiting",
+      "rate limit",
+      "令牌桶",
+      "token bucket",
+      "漏桶",
+      "429",
+    ],
   },
   {
     id: "circuit-breaker",
@@ -333,7 +373,14 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "熔断器",
     definition:
       "下游服务出错率超阈值时，熔断器跳闸，后续请求直接快速失败不再调下游，给它喘息恢复的时间。三态：Closed（正常调用）、Open（熔断，直接报错）、Half-Open（放一个探测请求试探是否恢复）。没有熔断器，一个慢下游会把上游所有线程拖住，级联雪崩。Python 用 pybreaker，Go 用 sony/gobreaker。",
-    aliases: ["熔断", "熔断器", "Circuit Breaker", "circuit breaker", "Half-Open", "gobreaker"],
+    aliases: [
+      "熔断",
+      "熔断器",
+      "Circuit Breaker",
+      "circuit breaker",
+      "Half-Open",
+      "gobreaker",
+    ],
   },
   {
     id: "health-check",
@@ -341,7 +388,14 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "健康检查",
     definition:
       "一个轻量端点（/health 或 /healthz）让平台探探服务是否活着。K8s 分两种探针：liveness（活了吗，不活就重启容器）、readiness（ ready 吗，没 ready 就从负载均衡摘掉）。健康检查要轻（不查库不查下游，只看进程是否正常），否则探针本身把服务拖垮。深度检查（/health?deep=true）才查依赖。",
-    aliases: ["健康检查", "Health Check", "healthz", "liveness", "readiness", "K8s 探针"],
+    aliases: [
+      "健康检查",
+      "Health Check",
+      "healthz",
+      "liveness",
+      "readiness",
+      "K8s 探针",
+    ],
   },
 
   // ── Python 补充概念 ──
@@ -358,7 +412,7 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     title: "Pydantic",
     subtitle: "Python 数据校验",
     definition:
-      "Python 的数据校验和序列化库，FastAPI 的底座。继承 BaseModel 定义 schema，字段带类型注解，实例化时自动校验类型和约束（gt=0、max_length 等）。校验失败抛 ValidationError，框架兜住后返回 422。Pydantic v2 用 Rust 写核心，比 v1 快 5-50 倍。和 Go struct tag 校验（binding:\"required\"）是同一类东西。",
+      'Python 的数据校验和序列化库，FastAPI 的底座。继承 BaseModel 定义 schema，字段带类型注解，实例化时自动校验类型和约束（gt=0、max_length 等）。校验失败抛 ValidationError，框架兜住后返回 422。Pydantic v2 用 Rust 写核心，比 v1 快 5-50 倍。和 Go struct tag 校验（binding:"required"）是同一类东西。',
     aliases: ["Pydantic", "pydantic", "BaseModel", "ValidationError", "422"],
   },
   {
@@ -425,7 +479,13 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go 中间件链",
     definition:
       "Go Web 里把多个 handler 包成洋葱模型的机制。中间件是一个 func(http.Handler) http.Handler，接收下游 handler 返回包装后的 handler。日志、鉴权、限流、recover、trace id 全写成中间件，用 gorilla/mux 或 chi 的 Use() 串起来。和 Python 装饰器是同一个思路，但 Go 靠嵌套函数、Python 靠 @ 语法糖。",
-    aliases: ["Go 中间件", "middleware", "func(http.Handler) http.Handler", "Use", "洋葱模型"],
+    aliases: [
+      "Go 中间件",
+      "middleware",
+      "func(http.Handler) http.Handler",
+      "Use",
+      "洋葱模型",
+    ],
   },
   {
     id: "go-sql-db",
@@ -433,6 +493,13 @@ export const BACKEND_ARCH_LINGO: LingoTerm[] = [
     subtitle: "Go 标准库数据库接口",
     definition:
       "Go 标准库的数据库抽象层。定义了 *sql.DB（连接池管理）和 *sql.Rows（查询结果集）等接口，具体数据库驱动（如 lib/pq、go-sql-driver/mysql）实现 driver.Driver 接口。database/sql 内建连接池，SetMaxOpenConns / SetMaxIdleConns 调池子大小。sqlx 在它基础上加了 struct 扫描便利；GORM 是更上层的全功能 ORM。",
-    aliases: ["database/sql", "sql.DB", "sql.Rows", "SetMaxOpenConns", "SetMaxIdleConns", "sqlx"],
+    aliases: [
+      "database/sql",
+      "sql.DB",
+      "sql.Rows",
+      "SetMaxOpenConns",
+      "SetMaxIdleConns",
+      "sqlx",
+    ],
   },
 ];

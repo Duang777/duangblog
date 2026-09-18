@@ -71,10 +71,7 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
   }
 </style>
 
-<script
-  is:inline
-  define:vars={{ repo, repoId, category, categoryId }}
->
+<script is:inline define:vars={{ repo, repoId, category, categoryId }}>
   function currentGiscusTheme() {
     const origin = window.location.origin;
     const theme = document.documentElement.getAttribute("data-theme");
@@ -82,9 +79,7 @@ const categoryId = "DIC_kwDOThhAqM4DB0kU";
       theme === "dark" ||
       (theme !== "light" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
-    return dark
-      ? `${origin}/giscus/dark.css`
-      : `${origin}/giscus/light.css`;
+    return dark ? `${origin}/giscus/dark.css` : `${origin}/giscus/light.css`;
   }
 
   function injectGiscus(container) {

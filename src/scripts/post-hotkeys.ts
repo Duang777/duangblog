@@ -59,11 +59,9 @@ function toggleCheatSheet(show?: boolean) {
     sheet.addEventListener("click", e => {
       if (e.target === sheet) toggleCheatSheet(false);
     });
-    document.addEventListener(
-      "astro:before-swap",
-      () => sheet?.remove(),
-      { once: true }
-    );
+    document.addEventListener("astro:before-swap", () => sheet?.remove(), {
+      once: true,
+    });
   }
   sheet.innerHTML = cheatSheetHtml();
   const open = show ?? !sheet.classList.contains("is-open");

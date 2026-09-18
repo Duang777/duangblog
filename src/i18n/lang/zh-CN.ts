@@ -39,7 +39,8 @@ export default {
     columnCount: "{{count}} 篇",
     topicCount: "{{count}} 题",
     dualLangTitle: "同一段逻辑，Go 和 Python 各写一遍",
-    dualLangIntro: "专栏里的代码示例尽量给两种语言。切换标签，对照着看同一件事在两边怎么落地。",
+    dualLangIntro:
+      "专栏里的代码示例尽量给两种语言。切换标签，对照着看同一件事在两边怎么落地。",
   },
   footer: {
     copyright: "版权所有",

@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { LOGO_LAYERS, type LogoLayer } from './contours';
+import * as THREE from "three";
+import { LOGO_LAYERS, type LogoLayer } from "./contours";
 
 /**
  * Procedural Duang stacked-ribbon logo from the flat reference.
@@ -45,7 +45,7 @@ export function createDuangStackedLogoModel(
   const color = options.color ?? IVORY;
 
   const root = new THREE.Group();
-  root.name = 'duang-stacked-logo';
+  root.name = "duang-stacked-logo";
 
   const ivory = makeIvoryMaterial(color);
   const nodes: Record<string, THREE.Object3D> = {};
@@ -89,7 +89,7 @@ export function createDuangStackedLogoModel(
     sockets: {},
     materials: { ivory },
     layers,
-    destructionGroups: LOGO_LAYERS.map((l) => l.id),
+    destructionGroups: LOGO_LAYERS.map(l => l.id),
     tick: (t: number) => {
       root.rotation.y = Math.sin(t * 0.2) * 0.05;
       root.position.y = Math.sin(t * 0.85) * 0.018;

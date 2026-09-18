@@ -4,9 +4,7 @@
  * that happen while typing in any input, e.g. the home terminal.
  */
 function getSearchInput(): HTMLInputElement | null {
-  return document.querySelector<HTMLInputElement>(
-    ".pagefind-ui__search-input"
-  );
+  return document.querySelector<HTMLInputElement>(".pagefind-ui__search-input");
 }
 
 function onKeydown(event: KeyboardEvent) {

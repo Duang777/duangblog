@@ -275,8 +275,7 @@ export function getJarSnapshot(totalPosts: number): JarSnapshot {
   const bookmarkCount = countActiveScrollBookmarks();
   const weekVisits = weekVisitDays();
   const ratio = totalPosts > 0 ? readCount / totalPosts : 0;
-  const level =
-    readCount > 0 ? Math.max(0.1, Math.min(1, ratio)) : 0.05;
+  const level = readCount > 0 ? Math.max(0.1, Math.min(1, ratio)) : 0.05;
   const latest = getLatestScrollBookmark();
   return {
     readCount,

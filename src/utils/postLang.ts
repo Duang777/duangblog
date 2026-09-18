@@ -25,9 +25,6 @@ export function getRouteSlugPath(
   return getPostSlugPath(id, filePath);
 }
 
-export function getRouteSlug(
-  id: string,
-  filePath: string | undefined
-): string {
+export function getRouteSlug(id: string, filePath: string | undefined): string {
   return `/${getRouteSlugPath(id, filePath)}`;
 }

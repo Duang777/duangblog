@@ -18,7 +18,11 @@ function isWeekend(day: number): boolean {
   return day === 0 || day === 6;
 }
 
-function stampFor(date: Date): { weekday: string; part: string; weekend: boolean } {
+function stampFor(date: Date): {
+  weekday: string;
+  part: string;
+  weekend: boolean;
+} {
   return {
     weekday: WEEKDAYS[date.getDay()] ?? "某日",
     part: partOfDay(date.getHours()),

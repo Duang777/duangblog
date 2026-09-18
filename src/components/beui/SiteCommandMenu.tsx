@@ -93,7 +93,7 @@ export function SiteCommandMenu({
   }, []);
 
   const items: CommandItem[] = [
-    ...nav.map((n) => ({
+    ...nav.map(n => ({
       id: n.id,
       label: n.label,
       group: n.group,
@@ -127,7 +127,7 @@ export function SiteCommandMenu({
         },
       ];
     },
-    [searchHref, fullSearchLabel, fullSearchLabelEmpty, go],
+    [searchHref, fullSearchLabel, fullSearchLabelEmpty, go]
   );
 
   return (

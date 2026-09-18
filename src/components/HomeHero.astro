@@ -31,28 +31,41 @@ const t = useTranslations(locale);
   data-writing={homeWritingStatus.text}
   data-prompt={prompt}
 >
-  <div class="home-hero-glow pointer-events-none absolute inset-0" aria-hidden="true"></div>
+  <div
+    class="home-hero-glow pointer-events-none absolute inset-0"
+    aria-hidden="true"
+  >
+  </div>
 
   <div
     id="home-boot"
-    class="home-boot font-mono text-foreground fixed inset-0 z-50 flex items-center justify-center bg-background px-6"
+    class="home-boot text-foreground bg-background fixed inset-0 z-50 flex items-center justify-center px-6 font-mono"
     aria-hidden="true"
   >
-    <pre id="home-boot-log" class="text-muted-foreground w-full max-w-xl text-xs leading-6 sm:text-sm"></pre>
+    <pre
+      id="home-boot-log"
+      class="text-muted-foreground w-full max-w-xl text-xs leading-6 sm:text-sm">
+    </pre>
   </div>
 
   <div class="app-layout relative z-10 w-full py-12">
-    <div id="home-hero-stage" class="home-hero-stage mx-auto w-full max-w-2xl opacity-0">
+    <div
+      id="home-hero-stage"
+      class="home-hero-stage mx-auto w-full max-w-2xl opacity-0"
+    >
       <div
-        class="home-term border-border bg-background/85 font-mono overflow-hidden rounded-xl border shadow-sm backdrop-blur"
+        class="home-term border-border bg-background/85 overflow-hidden rounded-xl border font-mono shadow-sm backdrop-blur"
       >
-        <div class="border-border bg-muted/60 flex items-center justify-between gap-2 border-b px-4 py-2.5">
+        <div
+          class="border-border bg-muted/60 flex items-center justify-between gap-2 border-b px-4 py-2.5"
+        >
           <div class="flex items-center gap-2">
             <span class="bg-accent/80 size-3 rounded-full"></span>
             <span class="bg-muted-foreground/45 size-3 rounded-full"></span>
             <span class="bg-muted-foreground/25 size-3 rounded-full"></span>
-            <span class="text-muted-foreground ms-2 text-xs" data-term-chrome-prompt
-              >{prompt}</span
+            <span
+              class="text-muted-foreground ms-2 text-xs"
+              data-term-chrome-prompt>{prompt}</span
             >
           </div>
           <button
@@ -89,7 +102,9 @@ const t = useTranslations(locale);
     aria-label={t.home.scrollToPosts}
   >
     <span>{t.home.scrollToPosts}</span>
-    <span class="home-hero-scroll-cue border-border block h-8 w-px border-l" aria-hidden="true"></span>
+    <span
+      class="home-hero-scroll-cue border-border block h-8 w-px border-l"
+      aria-hidden="true"></span>
   </a>
 </section>
 
@@ -186,7 +201,8 @@ const t = useTranslations(locale);
 
   .home-term.is-flicker {
     filter: contrast(1.05) brightness(1.03);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--accent) 25%, transparent);
   }
 
   :global(.home-term-body.is-drop-target),

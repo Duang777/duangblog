@@ -87,8 +87,7 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     },
     agent: {
       title: "Agent Breakdowns",
-      intro:
-        "Loops, tools, and engineering trade-offs in Agent projects.",
+      intro: "Loops, tools, and engineering trade-offs in Agent projects.",
     },
     "agent-arch": {
       title: "Agent System Architecture",
@@ -97,7 +96,8 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     },
     mysql: {
       title: "MySQL",
-      intro: "Walk one SQL through architecture, engine, indexes, and transactions.",
+      intro:
+        "Walk one SQL through architecture, engine, indexes, and transactions.",
     },
     perf: {
       title: "High-Performance Backend",
@@ -111,7 +111,8 @@ const COLUMN_COPY: Record<"zh-CN" | "en", Record<string, ColumnCopy>> = {
     },
     pi: {
       title: "Pi Deep Dive",
-      intro: "What Pi is, how the packages split, and which trade-offs it made.",
+      intro:
+        "What Pi is, how the packages split, and which trade-offs it made.",
     },
     misc: {
       title: "Notes & Other",

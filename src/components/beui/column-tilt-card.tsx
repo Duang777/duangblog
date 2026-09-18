@@ -18,23 +18,31 @@ type Props = {
   enterLabel?: string;
 };
 
-export function ColumnTiltCard({ kicker, title, intro, href, enterLabel }: Props) {
+export function ColumnTiltCard({
+  kicker,
+  title,
+  intro,
+  href,
+  enterLabel,
+}: Props) {
   return (
-    <TiltCard max={6} glare={false} className="border border-border bg-card">
+    <TiltCard max={6} glare={false} className="border-border bg-card border">
       {/* h-full + flex-col：网格会把两张卡片拉到同高，标题和正文贴着上边，
           底部提示用 mt-auto 顶下去，不至于在卡片下方留一大块空白。 */}
       <a href={href} className="flex h-full flex-col p-6">
         {kicker ? (
-          <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          <div className="text-muted-foreground font-mono text-xs tracking-wider uppercase">
             {kicker}
           </div>
         ) : null}
-        <div className={cn("font-serif text-xl text-foreground", kicker && "mt-2")}>
+        <div
+          className={cn("text-foreground font-serif text-xl", kicker && "mt-2")}
+        >
           {title}
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">{intro}</p>
+        <p className="text-muted-foreground mt-3 text-sm">{intro}</p>
         {enterLabel ? (
-          <span className="mt-auto pt-8 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="text-muted-foreground mt-auto pt-8 font-mono text-xs tracking-wider uppercase">
             {enterLabel}
           </span>
         ) : null}

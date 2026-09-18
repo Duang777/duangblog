@@ -12,10 +12,10 @@ type RowCursor = { id: string; query: string };
 function indexOfCursor(
   rows: readonly { id: string }[],
   query: string,
-  cursor: RowCursor | null,
+  cursor: RowCursor | null
 ) {
   if (cursor === null || cursor.query !== query) return -1;
-  return rows.findIndex((row) => row.id === cursor.id);
+  return rows.findIndex(row => row.id === cursor.id);
 }
 
 /**
@@ -66,7 +66,7 @@ export function useRowCursor(rows: readonly { id: string }[], query: string) {
   const moveTo = useCallback(
     (id: string | null) =>
       setCursor(id === null ? null : { id, query: latest.current.query }),
-    [],
+    []
   );
 
   const moveActive = useCallback((direction: 1 | -1) => {
@@ -75,7 +75,7 @@ export function useRowCursor(rows: readonly { id: string }[], query: string) {
     if (last < 0) return;
     // Steps from the row the cursor is really on, inside the update, so that
     // two keys landing in one batch move two rows rather than one.
-    setCursor((current) => {
+    setCursor(current => {
       const at = Math.max(indexOfCursor(live, liveQuery, current), 0);
       const next = Math.min(Math.max(at + direction, 0), last);
       return { id: live[next].id, query: liveQuery };

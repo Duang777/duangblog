@@ -16,9 +16,7 @@ export const GET: APIRoute = async context => {
       config.site.ogImage || "default-og.jpg"
     );
     const bytes = await readFile(filePath);
-    const contentType = filePath.endsWith(".png")
-      ? "image/png"
-      : "image/jpeg";
+    const contentType = filePath.endsWith(".png") ? "image/png" : "image/jpeg";
     return new Response(bytes, {
       headers: { "Content-Type": contentType },
     });

@@ -226,17 +226,19 @@ function takeReturnNote(posts: TermPost[]): string | null {
 export function applyReadEcho(root: ParentNode = document) {
   const reads = getReads();
   const hasHistory = reads.size > 0;
-  root.querySelectorAll<HTMLElement>(".post-card[data-term-slug]").forEach(card => {
-    const slug = card.dataset.termSlug;
-    if (slug && reads.has(slug)) {
-      card.classList.add("is-read");
-      card.classList.remove("is-unread");
-    } else {
-      card.classList.remove("is-read");
-      if (slug && hasHistory) card.classList.add("is-unread");
-      else card.classList.remove("is-unread");
-    }
-  });
+  root
+    .querySelectorAll<HTMLElement>(".post-card[data-term-slug]")
+    .forEach(card => {
+      const slug = card.dataset.termSlug;
+      if (slug && reads.has(slug)) {
+        card.classList.add("is-read");
+        card.classList.remove("is-unread");
+      } else {
+        card.classList.remove("is-read");
+        if (slug && hasHistory) card.classList.add("is-unread");
+        else card.classList.remove("is-unread");
+      }
+    });
 }
 
 function getCmdHistory(): string[] {
@@ -336,7 +338,10 @@ function flickerTerm() {
 function paperWrinkle() {
   if (reducedMotion()) return;
   document.body.classList.add("home-paper-wrinkle");
-  window.setTimeout(() => document.body.classList.remove("home-paper-wrinkle"), 180);
+  window.setTimeout(
+    () => document.body.classList.remove("home-paper-wrinkle"),
+    180
+  );
 }
 
 function saveSession(cmd: string, href: string, guest: boolean) {
@@ -344,10 +349,7 @@ function saveSession(cmd: string, href: string, guest: boolean) {
     SESSION_KEY,
     JSON.stringify({ cmd, href, at: Date.now() })
   );
-  sessionStorage.setItem(
-    RESUME_KEY,
-    JSON.stringify({ guest, at: Date.now() })
-  );
+  sessionStorage.setItem(RESUME_KEY, JSON.stringify({ guest, at: Date.now() }));
 }
 
 function shouldResume(): { guest: boolean } | null {
@@ -382,7 +384,9 @@ function findPost(posts: TermPost[], target: string): TermPost | undefined {
 function levenshtein(a: string, b: string) {
   const m = a.length;
   const n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => new Array<number>(n + 1).fill(0));
+  const dp = Array.from({ length: m + 1 }, () =>
+    new Array<number>(n + 1).fill(0)
+  );
   for (let i = 0; i <= m; i++) dp[i]![0] = i;
   for (let j = 0; j <= n; j++) dp[0]![j] = j;
   for (let i = 1; i <= m; i++) {
@@ -416,9 +420,9 @@ function didYouMean(input: string): string | null {
 
 function columnStats(posts: TermPost[]) {
   const buckets: Record<string, number> = {
-    "后端专栏": 0,
-    "请求过境": 0,
-    "最新速递": 0,
+    后端专栏: 0,
+    请求过境: 0,
+    最新速递: 0,
     Agent: 0,
     其他: 0,
   };
@@ -528,7 +532,9 @@ async function runCommand(
       ctx.posts
         .map(p => p.pubDate)
         .filter((d): d is string => Boolean(d))
-        .filter(d => d.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`))
+        .filter(d =>
+          d.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`)
+        )
         .map(d => Number(d.slice(8, 10)))
     );
     const title = `${year}-${String(month + 1).padStart(2, "0")}`;
@@ -675,7 +681,9 @@ async function runCommand(
     const reads = getReads();
     for (const post of hits) {
       const mark = reads.has(post.slug) ? "✓" : " ";
-      const tagLine = post.tags.filter(t => t.toLowerCase().includes(q)).join(", ");
+      const tagLine = post.tags
+        .filter(t => t.toLowerCase().includes(q))
+        .join(", ");
       appendLine(body, `${mark} ${post.slug.padEnd(22)} ${tagLine}`);
     }
     appendLine(body, `open <slug> 打开，例如 open ${hits[0]!.slug}`);
@@ -799,17 +807,28 @@ async function runCommand(
     hist
       .slice()
       .reverse()
-      .forEach((cmd, i) => appendLine(body, ` ${(i + 1).toString().padStart(3)}  ${cmd}`));
+      .forEach((cmd, i) =>
+        appendLine(body, ` ${(i + 1).toString().padStart(3)}  ${cmd}`)
+      );
     return;
   }
   if (lower === "man" || lower === "man duang") {
-    appendLine(body, "DUANG(1)                    Blog Commands                   DUANG(1)");
+    appendLine(
+      body,
+      "DUANG(1)                    Blog Commands                   DUANG(1)"
+    );
     appendLine(body, "");
     appendLine(body, "NAME");
-    appendLine(body, `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`);
+    appendLine(
+      body,
+      `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`
+    );
     appendLine(body, "");
     appendLine(body, "SYNOPSIS");
-    appendLine(body, "       open <slug> | grep <词> | tags <词> | jar | last | bookmark | env | cat <slug> | today");
+    appendLine(
+      body,
+      "       open <slug> | grep <词> | tags <词> | jar | last | bookmark | env | cat <slug> | today"
+    );
     appendLine(body, "");
     appendLine(body, "DESCRIPTION");
     appendLine(body, "       拆 Agent、记服务端机制，偶尔写路上的想法。");
@@ -838,10 +857,7 @@ async function runCommand(
   if (lower === "df" || lower === "df -h") {
     const buckets = columnStats(ctx.posts);
     const total = Math.max(1, ctx.posts.length);
-    appendLine(
-      body,
-      "Filesystem      Size  Used  Avail  Use%  Mounted on"
-    );
+    appendLine(body, "Filesystem      Size  Used  Avail  Use%  Mounted on");
     const rows: [string, string, number][] = [
       ["backend", "/columns/backend", buckets["后端专栏"]!],
       ["request", "/columns/request-crossing", buckets["请求过境"]!],
@@ -851,7 +867,10 @@ async function runCommand(
     ];
     for (const [fs, mount, used] of rows) {
       const size = 10;
-      const use = Math.min(size, Math.max(1, Math.round((used / total) * size)));
+      const use = Math.min(
+        size,
+        Math.max(1, Math.round((used / total) * size))
+      );
       const avail = size - use;
       const pct = Math.round((use / size) * 100);
       appendLine(
@@ -861,7 +880,11 @@ async function runCommand(
     }
     return;
   }
-  if (lower === "tail -f ideas" || lower === "tail ideas" || lower === "tail -f ideas.md") {
+  if (
+    lower === "tail -f ideas" ||
+    lower === "tail ideas" ||
+    lower === "tail -f ideas.md"
+  ) {
     appendLine(body, "==> ideas.md <==");
     const lines =
       ctx.ideas.length > 0
@@ -1127,7 +1150,11 @@ function mountPrompt(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
   });
 }
 
-function bindDropTarget(body: HTMLElement, ctx: TermCtx, still?: () => boolean) {
+function bindDropTarget(
+  body: HTMLElement,
+  ctx: TermCtx,
+  still?: () => boolean
+) {
   if (body.dataset.dropBound === "1") return;
   body.dataset.dropBound = "1";
 
@@ -1494,9 +1521,7 @@ export function bindHomeHeroPageLoad() {
       e.dataTransfer.setData("text/term-slug", slug);
       e.dataTransfer.setData("text/plain", slug);
       e.dataTransfer.effectAllowed = "copy";
-      document
-        .getElementById("home-term-body")
-        ?.classList.add("is-drop-hint");
+      document.getElementById("home-term-body")?.classList.add("is-drop-hint");
     });
     document.addEventListener("dragend", () => {
       document

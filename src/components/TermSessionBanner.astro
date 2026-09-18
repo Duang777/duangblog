@@ -12,7 +12,7 @@ const { slug = "" } = Astro.props;
 
 <div
   id="term-session-banner"
-  class="border-border bg-muted/50 font-mono text-foreground mb-6 hidden rounded-lg border px-3 py-2 text-xs sm:text-sm"
+  class="border-border bg-muted/50 text-foreground mb-6 hidden rounded-lg border px-3 py-2 font-mono text-xs sm:text-sm"
   hidden
   data-term-slug={slug}
 >
@@ -82,9 +82,7 @@ const { slug = "" } = Astro.props;
       const pathEl = el.querySelector("[data-term-path]");
       const cmdEl = el.querySelector("[data-term-cmd]");
       const pathSlug =
-        slug ||
-        data.cmd?.replace(/^open\s+/i, "").trim() ||
-        "post";
+        slug || data.cmd?.replace(/^open\s+/i, "").trim() || "post";
       if (pathEl) pathEl.textContent = `~/posts/${pathSlug}.md`;
       if (cmdEl) cmdEl.textContent = `$ ${data.cmd}`;
       el.hidden = false;

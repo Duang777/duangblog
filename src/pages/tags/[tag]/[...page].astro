@@ -34,8 +34,7 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
     );
     const enTagPosts = getSortedPosts(
       posts.filter(
-        ({ data }) =>
-          data.lang === "en" && slugifyAll(data.tags).includes(tag)
+        ({ data }) => data.lang === "en" && slugifyAll(data.tags).includes(tag)
       ),
       "en"
     );

@@ -21,10 +21,13 @@ const { posts, locale } = Astro.props;
 
 {
   posts.length > 0 && (
-    <section class="continue-reading my-8" aria-labelledby="continue-reading-title">
+    <section
+      class="continue-reading my-8"
+      aria-labelledby="continue-reading-title"
+    >
       <p
         id="continue-reading-title"
-        class="font-mono text-muted-foreground mb-4 text-xs tracking-widest"
+        class="text-muted-foreground mb-4 font-mono text-xs tracking-widest"
       >
         接着读
       </p>
@@ -36,20 +39,20 @@ const { posts, locale } = Astro.props;
               class="grid grid-cols-[1.6rem_1fr] gap-2 no-underline"
             >
               <span
-                class="font-mono text-muted-foreground pt-0.5 text-xs"
+                class="text-muted-foreground pt-0.5 font-mono text-xs"
                 aria-hidden="true"
               >
                 {String(index + 1).padStart(2, "0")}
               </span>
               <span>
-                <span class="text-accent font-serif block font-medium group-hover:underline group-hover:decoration-dashed group-hover:underline-offset-4">
+                <span class="text-accent block font-serif font-medium group-hover:underline group-hover:decoration-dashed group-hover:underline-offset-4">
                   {post.title}
                 </span>
                 <span class="text-muted-foreground mt-1 line-clamp-2 block text-sm leading-6">
                   {post.description}
                 </span>
                 {post.sharedTag && (
-                  <span class="font-mono text-muted-foreground/80 mt-1.5 block text-[0.65rem] tracking-wide">
+                  <span class="text-muted-foreground/80 mt-1.5 block font-mono text-[0.65rem] tracking-wide">
                     {post.seriesIndex && post.seriesTotal
                       ? `同属 ${post.sharedTag} · 同系列第 ${post.seriesIndex} / ${post.seriesTotal} 篇`
                       : `同属 ${post.sharedTag}`}

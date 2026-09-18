@@ -15,8 +15,10 @@ const currentYear = new Date().getFullYear();
 
 // A short notebook-style path for the current page, like a page footer stamp.
 const locale = Astro.currentLocale ?? config.site.lang;
-const rawPath = stripLocale(stripBase(Astro.url.pathname), locale)
-  .replace(/\/+$/, "");
+const rawPath = stripLocale(stripBase(Astro.url.pathname), locale).replace(
+  /\/+$/,
+  ""
+);
 let shortPath = "~";
 try {
   shortPath = rawPath === "" ? "~" : `~${decodeURIComponent(rawPath)}`;
@@ -58,10 +60,12 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
         收藏柜 · 彩蛋
       </a>
     </div>
-    <div class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:items-baseline sm:gap-0">
+    <div
+      class="my-2 flex flex-col items-center gap-1 sm:flex-row sm:items-baseline sm:gap-0"
+    >
       <button
         type="button"
-        class="footer-path font-mono text-muted-foreground text-xs tracking-wide"
+        class="footer-path text-muted-foreground font-mono text-xs tracking-wide"
         data-path={shortPath}
         title="点击复制路径"
       >
@@ -69,9 +73,9 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
         <span class="text-accent/80 footer-path-value">{shortPath}</span>
       </button>
       <span
-        class="footer-copy font-mono text-muted-foreground text-xs tracking-wide"
+        class="footer-copy text-muted-foreground font-mono text-xs tracking-wide"
       >
-        <span class="hidden sm:inline opacity-60">&nbsp;·&nbsp;</span>
+        <span class="hidden opacity-60 sm:inline">&nbsp;·&nbsp;</span>
         © {currentYear}
       </span>
     </div>

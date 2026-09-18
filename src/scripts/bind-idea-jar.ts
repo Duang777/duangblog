@@ -101,7 +101,10 @@ export function syncIdeaJarRoot(root: HTMLElement) {
     notches.replaceChildren();
     const count = Math.min(7, snap.weekVisits);
     for (let i = 0; i < count; i++) {
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
       line.setAttribute("x1", String(24 + i * 3.2));
       line.setAttribute("y1", "12");
       line.setAttribute("x2", String(24 + i * 3.2));
@@ -151,8 +154,7 @@ export function syncIdeaJarRoot(root: HTMLElement) {
   const btn = root.querySelector<HTMLButtonElement>(".home-idea-jar-btn");
   if (btn) {
     const last = getLastRead()?.slug ?? null;
-    const today =
-      root.dataset.todaySlug || btn.dataset.todaySlug || null;
+    const today = root.dataset.todaySlug || btn.dataset.todaySlug || null;
     const fallback = root.dataset.fallbackSlug || null;
     const dragSlug = resolveJarDragSlug({
       lastSlug: last,

@@ -57,11 +57,11 @@
 
 /* Mermaid diagrams in posts */
 .mermaid {
-  @apply my-6 flex justify-center overflow-x-auto rounded-lg border border-border bg-background p-4;
+  @apply border-border bg-background my-6 flex justify-center overflow-x-auto rounded-lg border p-4;
 }
 
 .mermaid svg {
-  @apply max-w-full h-auto;
+  @apply h-auto max-w-full;
 }
 
 /* Collapsible blocks in posts: opt out of the prose <details> collapsing rules */
@@ -188,7 +188,11 @@ html[data-theme="dark"] body::before {
 }
 
 .post-card[data-column="backend"] {
-  --column-tint: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+  --column-tint: color-mix(
+    in oklab,
+    var(--accent) 55%,
+    var(--muted-foreground)
+  );
 }
 
 .post-card[data-column="frontend"] {
@@ -262,7 +266,11 @@ html[data-theme="dark"] body::before {
 
 /* Tag scent: warm/cool underline echoing the column hairlines. */
 .tag-chip[data-tag-scent="backend"] {
-  border-bottom-color: color-mix(in oklab, var(--accent) 55%, var(--foreground));
+  border-bottom-color: color-mix(
+    in oklab,
+    var(--accent) 55%,
+    var(--foreground)
+  );
 }
 
 .tag-chip[data-tag-scent="agent"] {
@@ -497,7 +505,8 @@ body {
   margin: 0;
   padding: 0.42rem 0.9rem;
   border: none;
-  border-inline-end: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-inline-end: 1px solid
+    color-mix(in oklab, var(--border) 80%, transparent);
   background: transparent;
   color: color-mix(in oklab, var(--muted-foreground) 88%, var(--foreground));
   font-size: 0.72rem;
@@ -1065,7 +1074,11 @@ html[data-theme="dark"] .app-prose .duang-whisper-jar {
 
   .app-prose .marginalia.interview {
     border-inline-start-style: solid;
-    border-inline-start-color: color-mix(in oklab, var(--accent) 70%, var(--border));
+    border-inline-start-color: color-mix(
+      in oklab,
+      var(--accent) 70%,
+      var(--border)
+    );
     color: color-mix(in oklab, var(--foreground) 72%, var(--muted-foreground));
   }
 
@@ -1278,8 +1291,7 @@ html[data-theme="dark"] .about-doodle--letter-p {
   }
   22% {
     background: color-mix(in oklab, var(--accent) 13%, transparent);
-    box-shadow: -0.35rem 0 0
-      color-mix(in oklab, var(--accent) 52%, transparent);
+    box-shadow: -0.35rem 0 0 color-mix(in oklab, var(--accent) 52%, transparent);
   }
   100% {
     background: transparent;
@@ -1290,8 +1302,7 @@ html[data-theme="dark"] .about-doodle--letter-p {
 @media (prefers-reduced-motion: reduce) {
   #article :target {
     animation: none;
-    box-shadow: -0.2rem 0 0
-      color-mix(in oklab, var(--accent) 45%, transparent);
+    box-shadow: -0.2rem 0 0 color-mix(in oklab, var(--accent) 45%, transparent);
   }
 }
 
@@ -1337,7 +1348,11 @@ html[data-theme="dark"] .about-doodle--letter-p {
   text-decoration: underline;
   text-decoration-style: dashed;
   text-decoration-thickness: 1.5px;
-  text-decoration-color: color-mix(in oklab, var(--accent) 55%, var(--muted-foreground));
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--accent) 55%,
+    var(--muted-foreground)
+  );
   text-underline-offset: 0.22em;
   box-shadow: none;
 }
@@ -1844,7 +1859,9 @@ html[data-theme="dark"] .about-doodle--letter-p {
   color: inherit;
   padding: 0.55rem 0.15rem 0.65rem;
   border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  transition: color 160ms ease, border-color 160ms ease;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
 }
 
 .home-subtopic-link:hover,
@@ -2582,10 +2599,7 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 @media (min-width: 1440px) {
   .post-body-wrap:has(.marginalia) .post-chapter-outline {
     inset-inline-start: auto;
-    inset-inline-end: max(
-      0.5rem,
-      calc((100vw - 48rem) / 2 - 11.5rem)
-    );
+    inset-inline-end: max(0.5rem, calc((100vw - 48rem) / 2 - 11.5rem));
     max-width: 7rem;
     text-align: start;
   }
@@ -3387,7 +3401,9 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   fill: color-mix(in oklab, var(--background) 90%, var(--muted) 10%);
   stroke: color-mix(in oklab, var(--border) 82%, var(--foreground) 18%);
   stroke-width: 1.35;
-  filter: drop-shadow(0 1px 1.5px color-mix(in oklab, var(--foreground) 8%, transparent));
+  filter: drop-shadow(
+    0 1px 1.5px color-mix(in oklab, var(--foreground) 8%, transparent)
+  );
   transition:
     fill 0.28s ease,
     stroke 0.28s ease,
@@ -3414,7 +3430,9 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   fill: color-mix(in oklab, var(--accent) 22%, var(--background));
   stroke: color-mix(in oklab, var(--accent) 70%, var(--border));
   stroke-width: 1.9;
-  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--accent) 28%, transparent));
+  filter: drop-shadow(
+    0 0 6px color-mix(in oklab, var(--accent) 28%, transparent)
+  );
 }
 
 .btree-svg .btree-node.is-dim {
@@ -3430,13 +3448,23 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   fill: var(--foreground);
   font-size: 11.5px;
   font-weight: 650;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .btree-svg .btree-sub {
   fill: var(--muted-foreground);
   font-size: 9.5px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .btree-svg .btree-mono {
@@ -3448,7 +3476,12 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 .btree-svg .btree-caption {
   fill: var(--muted-foreground);
   font-size: 10.5px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .btree-svg .btree-badge {
@@ -3461,7 +3494,12 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   fill: color-mix(in oklab, var(--accent) 75%, var(--foreground));
   font-size: 10px;
   font-weight: 650;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .btree-svg .btree-path-dot {
@@ -3473,7 +3511,9 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   stroke: color-mix(in oklab, var(--accent) 65%, #c45a2a);
   stroke-width: 1.5;
   opacity: 0;
-  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--accent) 45%, transparent));
+  filter: drop-shadow(
+    0 0 5px color-mix(in oklab, var(--accent) 45%, transparent)
+  );
 }
 
 .btree-svg .btree-traveler.is-on {
@@ -3613,7 +3653,9 @@ html[data-theme="dark"] .jar-mini-lid-ring {
     filter: drop-shadow(0 0 0 transparent);
   }
   50% {
-    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--accent) 40%, transparent));
+    filter: drop-shadow(
+      0 0 8px color-mix(in oklab, var(--accent) 40%, transparent)
+    );
   }
 }
 
@@ -3658,7 +3700,8 @@ html[data-theme="dark"] .jar-mini-lid-ring {
 .app-prose td {
   padding: 0.5rem 0.64rem;
   border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  border-inline-end: 1px solid color-mix(in oklab, var(--border) 62%, transparent);
+  border-inline-end: 1px solid
+    color-mix(in oklab, var(--border) 62%, transparent);
   text-align: left;
   vertical-align: top;
   line-height: 1.5;
@@ -3725,7 +3768,6 @@ html[data-theme="dark"] .jar-mini-lid-ring {
     transition: none;
   }
 }
-
 
 /* —— Bottle shelf / cabinet easter egg —— */
 .bottle-shelf-page,

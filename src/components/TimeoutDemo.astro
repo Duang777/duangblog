@@ -20,8 +20,8 @@ const stages = [
     卡在哪一段，先被哪道墙钟打掉
   </p>
   <p class="text-muted-foreground mt-1 mb-4 text-xs">
-    Server 固定为上面那份示例配置：ReadHeaderTimeout 5s、ReadTimeout 15s、WriteTimeout
-    30s、IdleTimeout 60s
+    Server 固定为上面那份示例配置：ReadHeaderTimeout 5s、ReadTimeout
+    15s、WriteTimeout 30s、IdleTimeout 60s
   </p>
 
   <div class="grid gap-4 sm:grid-cols-2">
@@ -37,7 +37,9 @@ const stages = [
 
     <label class="flex flex-col gap-1.5 text-sm">
       <span class="text-muted-foreground">
-        该段耗时 <span class="text-foreground tabular-nums" data-delay-label>8</span>s
+        该段耗时 <span class="text-foreground tabular-nums" data-delay-label
+          >8</span
+        >s
       </span>
       <input
         type="range"
@@ -171,7 +173,13 @@ const stages = [
 
       if (dot) {
         const glyph =
-          state === "pass" ? "✓" : state === "fail" ? "×" : state === "active" ? "…" : "·";
+          state === "pass"
+            ? "✓"
+            : state === "fail"
+              ? "×"
+              : state === "active"
+                ? "…"
+                : "·";
         dot.textContent = glyph;
         dot.className =
           DOT_BASE +

@@ -1,7 +1,12 @@
 "use client";
 // beui.dev/components/motion/tabs
 
-import { motion, MotionConfig, useReducedMotion, type Transition } from "motion/react";
+import {
+  motion,
+  MotionConfig,
+  useReducedMotion,
+  type Transition,
+} from "motion/react";
 import {
   createContext,
   useCallback,
@@ -65,11 +70,11 @@ export function Tabs({
       if (!controlled) setInternal(v);
       onValueChange?.(v);
     },
-    [controlled, onValueChange],
+    [controlled, onValueChange]
   );
   const contextValue = useMemo(
     () => ({ value: current, setValue, layoutId, variant }),
-    [current, layoutId, setValue, variant],
+    [current, layoutId, setValue, variant]
   );
   return (
     <MotionConfig transition={reduce ? { duration: 0 } : transition}>
@@ -92,7 +97,13 @@ const listClasses: Record<Variant, string> = {
   segment: "inline-flex items-center gap-0 rounded-lg bg-card p-0.5",
 };
 
-export function TabsList({ children, className }: { children: ReactNode; className?: string }) {
+export function TabsList({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   const { variant } = useTabs();
   return (
     <div role="tablist" className={cn(listClasses[variant], className)}>
@@ -123,21 +134,23 @@ export function TabsTrigger({
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(
-          "relative isolate px-3 pb-2.5 pt-1 -mb-px text-sm font-medium transition-colors min-h-[44px] inline-flex items-center",
-          active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-          className,
+          "relative isolate -mb-px inline-flex min-h-[44px] items-center px-3 pt-1 pb-2.5 text-sm font-medium transition-colors",
+          active
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-foreground",
+          className
         )}
       >
         {children}
         {active ? (
-        <motion.span
-          layoutId={layoutId}
-          layout="position"
-          className={cn(
-            "absolute -bottom-px left-0 right-0 h-px bg-primary",
-            indicatorClassName,
-          )}
-        />
+          <motion.span
+            layoutId={layoutId}
+            layout="position"
+            className={cn(
+              "bg-primary absolute right-0 -bottom-px left-0 h-px",
+              indicatorClassName
+            )}
+          />
         ) : null}
       </button>
     );
@@ -153,9 +166,9 @@ export function TabsTrigger({
           layout="position"
           style={{ borderRadius: variant === "pill" ? 9999 : 8 }}
           className={cn(
-            "absolute inset-0 bg-primary",
+            "bg-primary absolute inset-0",
             radius,
-            indicatorClassName,
+            indicatorClassName
           )}
         />
       ) : null}
@@ -165,13 +178,13 @@ export function TabsTrigger({
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(
-          "relative z-10 inline-flex items-center justify-center whitespace-nowrap bg-transparent px-3.5 py-1.5 text-sm font-medium outline-none",
+          "relative z-10 inline-flex items-center justify-center bg-transparent px-3.5 py-1.5 text-sm font-medium whitespace-nowrap outline-none",
           "transition-colors",
           active
             ? "text-primary-foreground"
             : "text-muted-foreground hover:text-foreground",
           radius,
-          className,
+          className
         )}
       >
         {children}
@@ -180,7 +193,15 @@ export function TabsTrigger({
   );
 }
 
-export function TabsContent({ value, children, className }: { value: string; children: ReactNode; className?: string }) {
+export function TabsContent({
+  value,
+  children,
+  className,
+}: {
+  value: string;
+  children: ReactNode;
+  className?: string;
+}) {
   const { value: current } = useTabs();
   const reduce = useReducedMotion();
   const active = current === value;

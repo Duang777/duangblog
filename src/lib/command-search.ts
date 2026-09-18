@@ -17,7 +17,7 @@ function normalize(value: string) {
 function tokenScore(token: string, field: string) {
   const words = field.split(" ");
   if (words.includes(token)) return 100;
-  if (words.some((word) => word.startsWith(token))) return 80;
+  if (words.some(word => word.startsWith(token))) return 80;
   if (field.includes(token)) return 60;
   // Camel case gets split above, so "MySQL" lands here as "my sql" and a
   // one-piece query like "mysql" fails every check: not equal, not a prefix,
@@ -41,20 +41,30 @@ function tokenScore(token: string, field: string) {
 }
 
 /** Match every query word across fields and put direct name matches first. */
-export function searchCommands<T extends SearchableCommand>(items: T[], query: string): T[] {
+export function searchCommands<T extends SearchableCommand>(
+  items: T[],
+  query: string
+): T[] {
   const normalized = normalize(query);
   if (!normalized) return items;
   const tokens = normalized.split(/\s+/);
   return items
-    .map((item) => {
+    .map(item => {
       const label = normalize(item.label);
-      const fields = [label, normalize(item.group ?? ""), ...(item.keywords ?? []).map(normalize)];
-      let score = label === normalized ? 10000 : label.startsWith(normalized) ? 2000 : 0;
+      const fields = [
+        label,
+        normalize(item.group ?? ""),
+        ...(item.keywords ?? []).map(normalize),
+      ];
+      let score =
+        label === normalized ? 10000 : label.startsWith(normalized) ? 2000 : 0;
       for (const token of tokens) {
-        const best = Math.max(...fields.map((field, index) => {
-          const match = tokenScore(token, field);
-          return match ? match + (index === 0 ? 40 : 0) : 0;
-        }));
+        const best = Math.max(
+          ...fields.map((field, index) => {
+            const match = tokenScore(token, field);
+            return match ? match + (index === 0 ? 40 : 0) : 0;
+          })
+        );
         if (!best) return { item, score: 0 };
         score += best;
       }

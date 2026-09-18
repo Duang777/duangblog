@@ -128,12 +128,7 @@ export default defineConfig({
       name: "Source Serif 4",
       cssVariable: "--font-source-serif",
       provider: fontProviders.local(),
-      fallbacks: [
-        "LXGW WenKai Screen",
-        "Songti SC",
-        "STSong",
-        "serif",
-      ],
+      fallbacks: ["LXGW WenKai Screen", "Songti SC", "STSong", "serif"],
       options: {
         variants: [
           {
@@ -169,16 +164,76 @@ export default defineConfig({
       ],
       options: {
         variants: [
-          { weight: 300, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2"] },
-          { weight: 300, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-italic.woff2"] },
-          { weight: 400, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2"] },
-          { weight: 400, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2"] },
-          { weight: 500, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2"] },
-          { weight: 500, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-italic.woff2"] },
-          { weight: 600, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2"] },
-          { weight: 600, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-italic.woff2"] },
-          { weight: 700, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff2"] },
-          { weight: 700, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-italic.woff2"] },
+          {
+            weight: 300,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2",
+            ],
+          },
+          {
+            weight: 300,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-italic.woff2",
+            ],
+          },
+          {
+            weight: 400,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
+            ],
+          },
+          {
+            weight: 400,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2",
+            ],
+          },
+          {
+            weight: 500,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2",
+            ],
+          },
+          {
+            weight: 500,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-italic.woff2",
+            ],
+          },
+          {
+            weight: 600,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2",
+            ],
+          },
+          {
+            weight: 600,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-italic.woff2",
+            ],
+          },
+          {
+            weight: 700,
+            style: "normal",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff2",
+            ],
+          },
+          {
+            weight: 700,
+            style: "italic",
+            src: [
+              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-italic.woff2",
+            ],
+          },
         ],
       },
     },

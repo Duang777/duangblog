@@ -41,9 +41,7 @@ const REVISED_MS = 7 * 24 * 60 * 60 * 1000;
 const nowMs = Date.now();
 const daySeed = Math.floor(nowMs / 86_400_000);
 const todayPickId =
-  sortedPosts.length > 0
-    ? sortedPosts[daySeed % sortedPosts.length]!.id
-    : null;
+  sortedPosts.length > 0 ? sortedPosts[daySeed % sortedPosts.length]!.id : null;
 const newestId = sortedPosts.length > 0 ? sortedPosts[0]!.id : null;
 
 function isFreshPost(pubDatetime: Date) {

@@ -36,7 +36,11 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc} backLabel="归档">
+  <Main
+    pageTitle={t.pages.archivesTitle}
+    pageDesc={t.pages.archivesDesc}
+    backLabel="归档"
+  >
     <div class="list-jar-aside">
       <HomeIdeaJarMini totalPosts={filteredPosts.length} />
     </div>
@@ -86,7 +90,10 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
                     >
                       {"·".repeat(Math.min(5, Math.max(1, monthGroup.length)))}
                     </span>
-                    <span class="archive-month-stat font-mono" aria-hidden="true" />
+                    <span
+                      class="archive-month-stat font-mono"
+                      aria-hidden="true"
+                    />
                   </div>
                   <ul>
                     {monthGroup

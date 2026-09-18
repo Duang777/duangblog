@@ -91,8 +91,7 @@ export function jarSeason(): "spring" | "summer" | "autumn" | "winter" {
 }
 
 export function pickJarWhisper(columnTag?: string | null): string {
-  const bank =
-    (columnTag && COLUMN_WHISPERS[columnTag]) || JAR_WHISPERS;
+  const bank = (columnTag && COLUMN_WHISPERS[columnTag]) || JAR_WHISPERS;
   return bank[Math.floor(Math.random() * bank.length)]!;
 }
 

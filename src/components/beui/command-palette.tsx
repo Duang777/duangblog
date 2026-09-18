@@ -76,7 +76,7 @@ export function CommandPalette({
       if (!controlled) setInternalOpen(v);
       onOpenChange?.(v);
     },
-    [controlled, onOpenChange],
+    [controlled, onOpenChange]
   );
 
   const [query, setQuery] = useState("");
@@ -125,16 +125,16 @@ export function CommandPalette({
 
   const trailing = useMemo(
     () => trailingItems?.(query) ?? [],
-    [trailingItems, query],
+    [trailingItems, query]
   );
 
   // Reserve the icon column only when at least one item brings an icon, so
   // icon-less lists don't render a dead gap before every label.
-  const hasIcons = useMemo(() => items.some((it) => it.icon), [items]);
+  const hasIcons = useMemo(() => items.some(it => it.icon), [items]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, CommandItem[]>();
-    filtered.forEach((it) => {
+    filtered.forEach(it => {
       const g = it.group ?? "Results";
       const groupItems = map.get(g) ?? [];
       groupItems.push(it);
@@ -150,7 +150,7 @@ export function CommandPalette({
   // they render outside the grouped block, so the arrow keys reach them.
   const rows = useMemo(
     () => [...grouped.flatMap(([, list]) => list), ...trailing],
-    [grouped, trailing],
+    [grouped, trailing]
   );
 
   const { activeIndex: active, moveTo, moveActive } = useRowCursor(rows, query);
@@ -188,7 +188,7 @@ export function CommandPalette({
   useEffect(() => {
     if (!open) return;
     const el = listRef.current?.querySelector<HTMLButtonElement>(
-      `[data-index="${active}"]`,
+      `[data-index="${active}"]`
     );
     el?.scrollIntoView({ block: "nearest" });
   }, [active, open]);
@@ -216,13 +216,13 @@ export function CommandPalette({
         }}
         className={cn(
           "relative isolate flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors",
-          isActive ? "text-foreground" : "text-muted-foreground",
+          isActive ? "text-foreground" : "text-muted-foreground"
         )}
       >
         {isActive ? (
           <motion.span
             layoutId={`${uid}-active`}
-            className="absolute inset-0 z-0 rounded-md bg-primary/[0.05]"
+            className="bg-primary/[0.05] absolute inset-0 z-0 rounded-md"
             transition={
               reduce
                 ? { duration: 0 }
@@ -246,7 +246,7 @@ export function CommandPalette({
           <span className="relative z-10 shrink-0">{it.badge}</span>
         ) : null}
         {it.hint ? (
-          <kbd className="relative z-10 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+          <kbd className="border-border bg-background text-muted-foreground relative z-10 rounded border px-1.5 py-0.5 text-[10px]">
             {it.hint}
           </kbd>
         ) : null}
@@ -281,7 +281,7 @@ export function CommandPalette({
               transition={{ duration: 0.18, ease: EASE_OUT }}
               {...gate}
               onClick={() => setOpen(false)}
-              className="pointer-events-auto fixed inset-0 z-[100] bg-background/5 [backdrop-filter:blur(12px)_saturate(140%)] [-webkit-backdrop-filter:blur(12px)_saturate(140%)]"
+              className="bg-background/5 pointer-events-auto fixed inset-0 z-[100] [backdrop-filter:blur(12px)_saturate(140%)] [-webkit-backdrop-filter:blur(12px)_saturate(140%)]"
             />
           )}
         </PresenceGate>
@@ -294,7 +294,7 @@ export function CommandPalette({
             // `inert` alone rather than the gate's pointer-events value.
             <div
               inert={!isPresent}
-              className="pointer-events-none fixed inset-x-4 bottom-4 top-[18vh] z-[100] flex items-start justify-center"
+              className="pointer-events-none fixed inset-x-4 top-[18vh] bottom-4 z-[100] flex items-start justify-center"
             >
               <motion.div
                 role="dialog"
@@ -315,14 +315,14 @@ export function CommandPalette({
                 transition={reduce ? { duration: 0.1 } : PANEL_SPRING}
                 {...gate}
                 onKeyDown={onKeyDown}
-                className="pointer-events-auto w-full max-w-xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl will-change-transform"
+                className="border-border bg-card pointer-events-auto w-full max-w-xl overflow-hidden rounded-2xl border shadow-2xl will-change-transform"
               >
-                <div className="flex items-center gap-3 border-b border-border px-4">
-                  <Search className="h-4 w-4 text-muted-foreground" />
+                <div className="border-border flex items-center gap-3 border-b px-4">
+                  <Search className="text-muted-foreground h-4 w-4" />
                   <input
                     ref={inputRef}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={e => setQuery(e.target.value)}
                     placeholder={placeholder}
                     role="combobox"
                     // The field only exists while the palette is open.
@@ -333,16 +333,16 @@ export function CommandPalette({
                     }
                     aria-autocomplete="list"
                     className={cn(
-                      "h-12 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none",
+                      "text-foreground placeholder:text-muted-foreground h-12 flex-1 bg-transparent text-sm outline-none",
                       // The palette focuses this field the moment it opens, and iOS
                       // zooms the page in on a focused field under 16px: the fixed
                       // overlay is magnified off-center — clipped leading edge, half
                       // an icon column — and the zoom outlives the palette. 16px on
                       // touch keeps the page at scale 1; pointer devices keep 14px.
-                      canTouch && "text-base",
+                      canTouch && "text-base"
                     )}
                   />
-                  <kbd className="hidden rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground sm:inline-block">
+                  <kbd className="border-border bg-background text-muted-foreground hidden rounded border px-1.5 py-0.5 text-[10px] sm:inline-block">
                     ESC
                   </kbd>
                 </div>
@@ -351,15 +351,15 @@ export function CommandPalette({
                   id={`${uid}-list`}
                   role="listbox"
                   aria-label="Commands"
-                  className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="max-h-[60vh] [scrollbar-width:none] overflow-y-auto overscroll-contain p-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                 >
                   {filtered.length === 0 ? (
                     // Keyed off the local matches, not `rows`: the pinned rows
                     // are always there, and "no results" is about the query.
                     <div
                       className={cn(
-                        "text-center text-sm text-muted-foreground",
-                        trailing.length > 0 ? "px-8 py-4" : "p-8",
+                        "text-muted-foreground text-center text-sm",
+                        trailing.length > 0 ? "px-8 py-4" : "p-8"
                       )}
                     >
                       {emptyMessage}
@@ -369,7 +369,7 @@ export function CommandPalette({
                       <div key={group} className="mb-1 last:mb-0">
                         <div
                           aria-hidden
-                          className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+                          className="text-muted-foreground px-2 py-1.5 text-[10px] font-semibold tracking-wider uppercase"
                         >
                           {group}
                         </div>
@@ -380,7 +380,7 @@ export function CommandPalette({
                   {trailing.length > 0 ? (
                     // Behind a hairline rather than under a heading: these are
                     // not another section of results, they are the way out.
-                    <div className="mt-1 border-t border-border pt-1">
+                    <div className="border-border mt-1 border-t pt-1">
                       {trailing.map(renderRow)}
                     </div>
                   ) : null}
@@ -391,6 +391,6 @@ export function CommandPalette({
         </PresenceGate>
       ) : null}
     </AnimatePresence>,
-    document.body,
+    document.body
   );
 }

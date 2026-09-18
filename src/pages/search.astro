@@ -32,7 +32,11 @@ const t = useTranslations(locale);
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.searchTitle} pageDesc={t.pages.searchDesc} backLabel="搜索">
+  <Main
+    pageTitle={t.pages.searchTitle}
+    pageDesc={t.pages.searchDesc}
+    backLabel="搜索"
+  >
     <div
       id="pagefind-search"
       transition:persist

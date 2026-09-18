@@ -126,13 +126,17 @@ function markCodeCopied(pre: HTMLElement) {
   const set = getCopiedCodeKeys();
   set.add(key);
   try {
-    sessionStorage.setItem(CODE_COPIED_KEY, JSON.stringify([...set].slice(-40)));
+    sessionStorage.setItem(
+      CODE_COPIED_KEY,
+      JSON.stringify([...set].slice(-40))
+    );
   } catch {
     // ignore
   }
   const stamp = pre.querySelector<HTMLElement>(".code-stamp");
   if (stamp) {
-    stamp.dataset.langLabel = stamp.dataset.langLabel || stamp.textContent || "";
+    stamp.dataset.langLabel =
+      stamp.dataset.langLabel || stamp.textContent || "";
     stamp.textContent = "copied";
     stamp.classList.add("is-copied");
   }
@@ -162,7 +166,9 @@ function displayLangLabel(lang: string): string {
     rust: "Rust",
     java: "Java",
   };
-  return map[lang] ?? (lang ? lang.charAt(0).toUpperCase() + lang.slice(1) : "Code");
+  return (
+    map[lang] ?? (lang ? lang.charAt(0).toUpperCase() + lang.slice(1) : "Code")
+  );
 }
 
 /**
@@ -207,7 +213,10 @@ function initCodeLangTabs(article: HTMLElement) {
       if (node.classList.contains("code-block-wrap")) {
         wrap = node;
         pre = node.querySelector("pre");
-      } else if (node.tagName === "PRE" && !node.classList.contains("mermaid")) {
+      } else if (
+        node.tagName === "PRE" &&
+        !node.classList.contains("mermaid")
+      ) {
         pre = node;
         wrap = document.createElement("div");
         wrap.className = "code-block-wrap";
@@ -225,7 +234,8 @@ function initCodeLangTabs(article: HTMLElement) {
       if (!wrap || !pre) break;
       const rawLang = codeBlockLang(pre);
       if (!rawLang) break;
-      const lang = rawLang === "golang" ? "go" : rawLang === "py" ? "python" : rawLang;
+      const lang =
+        rawLang === "golang" ? "go" : rawLang === "py" ? "python" : rawLang;
       if (wantLangs.length && !wantLangs.includes(lang)) break;
       panels.push({ lang, wrap });
       node = wrap.nextSibling;
@@ -249,7 +259,9 @@ function initCodeLangTabs(article: HTMLElement) {
       (preferred && panels.some(p => p.lang === preferred)
         ? preferred
         : null) ||
-      (panels.some(p => p.lang === defaultLang) ? defaultLang : panels[0]!.lang);
+      (panels.some(p => p.lang === defaultLang)
+        ? defaultLang
+        : panels[0]!.lang);
 
     marker.parentNode?.insertBefore(shell, marker);
     shell.append(bar, panelHost);
@@ -278,13 +290,17 @@ function initCodeLangTabs(article: HTMLElement) {
       pane.appendChild(panel.wrap);
 
       const select = () => {
-        for (const btn of bar.querySelectorAll<HTMLElement>(".code-lang-tabs-tab")) {
+        for (const btn of bar.querySelectorAll<HTMLElement>(
+          ".code-lang-tabs-tab"
+        )) {
           const on = btn.dataset.lang === panel.lang;
           btn.setAttribute("aria-selected", on ? "true" : "false");
           btn.tabIndex = on ? 0 : -1;
           btn.classList.toggle("is-active", on);
         }
-        for (const p of panelHost.querySelectorAll<HTMLElement>(".code-lang-tabs-panel")) {
+        for (const p of panelHost.querySelectorAll<HTMLElement>(
+          ".code-lang-tabs-panel"
+        )) {
           const on = p.dataset.lang === panel.lang;
           p.hidden = !on;
           p.classList.toggle("is-active", on);
@@ -442,7 +458,9 @@ function initChapterTrail(article: HTMLElement) {
         } else break;
       }
       const label =
-        past || sectionIndex === 0 ? "" : `${sectionIndex} / ${sections.length}`;
+        past || sectionIndex === 0
+          ? ""
+          : `${sectionIndex} / ${sections.length}`;
       if (label !== currentPage) {
         currentPage = label;
         page.textContent = label;
@@ -489,9 +507,9 @@ function initChapterOutline(article: HTMLElement) {
   if (window.matchMedia("(max-width: 1100px)").matches) return;
   const mount = article.closest<HTMLElement>(".post-body-wrap");
   if (!mount) return;
-  const h2s = Array.from(
-    article.querySelectorAll<HTMLElement>("h2")
-  ).filter(h => headingLabel(h));
+  const h2s = Array.from(article.querySelectorAll<HTMLElement>("h2")).filter(
+    h => headingLabel(h)
+  );
   if (h2s.length < 2) return;
   article.dataset.outlineBound = "1";
 
@@ -520,7 +538,8 @@ function initChapterOutline(article: HTMLElement) {
 
   const firstH2 = h2s[0]!;
   const onScroll = () => {
-    const past = firstH2.getBoundingClientRect().top < window.innerHeight * 0.22;
+    const past =
+      firstH2.getBoundingClientRect().top < window.innerHeight * 0.22;
     nav.classList.toggle("is-shown", past);
 
     const line = window.innerHeight * 0.3;
@@ -612,7 +631,9 @@ function initPrintFootnotes(article: HTMLElement) {
   };
 
   const collapse = () => {
-    article.querySelectorAll(".print-footnote-inline").forEach(el => el.remove());
+    article
+      .querySelectorAll(".print-footnote-inline")
+      .forEach(el => el.remove());
     refs.forEach(ref => {
       delete ref.dataset.printExpanded;
     });
@@ -876,7 +897,9 @@ function initFootnotePreviews(article: HTMLElement) {
     if (!note) return;
 
     const clone = note.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("[data-footnote-backref]").forEach(el => el.remove());
+    clone
+      .querySelectorAll("[data-footnote-backref]")
+      .forEach(el => el.remove());
     const text = clone.textContent?.trim() ?? "";
     if (!text) return;
 
@@ -895,10 +918,7 @@ function initFootnotePreviews(article: HTMLElement) {
   };
 
   const hide = () => {
-    hideTimer = window.setTimeout(
-      () => pop.classList.remove("is-shown"),
-      120
-    );
+    hideTimer = window.setTimeout(() => pop.classList.remove("is-shown"), 120);
   };
 
   for (const ref of refs) {
@@ -1018,7 +1038,9 @@ function initLingoCards(article: HTMLElement) {
   const titleEl = card.querySelector(".lingo-card-title") as HTMLElement;
   const subEl = card.querySelector(".lingo-card-sub") as HTMLElement;
   const bodyEl = card.querySelector(".lingo-card-body") as HTMLElement;
-  const sourceEl = card.querySelector(".lingo-card-source") as HTMLAnchorElement;
+  const sourceEl = card.querySelector(
+    ".lingo-card-source"
+  ) as HTMLAnchorElement;
   let active: HTMLButtonElement | null = null;
 
   const hide = () => {
@@ -1040,7 +1062,10 @@ function initLingoCards(article: HTMLElement) {
       )
     );
     let top = window.scrollY + rect.bottom + 10;
-    if (rect.bottom + height + 16 > window.innerHeight && rect.top > height + 16) {
+    if (
+      rect.bottom + height + 16 > window.innerHeight &&
+      rect.top > height + 16
+    ) {
       top = window.scrollY + rect.top - height - 10;
     }
     card.style.left = `${left}px`;
@@ -1346,7 +1371,8 @@ function initImageAltNotes(article: HTMLElement) {
   article.dataset.altNoteBound = "1";
 
   const images = Array.from(article.querySelectorAll("img")).filter(
-    img => (img.getAttribute("alt") ?? "").trim().length > 0 && !img.closest("a")
+    img =>
+      (img.getAttribute("alt") ?? "").trim().length > 0 && !img.closest("a")
   );
   for (const image of images) {
     const alt = image.getAttribute("alt")!.trim();
@@ -1437,8 +1463,7 @@ function initHubSeriesDots(article: HTMLElement) {
     const total = slugs.length;
     const maxDots = Math.min(12, total);
     const filled = Math.round((readCount / total) * maxDots);
-    const dots =
-      "●".repeat(filled) + "○".repeat(Math.max(0, maxDots - filled));
+    const dots = "●".repeat(filled) + "○".repeat(Math.max(0, maxDots - filled));
 
     const line = document.createElement("p");
     line.className = "hub-series-progress font-mono";
@@ -1472,10 +1497,7 @@ export function initColumnProgressDots() {
 
   const rail = document.createElement("span");
   rail.className = "tag-bead-rail";
-  rail.setAttribute(
-    "aria-label",
-    `已读 ${readCount} 篇，共 ${total} 篇`
-  );
+  rail.setAttribute("aria-label", `已读 ${readCount} 篇，共 ${total} 篇`);
   rail.title = `已读 ${readCount}/${total}`;
 
   for (let i = 0; i < maxBeads; i++) {
@@ -1687,31 +1709,67 @@ function initBtreeDemos(article: HTMLElement) {
 
       try {
         if (kind === "compare") {
-          await showStage("title", "<strong>两棵树</strong>，同一张 user 表。", 420, signal);
+          await showStage(
+            "title",
+            "<strong>两棵树</strong>，同一张 user 表。",
+            420,
+            signal
+          );
           if (!alive()) return;
-          await showStage("cluster", "左边是<strong>聚簇</strong>：叶子挂整行。", 700, signal);
+          await showStage(
+            "cluster",
+            "左边是<strong>聚簇</strong>：叶子挂整行。",
+            700,
+            signal
+          );
           if (!alive()) return;
-          await showStage("secondary", "右边是<strong>二级</strong>：叶子只挂 name + 主键。", 700, signal);
+          await showStage(
+            "secondary",
+            "右边是<strong>二级</strong>：叶子只挂 name + 主键。",
+            700,
+            signal
+          );
           if (!alive()) return;
-          for (const el of q<SVGElement>('[data-role="fat-leaf"]')) el.classList.add("is-pulse");
+          for (const el of q<SVGElement>('[data-role="fat-leaf"]'))
+            el.classList.add("is-pulse");
           setStatus("胖叶子 = 数据；瘦叶子 = 钥匙。");
           await sleep(900, signal);
           if (!alive()) return;
-          await showStage("badge", "<strong>记住这句</strong>：胖叶子存数据，瘦叶子存钥匙。", 800, signal);
+          await showStage(
+            "badge",
+            "<strong>记住这句</strong>：胖叶子存数据，瘦叶子存钥匙。",
+            800,
+            signal
+          );
         } else if (kind === "lookup") {
-          await showStage("title", "查询：WHERE name='张三'，要整行。", 450, signal);
+          await showStage(
+            "title",
+            "查询：WHERE name='张三'，要整行。",
+            450,
+            signal
+          );
           if (!alive()) return;
-          await showStage("sec-tree", "先走<strong>二级索引</strong>。", 500, signal);
+          await showStage(
+            "sec-tree",
+            "先走<strong>二级索引</strong>。",
+            500,
+            signal
+          );
           if (!alive()) return;
-          for (const el of q<SVGElement>('[data-role="sec-other"]')) el.classList.add("is-dim");
+          for (const el of q<SVGElement>('[data-role="sec-other"]'))
+            el.classList.add("is-dim");
           const hit = svg.querySelector<SVGElement>('[data-role="sec-hit"]');
           hit?.classList.add("is-hit", "is-pulse");
           setStatus("命中瘦叶子：拿到主键 <strong>id=1</strong>。");
           await sleep(750, signal);
           if (!alive()) return;
 
-          const path = svg.querySelector<SVGElement>('[data-role="lookup-path"]');
-          const traveler = svg.querySelector<SVGCircleElement>('[data-role="traveler"]');
+          const path = svg.querySelector<SVGElement>(
+            '[data-role="lookup-path"]'
+          );
+          const traveler = svg.querySelector<SVGCircleElement>(
+            '[data-role="traveler"]'
+          );
           path?.classList.add("is-on", "is-animate");
           setStatus("带着主键，<strong>回表</strong>跳向聚簇索引…");
           if (traveler && path && "getTotalLength" in path) {
@@ -1727,7 +1785,9 @@ function initBtreeDemos(article: HTMLElement) {
                 }
                 const t = Math.min(1, (now - start) / duration);
                 // Stop short of the tip so the traveler never sits on the leaf edge.
-                const pt = (path as SVGPathElement).getPointAtLength(len * t * 0.92);
+                const pt = (path as SVGPathElement).getPointAtLength(
+                  len * t * 0.92
+                );
                 traveler.setAttribute("cx", String(pt.x));
                 traveler.setAttribute("cy", String(pt.y));
                 if (t < 1) requestAnimationFrame(tick);
@@ -1741,13 +1801,21 @@ function initBtreeDemos(article: HTMLElement) {
           }
           if (!alive()) return;
 
-          await showStage("cluster-tree", "跳进<strong>聚簇索引</strong>。", 450, signal);
+          await showStage(
+            "cluster-tree",
+            "跳进<strong>聚簇索引</strong>。",
+            450,
+            signal
+          );
           if (!alive()) return;
-          for (const el of q<SVGElement>('[data-role="cluster-other"]')) el.classList.add("is-dim");
+          for (const el of q<SVGElement>('[data-role="cluster-other"]'))
+            el.classList.add("is-dim");
           svg
             .querySelector<SVGElement>('[data-role="cluster-hit"]')
             ?.classList.add("is-hit", "is-pulse");
-          setStatus("取出整行：张三 · age=20。<strong>这一跳就是回表。</strong>");
+          setStatus(
+            "取出整行：张三 · age=20。<strong>这一跳就是回表。</strong>"
+          );
           await sleep(1000, signal);
         } else if (kind === "prefix") {
           await showStage(
@@ -1757,7 +1825,12 @@ function initBtreeDemos(article: HTMLElement) {
             signal
           );
           if (!alive()) return;
-          await showStage("leaves", "先看整条叶子链，谁挨着谁一目了然。", 550, signal);
+          await showStage(
+            "leaves",
+            "先看整条叶子链，谁挨着谁一目了然。",
+            550,
+            signal
+          );
           if (!alive()) return;
 
           await showStage(
@@ -1769,7 +1842,9 @@ function initBtreeDemos(article: HTMLElement) {
           for (const el of q<SVGElement>('[data-role="range-hit"]')) {
             el.classList.add("is-hit", "is-pulse");
           }
-          svg.querySelector<SVGElement>('[data-role="range-band"]')?.classList.add("is-on");
+          svg
+            .querySelector<SVGElement>('[data-role="range-band"]')
+            ?.classList.add("is-on");
           await sleep(1100, signal);
           if (!alive()) return;
 
@@ -1782,17 +1857,32 @@ function initBtreeDemos(article: HTMLElement) {
             250,
             signal
           );
-          for (const el of q<SVGElement>('[data-role="range-hit"], [data-role="scatter-hit"]')) {
+          for (const el of q<SVGElement>(
+            '[data-role="range-hit"], [data-role="scatter-hit"]'
+          )) {
             el.classList.add("is-hit");
           }
-          for (const el of q<SVGElement>(".btree-scatter")) el.classList.add("is-on");
+          for (const el of q<SVGElement>(".btree-scatter"))
+            el.classList.add("is-on");
           await sleep(1200, signal);
         } else if (kind === "cover") {
-          await showStage("title", "同一次索引命中，查的列不同，代价就不同。", 450, signal);
+          await showStage(
+            "title",
+            "同一次索引命中，查的列不同，代价就不同。",
+            450,
+            signal
+          );
           if (!alive()) return;
-          await showStage("need-back", "左边 <strong>SELECT *</strong>：瘦叶子不够。", 600, signal);
+          await showStage(
+            "need-back",
+            "左边 <strong>SELECT *</strong>：瘦叶子不够。",
+            600,
+            signal
+          );
           if (!alive()) return;
-          const path = svg.querySelector<SVGElement>('[data-role="cover-path"]');
+          const path = svg.querySelector<SVGElement>(
+            '[data-role="cover-path"]'
+          );
           path?.classList.add("is-on", "is-animate");
           svg
             .querySelector<SVGElement>('[data-role="need-cluster"]')
@@ -1800,7 +1890,12 @@ function initBtreeDemos(article: HTMLElement) {
           setStatus("还得<strong>回表</strong>去聚簇取整行。");
           await sleep(900, signal);
           if (!alive()) return;
-          await showStage("covered", "右边只查 id, name：瘦叶子<strong>列齐了</strong>。", 700, signal);
+          await showStage(
+            "covered",
+            "右边只查 id, name：瘦叶子<strong>列齐了</strong>。",
+            700,
+            signal
+          );
           if (!alive()) return;
           svg
             .querySelector<SVGElement>('[data-role="cover-leaf"]')
@@ -1832,7 +1927,9 @@ function initBtreeDemos(article: HTMLElement) {
             for (const el of q<SVGElement>(".btree-node")) {
               el.classList.remove("is-pulse");
             }
-            for (const el of q<SVGElement>('[data-role="range-hit"], [data-role="scatter-hit"]')) {
+            for (const el of q<SVGElement>(
+              '[data-role="range-hit"], [data-role="scatter-hit"]'
+            )) {
               el.classList.add("is-hit");
             }
           }

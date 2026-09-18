@@ -15,8 +15,9 @@ import config from "@/config";
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 const perf = getHomeColumns(locale).find(c => c.id === "perf");
-const perfHref =
-  perf?.hubSlug ? getPostUrl(perf.hubSlug, undefined, locale) : undefined;
+const perfHref = perf?.hubSlug
+  ? getPostUrl(perf.hubSlug, undefined, locale)
+  : undefined;
 
 // 同一个意图的两版实现：把并发压到固定上限。Go 用带缓冲的 channel 当信号量，
 // Python 用 asyncio.Semaphore，量词都是 8。

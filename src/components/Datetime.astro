@@ -39,9 +39,7 @@ const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
 
 const date = datetime.format("D MMM, YYYY");
 const relativeOn = showRelative ?? size === "lg";
-const relative = relativeOn
-  ? formatRelativeTime(datetime.toDate())
-  : "";
+const relative = relativeOn ? formatRelativeTime(datetime.toDate()) : "";
 const relativeLabel = relative
   ? isModified
     ? `${relative}改过`

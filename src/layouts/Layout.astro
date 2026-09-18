@@ -28,10 +28,7 @@ const {
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
-const rssHref = getRelativeLocaleUrl(
-  locale,
-  "rss.xml"
-);
+const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
 const searchHref =
   config.features.search === "pagefind"
     ? getRelativeLocaleUrl(locale, "search")

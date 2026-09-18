@@ -48,11 +48,7 @@ function resolveBottle(img: HTMLImageElement) {
     const byId = getBottle(id);
     if (byId) return byId;
   }
-  const candidates = [
-    img.currentSrc,
-    img.src,
-    img.getAttribute("src") ?? "",
-  ];
+  const candidates = [img.currentSrc, img.src, img.getAttribute("src") ?? ""];
   for (const src of candidates) {
     if (!src) continue;
     const bottle = findBottleBySrc(src);
@@ -76,7 +72,9 @@ function tryCollectFromImg(img: HTMLImageElement) {
   showToast(bottle.name, fresh);
 }
 
-function jarFromEventTarget(target: EventTarget | null): HTMLImageElement | null {
+function jarFromEventTarget(
+  target: EventTarget | null
+): HTMLImageElement | null {
   if (!(target instanceof Element)) return null;
   const img = target.closest("img.duang-whisper-jar");
   if (img instanceof HTMLImageElement) return img;
@@ -87,12 +85,14 @@ function jarFromEventTarget(target: EventTarget | null): HTMLImageElement | null
 }
 
 function syncWhisperJarState(root: ParentNode = document) {
-  root.querySelectorAll<HTMLImageElement>("img.duang-whisper-jar").forEach(img => {
-    const bottle = resolveBottle(img);
-    if (!bottle) return;
-    if (!img.dataset.bottleId) img.dataset.bottleId = bottle.id;
-    markJar(img, isBottleUnlocked(bottle.id));
-  });
+  root
+    .querySelectorAll<HTMLImageElement>("img.duang-whisper-jar")
+    .forEach(img => {
+      const bottle = resolveBottle(img);
+      if (!bottle) return;
+      if (!img.dataset.bottleId) img.dataset.bottleId = bottle.id;
+      markJar(img, isBottleUnlocked(bottle.id));
+    });
 }
 
 function onJarActivate(e: Event) {

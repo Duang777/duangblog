@@ -70,7 +70,12 @@ export const MIXUP_LINGO: LingoTerm[] = [
     subtitle: "引用计数",
     definition:
       "一种对象生命周期管理方式：每个对象记录有多少引用指向它；计数变为 0 就立刻回收。CPython 默认就靠这套，再辅以循环引用检测。\n\n计数的加减本身不是原子操作。多线程同时改同一对象的引用计数时，若没有保护就会少算或多算，进而导致过早释放或泄漏。GIL 的历史动机之一，就是把这类更新串行化。",
-    aliases: ["引用计数", "Reference counting", "reference counting", "引用计数器"],
+    aliases: [
+      "引用计数",
+      "Reference counting",
+      "reference counting",
+      "引用计数器",
+    ],
     source: {
       label: "Wikipedia: Reference counting",
       url: "https://en.wikipedia.org/wiki/Reference_counting",
@@ -81,13 +86,8 @@ export const MIXUP_LINGO: LingoTerm[] = [
     title: "multiprocessing",
     subtitle: "Python 多进程",
     definition:
-      "Python 标准库里用操作系统进程做并行的模块。每个子进程有独立的解释器和独立的 GIL，所以能把纯 Python 的 CPU 任务真正摊到多核上。\n\n代价是启动更贵、进程间通信常常要序列化。常见入口还有 concurrent.futures.ProcessPoolExecutor。在 spawn 启动方式下，入口逻辑通常要放进 if __name__ == \"__main__\" 守卫里。",
-    aliases: [
-      "multiprocessing",
-      "ProcessPoolExecutor",
-      "多进程",
-      "进程池",
-    ],
+      'Python 标准库里用操作系统进程做并行的模块。每个子进程有独立的解释器和独立的 GIL，所以能把纯 Python 的 CPU 任务真正摊到多核上。\n\n代价是启动更贵、进程间通信常常要序列化。常见入口还有 concurrent.futures.ProcessPoolExecutor。在 spawn 启动方式下，入口逻辑通常要放进 if __name__ == "__main__" 守卫里。',
+    aliases: ["multiprocessing", "ProcessPoolExecutor", "多进程", "进程池"],
   },
   {
     id: "threading-module",
@@ -103,7 +103,13 @@ export const MIXUP_LINGO: LingoTerm[] = [
     subtitle: "Python 异步 I/O",
     definition:
       "Python 标准库的异步框架：在单个线程里用事件循环调度大量协程。协程在 await 处让出，循环去推进别的就绪任务，并用 epoll / kqueue 一类机制盯海量套接字。\n\n它擅长高并发 I/O，不擅长在事件循环里塞长时间 CPU 计算。同步阻塞（如 time.sleep、同步客户端）会卡住整个循环；异步代码里要用 asyncio 自己的锁和队列，不能混用 threading.Lock。",
-    aliases: ["asyncio", "asyncio.Task", "asyncio.run", "async / await", "async/await"],
+    aliases: [
+      "asyncio",
+      "asyncio.Task",
+      "asyncio.run",
+      "async / await",
+      "async/await",
+    ],
   },
   {
     id: "event-loop",

@@ -24,7 +24,11 @@ function createAboutScene(
   scene.environmentIntensity = compact ? 0.28 : 0.32;
   pmrem.dispose();
 
-  const hemi = new THREE.HemisphereLight(0xfffaf5, 0xe8e0d6, compact ? 0.85 : 0.75);
+  const hemi = new THREE.HemisphereLight(
+    0xfffaf5,
+    0xe8e0d6,
+    compact ? 0.85 : 0.75
+  );
   scene.add(hemi);
 
   const key = new THREE.DirectionalLight(0xfff4e8, compact ? 1.4 : 1.65);
@@ -130,14 +134,17 @@ export function mountAboutLogo(
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, compact ? 1.5 : 2));
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, compact ? 1.5 : 2)
+    );
   };
 
   const ro = new ResizeObserver(onResize);
   ro.observe(container);
 
   const clock = new THREE.Clock();
-  const tick = logo.userData.sculptRuntime?.tick as ((t: number) => void) | undefined;
+  const tick = logo.userData.sculptRuntime?.tick as
+    ((t: number) => void) | undefined;
 
   renderer.setAnimationLoop(() => {
     const t = clock.elapsedTime;
@@ -153,10 +160,12 @@ export function mountAboutLogo(
     controls.dispose();
     renderer.dispose();
     renderer.domElement.remove();
-    logo.traverse((obj) => {
+    logo.traverse(obj => {
       if (obj instanceof THREE.Mesh) {
         obj.geometry.dispose();
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        const mats = Array.isArray(obj.material)
+          ? obj.material
+          : [obj.material];
         for (const m of mats) m.dispose();
       }
     });

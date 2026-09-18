@@ -19,7 +19,8 @@ const lowered = tagName.toLowerCase();
 let scent: "backend" | "agent" | "digest" | null = null;
 if (lowered === "thinking") scent = "digest";
 else if (lowered.includes("最新速递")) scent = "digest";
-else if (lowered.includes("后端") || lowered.includes("请求过境")) scent = "backend";
+else if (lowered.includes("后端") || lowered.includes("请求过境"))
+  scent = "backend";
 else if (lowered.includes("agent") || lowered.includes("拆解")) scent = "agent";
 ---
 

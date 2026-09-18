@@ -1,8 +1,4 @@
-import {
-  BOTTLE_COLLECTION_KEY,
-  BOTTLES,
-  type BottleDef,
-} from "@/data/bottles";
+import { BOTTLE_COLLECTION_KEY, BOTTLES, type BottleDef } from "@/data/bottles";
 
 export type BottleCollectionState = {
   /** Unlocked bottle ids, oldest first. */

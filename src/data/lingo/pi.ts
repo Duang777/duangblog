@@ -77,11 +77,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "跨厂商历史清洗",
     definition:
       "送出请求前的脏活集中处：规范化 tool call id、处理 thinking 签名与 redacted、给孤儿 tool call 注入合成结果、图像降级、跳过 error/aborted 坏轮次。上层只传 Context，清洗细节收在这一层。",
-    aliases: [
-      "transformMessages",
-      "transform-messages",
-      "transform messages",
-    ],
+    aliases: ["transformMessages", "transform-messages", "transform messages"],
   },
   {
     id: "openai-responses-api",
@@ -89,11 +85,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "Responses API",
     definition:
       "OpenAI 较新的对话协议面，字段与 Chat Completions 不同（如 store、instructions、reasoning）。pi-ai 默认 store:false，并按模型能力决定 developer 角色是否启用。",
-    aliases: [
-      "OpenAI Responses",
-      "Responses API",
-      "openai-responses",
-    ],
+    aliases: ["OpenAI Responses", "Responses API", "openai-responses"],
   },
   {
     id: "openai-completions-api",
@@ -114,11 +106,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "Messages API",
     definition:
       "Anthropic 的对话协议：system 常单独成字段，thinking 有 budget_tokens 与 adaptive effort 等模式，stop reason 需映射到 pi-ai 统一枚举。",
-    aliases: [
-      "Anthropic Messages",
-      "anthropic-messages",
-      "Messages API",
-    ],
+    aliases: ["Anthropic Messages", "anthropic-messages", "Messages API"],
   },
   {
     id: "google-generative-ai",
@@ -126,11 +114,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "contents / parts",
     definition:
       "Google 生成式 API 的一套请求与流式形状。工具侧 functionCall 常作为完整 part 一次到达，不像 OpenAI 那样片片增量；pi-ai 因此对工具流式做了不同映射。",
-    aliases: [
-      "Google Generative AI",
-      "google-generative-ai",
-      "Gemini API",
-    ],
+    aliases: ["Google Generative AI", "google-generative-ai", "Gemini API"],
   },
   {
     id: "create-provider",
@@ -162,11 +146,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "推理字段格式开关",
     definition:
       "compat 里描述各家把思考内容放在哪个字段 / 哪种形状的枚举（如 openai、deepseek、openrouter）。自托管端点字段名不统一时，靠它而不是业务 if 来对齐。",
-    aliases: [
-      "thinkingFormat",
-      "thinking format",
-      "thinkingFormat 枚举",
-    ],
+    aliases: ["thinkingFormat", "thinking format", "thinkingFormat 枚举"],
   },
   {
     id: "lazy-api-factory",
@@ -174,12 +154,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "首次 stream 再 import",
     definition:
       "pi-ai 对各协议实现做延迟加载：真正开始 stream 才动态 import 对应文件，减小核心包体积与副作用。自定义端点同样绑定 openAICompletionsApi() 这类 lazy 工厂。",
-    aliases: [
-      "lazy 工厂",
-      "lazy API",
-      "lazy 加载",
-      "openai-completions.lazy",
-    ],
+    aliases: ["lazy 工厂", "lazy API", "lazy 加载", "openai-completions.lazy"],
   },
   {
     id: "orphan-tool-call",
@@ -187,11 +162,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "缺结果的工具调用",
     definition:
       "历史里 assistant 发出了工具调用，却没有对应 toolResult。重放时厂商 API 常会拒。transformMessages 会注入合成错误结果（如 No result provided）兜底。",
-    aliases: [
-      "孤儿 tool call",
-      "orphan tool call",
-      "孤儿工具调用",
-    ],
+    aliases: ["孤儿 tool call", "orphan tool call", "孤儿工具调用"],
   },
   {
     id: "models-generated",
@@ -199,11 +170,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "生成模型目录",
     definition:
       "由脚本从权威数据源生成的模型清单产物（带 as const 联合类型与校验）。手改会被覆盖；compat 与价格等元数据随生成进入内置 Models。",
-    aliases: [
-      "models.generated.ts",
-      "模型目录生成",
-      "builtinModels",
-    ],
+    aliases: ["models.generated.ts", "模型目录生成", "builtinModels"],
   },
   {
     id: "system-prompt-field",
@@ -211,11 +178,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "独立于 messages 的系统提示",
     definition:
       "Context 的顶层字段，而不是 Message 联合里的 system role。OpenAI、Anthropic、Google 对系统提示的塞法不同；抽成独立字段后，transformMessages 只管 messages，各厂商适配器自己决定怎么写进请求体。",
-    aliases: [
-      "systemPrompt",
-      "没有 system role",
-      "system 这个 role",
-    ],
+    aliases: ["systemPrompt", "没有 system role", "system 这个 role"],
   },
   {
     id: "thinking-signature",
@@ -244,11 +207,7 @@ export const PI_LINGO: LingoTerm[] = [
     subtitle: "被安全滤波抹除的推理",
     definition:
       "厂商把推理文本抹掉后，密文仍可能留在 thinkingSignature 里供同模型多轮回放。跨模型既不能降级成纯文本，也不能回放，只能丢弃。",
-    aliases: [
-      "redacted thinking",
-      "redacted",
-      "被安全滤波抹除",
-    ],
+    aliases: ["redacted thinking", "redacted", "被安全滤波抹除"],
   },
   {
     id: "normalize-tool-call-id",
@@ -271,8 +230,8 @@ export const PI_LINGO: LingoTerm[] = [
     aliases: [
       "AbortSignal",
       "aborted vs error",
-      "stopReason:\"aborted\"",
-      "reason:\"aborted\"",
+      'stopReason:"aborted"',
+      'reason:"aborted"',
     ],
   },
   {
