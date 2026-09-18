@@ -38,6 +38,9 @@ export default {
     columnsEmpty: "Nothing here yet.",
     columnCount: "{{count}} posts",
     topicCount: "{{count}} topics",
+    dualLangTitle: "The same job, written once in Go and once in Python",
+    dualLangIntro:
+      "Column samples come in both languages. Switch tabs to see how one job is done on each side.",
   },
   footer: {
     copyright: "Copyright",
@@ -75,5 +78,10 @@ export default {
     title: "404 Not Found",
     message: "Page Not Found",
     goHome: "Go back home",
+  },
+  command: {
+    navGroup: "Navigation",
+    columnGroup: "Columns",
+    recentGroup: "Recent posts",
   },
 } satisfies UIStrings;

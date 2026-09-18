@@ -38,6 +38,8 @@ export default {
     columnsEmpty: "这一栏还在攒稿。",
     columnCount: "{{count}} 篇",
     topicCount: "{{count}} 题",
+    dualLangTitle: "同一段逻辑，Go 和 Python 各写一遍",
+    dualLangIntro: "专栏里的代码示例尽量给两种语言。切换标签，对照着看同一件事在两边怎么落地。",
   },
   footer: {
     copyright: "版权所有",
@@ -75,5 +77,10 @@ export default {
     title: "404 未找到",
     message: "页面不存在",
     goHome: "返回首页",
+  },
+  command: {
+    navGroup: "导航",
+    columnGroup: "专栏",
+    recentGroup: "最近文章",
   },
 } satisfies UIStrings;

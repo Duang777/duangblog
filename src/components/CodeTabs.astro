@@ -1,0 +1,43 @@
+---
+// Go / Python code switcher on BEUI Tabs.
+// Usage in MDX:
+//   <CodeTabs go={`...`} python={`...`} />
+//   <CodeTabs go={`...`} python={`...`} defaultLang="go" />
+//
+// The whole Tabs tree lives in one React island (beui/code-tabs.tsx). Astro
+// renders each React component in a template as a separate tree, so composing
+// <Tabs><TabsContent /></Tabs> here would break the Tabs context.
+import CodeTabsIsland from "@/components/beui/code-tabs";
+
+type Props = {
+  go?: string;
+  python?: string;
+  goLang?: string;
+  pythonLang?: string;
+  /** Which panel opens first. 高性能后端实战 的双语言代码块默认 Python。 */
+  defaultLang?: "go" | "python";
+  className?: string;
+};
+
+const {
+  go = "",
+  python = "",
+  goLang = "go",
+  pythonLang = "python",
+  defaultLang = "python",
+  className,
+} = Astro.props;
+
+const goLabel = goLang === "go" ? "Go" : goLang;
+const pythonLabel = pythonLang === "python" ? "Python" : pythonLang;
+---
+
+<CodeTabsIsland
+  client:visible
+  go={go}
+  python={python}
+  goLabel={goLabel}
+  pythonLabel={pythonLabel}
+  defaultValue={defaultLang}
+  className={className}
+/>

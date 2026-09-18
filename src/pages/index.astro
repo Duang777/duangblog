@@ -12,6 +12,7 @@ import HomeBrandWhisper from "@/components/HomeBrandWhisper.astro";
 import HomePhenology from "@/components/HomePhenology.astro";
 import HomeIdeaJar from "@/components/HomeIdeaJar.astro";
 import HomeColumnSection from "@/components/HomeColumnSection.astro";
+import HomeDualLang from "@/components/HomeDualLang.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getPostSlugPath, getPostUrl } from "@/utils/getPostPaths";
@@ -207,6 +208,8 @@ const termIdeas = [
           )
         }
       </div>
+
+      <HomeDualLang />
 
       <div class="my-8 flex items-center justify-center gap-4">
         <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>

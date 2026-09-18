@@ -1,0 +1,76 @@
+---
+// 首页的双语言代码区：一个专栏入口卡片，加一组 Go / Python 对照代码。
+//
+// 每个 React 岛屿都只收 props。Astro 会把模板里的 React 组件各自渲染成一棵独立
+// 的树，并把 slot 子节点以原始 HTML 交给岛屿，父组件的 context 和 class 都传不下
+// 去，所以内容写在岛屿自己的组件里，或者以 props 传进去。
+import { TextReveal } from "@/components/beui/text-reveal";
+import { ColumnTiltCard } from "@/components/beui/column-tilt-card";
+import CodeTabs from "./CodeTabs.astro";
+import { getHomeColumns } from "@/data/home-columns";
+import { getPostUrl } from "@/utils/getPostPaths";
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
+const perf = getHomeColumns(locale).find(c => c.id === "perf");
+const perfHref =
+  perf?.hubSlug ? getPostUrl(perf.hubSlug, undefined, locale) : undefined;
+
+// 同一个意图的两版实现：把并发压到固定上限。Go 用带缓冲的 channel 当信号量，
+// Python 用 asyncio.Semaphore，量词都是 8。
+const go = `sem := make(chan struct{}, 8)
+var wg sync.WaitGroup
+
+for _, u := range urls {
+    wg.Add(1)
+    go func(u string) {
+        defer wg.Done()
+        sem <- struct{}{}
+        defer func() { <-sem }()
+        fetch(u)
+    }(u)
+}
+
+wg.Wait()`;
+
+const python = `sem = asyncio.Semaphore(8)
+
+async def one(u):
+    async with sem:
+        await fetch(u)
+
+async def main():
+    await asyncio.gather(*map(one, urls))
+
+asyncio.run(main())`;
+---
+
+<section class="app-layout my-20">
+  <TextReveal
+    client:visible
+    as="h2"
+    split="char"
+    text={t.home.dualLangTitle}
+    className="home-column-title font-serif text-2xl sm:text-3xl"
+  />
+  <p class="text-muted-foreground mt-2 text-sm">{t.home.dualLangIntro}</p>
+
+  {/* 代码那一栏多分一点宽度：半栏宽的 pre 装不下 40 来字符的行，会被截断。 */}
+  <div class="mt-8 grid gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    {
+      perf && perfHref && (
+        <ColumnTiltCard
+          client:visible
+          kicker={t.command.columnGroup}
+          title={perf.title}
+          intro={perf.intro}
+          href={perfHref}
+          enterLabel={t.home.enterColumn}
+        />
+      )
+    }
+    <CodeTabs go={go} python={python} defaultLang="go" />
+  </div>
+</section>

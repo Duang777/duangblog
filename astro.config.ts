@@ -6,6 +6,7 @@ import {
 } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
+import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import mermaid from "astro-mermaid";
 import { unified } from "@astrojs/markdown-remark";
@@ -30,6 +31,7 @@ export default defineConfig({
       enableLog: false,
     }),
     mdx(),
+    react(),
     sitemap({
       filter: page =>
         !page.includes("/traffic") &&
@@ -75,6 +77,21 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    // Rendering the first SSR'd React island resolves motion's dependency graph
+    // inside the prerender environment, which walks ~477 ESM files across
+    // motion, framer-motion, motion-dom and motion-utils one transform at a
+    // time. That lands as a ~30s stall on whichever page renders the first
+    // island. Externalizing motion makes the prerenderer load the published
+    // build from node_modules instead of transforming the graph. Measured:
+    // /index.html 30.2s -> see build log; a React island without motion SSRs in
+    // 285ms, so the cost is motion's graph, not React.
+    environments: {
+      prerender: {
+        resolve: {
+          external: ["motion", "framer-motion", "motion-dom", "motion-utils"],
+        },
+      },
+    },
   },
   fonts: [
     {
@@ -152,76 +169,16 @@ export default defineConfig({
       ],
       options: {
         variants: [
-          {
-            weight: 300,
-            style: "normal",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2",
-            ],
-          },
-          {
-            weight: 300,
-            style: "italic",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-italic.woff2",
-            ],
-          },
-          {
-            weight: 400,
-            style: "normal",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
-            ],
-          },
-          {
-            weight: 400,
-            style: "italic",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2",
-            ],
-          },
-          {
-            weight: 500,
-            style: "normal",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2",
-            ],
-          },
-          {
-            weight: 500,
-            style: "italic",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-italic.woff2",
-            ],
-          },
-          {
-            weight: 600,
-            style: "normal",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2",
-            ],
-          },
-          {
-            weight: 600,
-            style: "italic",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-italic.woff2",
-            ],
-          },
-          {
-            weight: 700,
-            style: "normal",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff2",
-            ],
-          },
-          {
-            weight: 700,
-            style: "italic",
-            src: [
-              "./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-italic.woff2",
-            ],
-          },
+          { weight: 300, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-normal.woff2"] },
+          { weight: 300, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-300-italic.woff2"] },
+          { weight: 400, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2"] },
+          { weight: 400, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2"] },
+          { weight: 500, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2"] },
+          { weight: 500, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-italic.woff2"] },
+          { weight: 600, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2"] },
+          { weight: 600, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-italic.woff2"] },
+          { weight: 700, style: "normal", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff2"] },
+          { weight: 700, style: "italic", src: ["./node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-italic.woff2"] },
         ],
       },
     },

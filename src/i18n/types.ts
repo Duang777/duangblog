@@ -37,6 +37,9 @@ export interface UIStrings {
     columnsEmpty: string;
     columnCount: string;
     topicCount: string;
+    /** Homepage block that shows one Go / Python pair side by side */
+    dualLangTitle: string;
+    dualLangIntro: string;
   };
   footer: {
     copyright: string;
@@ -74,5 +77,13 @@ export interface UIStrings {
     title: string;
     message: string;
     goHome: string;
+  };
+  command: {
+    /** Group heading for the site-level nav entries */
+    navGroup: string;
+    /** Group heading for the column entries */
+    columnGroup: string;
+    /** Group heading for the latest posts */
+    recentGroup: string;
   };
 }
