@@ -15,3 +15,9 @@
 
 # Ignore MDX files
 *.mdx
+
+# Article prose is hand-set. Prettier pads Markdown tables out with spaces and
+# strips the trailing double spaces the posts use as hard line breaks, so
+# formatting the content rewrites published articles rather than tidying code.
+# Everything here is prose — no code lives under src/content.
+src/content/**
