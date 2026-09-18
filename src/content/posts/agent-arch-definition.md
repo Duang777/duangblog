@@ -60,13 +60,62 @@ Anthropic 用一个伞形概念统摄了所有这些东西，叫做 agentic syst
 
 把“控制流归谁”这条判据展开，就得到一条从确定到自主的光谱。这条光谱是架构选型时最有用的一张图，因为它把能力、可预测性和成本三者的交换关系摆在了同一个坐标里。
 
-| 层级 | 形态 | 控制流归属 | 典型场景 | 可预测性 | 相对 Token 成本 |
-|-|-|-|-|-|-|
-| L0 | 单次模型调用 | 代码 | 分类、摘要、改写、翻译 | 最高 | 1 倍 |
-| L1 | 增强型 LLM（检索 + 工具 + 记忆） | 代码 | RAG 问答、结构化抽取 | 高 | 1 至 2 倍 |
-| L2 | 编排式工作流 | 代码（多路径） | 提示链、路由、并行、评估优化环 | 较高 | 2 至 5 倍 |
-| L3 | 自主 Agent 循环 | 模型（单一决策者） | 编码 Agent、研究 Agent、运维 Agent | 中 | 约 4 倍 |
-| L4 | 多智能体系统 | 主控模型 + 各子代理 | 深度研究、大规模并行探索 | 低 | 约 15 倍 |
+<div class="table-scroll" role="region" aria-label="Agentic 光谱 L0 到 L4" tabindex="0">
+<table class="spectrum-table">
+  <thead>
+    <tr>
+      <th scope="col">层级</th>
+      <th scope="col">形态</th>
+      <th scope="col">控制流归属</th>
+      <th scope="col">典型场景</th>
+      <th scope="col">可预测性</th>
+      <th scope="col">相对 Token 成本</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">L0</th>
+      <td>单次模型调用</td>
+      <td>代码</td>
+      <td>分类、摘要、改写、翻译</td>
+      <td>最高</td>
+      <td class="is-cost">1×</td>
+    </tr>
+    <tr>
+      <th scope="row">L1</th>
+      <td>增强型 LLM（检索 + 工具 + 记忆）</td>
+      <td>代码</td>
+      <td>RAG 问答、结构化抽取</td>
+      <td>高</td>
+      <td class="is-cost">1–2×</td>
+    </tr>
+    <tr>
+      <th scope="row">L2</th>
+      <td>编排式工作流</td>
+      <td>代码（多路径）</td>
+      <td>提示链、路由、并行、评估优化环</td>
+      <td>较高</td>
+      <td class="is-cost">2–5×</td>
+    </tr>
+    <tr>
+      <th scope="row">L3</th>
+      <td>自主 Agent 循环</td>
+      <td>模型（单一决策者）</td>
+      <td>编码 Agent、研究 Agent、运维 Agent</td>
+      <td>中</td>
+      <td class="is-cost">约 4×</td>
+    </tr>
+    <tr>
+      <th scope="row">L4</th>
+      <td>多智能体系统</td>
+      <td>主控模型 + 各子代理</td>
+      <td>深度研究、大规模并行探索</td>
+      <td>低</td>
+      <td class="is-cost">约 15×</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 成本倍数取自 Anthropic 多智能体研究系统的公开复盘：相比普通对话，Agent 大约消耗 4 倍 token，多智能体系统大约消耗 15 倍。这个数字应该被当作架构决策的硬约束来看待，而不是一句注脚。它意味着从 L3 升到 L4，你的单位任务成本会涨到接近 4 倍，因此只有当任务本身的价值足够高时，多智能体才在经济上成立。
 

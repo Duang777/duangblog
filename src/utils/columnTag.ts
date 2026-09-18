@@ -11,7 +11,6 @@ const COLUMN_PRIORITY = [
   "MySQL",
   "高性能后端实战",
   "Agent 系统架构设计",
-  "Agent 拆解专栏",
   "Pi 深度解析",
   "后端专栏",
   "Agent",

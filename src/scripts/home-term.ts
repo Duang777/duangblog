@@ -142,7 +142,7 @@ function greetingLine(author: string) {
   else if (month >= 9 && month <= 11) season = "秋天";
   else season = "冬天";
 
-  return `${author}，主 Go / TypeScript，兼 Python。后端 / 全栈，还在写拆解和笔记。`;
+  return `${author}，后端 / 全栈。${season}的${part}，还在写拆解和笔记。`;
 }
 
 function streakLine(): string | null {
@@ -417,7 +417,6 @@ function didYouMean(input: string): string | null {
 function columnStats(posts: TermPost[]) {
   const buckets: Record<string, number> = {
     "后端专栏": 0,
-    "架构解析": 0,
     "请求过境": 0,
     "最新速递": 0,
     Agent: 0,
@@ -428,7 +427,6 @@ function columnStats(posts: TermPost[]) {
     if (tags.some(t => t.includes("最新速递"))) buckets["最新速递"]! += 1;
     else if (tags.some(t => t.includes("请求过境"))) buckets["请求过境"]! += 1;
     else if (tags.some(t => t.includes("后端"))) buckets["后端专栏"]! += 1;
-    else if (tags.some(t => t.includes("架构"))) buckets["架构解析"]! += 1;
     else if (tags.some(t => t.includes("agent"))) buckets["Agent"]! += 1;
     else buckets["其他"]! += 1;
   }
@@ -808,14 +806,14 @@ async function runCommand(
     appendLine(body, "DUANG(1)                    Blog Commands                   DUANG(1)");
     appendLine(body, "");
     appendLine(body, "NAME");
-    appendLine(body, `       ${ctx.author.toLowerCase()} — 主 Go/TS 兼 Python · 后端 / 全栈公开笔记本`);
+    appendLine(body, `       ${ctx.author.toLowerCase()} — 后端 / 全栈公开笔记本`);
     appendLine(body, "");
     appendLine(body, "SYNOPSIS");
     appendLine(body, "       open <slug> | grep <词> | tags <词> | jar | last | bookmark | env | cat <slug> | today");
     appendLine(body, "");
     appendLine(body, "DESCRIPTION");
     appendLine(body, "       拆 Agent、记服务端机制，偶尔写路上的想法。");
-    appendLine(body, "       主 Go / TypeScript，兼 Python。终端是入口；文章才是正文。");
+    appendLine(body, "       终端是入口；文章才是正文。");
     appendLine(body, "");
     appendLine(body, "SEE ALSO");
     appendLine(body, "       help, ls, fortune, ssh guest@duang");
@@ -846,7 +844,6 @@ async function runCommand(
     );
     const rows: [string, string, number][] = [
       ["backend", "/columns/backend", buckets["后端专栏"]!],
-      ["arch", "/tags/后端架构深度解析", buckets["架构解析"]!],
       ["request", "/columns/request-crossing", buckets["请求过境"]!],
       ["digest", "/columns/latest-digest", buckets["最新速递"]!],
       ["agent", "/columns/agent", buckets["Agent"]!],

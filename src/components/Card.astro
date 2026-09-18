@@ -44,8 +44,11 @@ let column:
   | "mixup"
   | "pi"
   | "digest"
+  | "thinking"
   | null = null;
-if (tags.some(tag => tag.includes("最新速递"))) {
+if (tags.some(tag => tag === "thinking")) {
+  column = "thinking";
+} else if (tags.some(tag => tag.includes("最新速递"))) {
   column = "digest";
 } else if (tags.some(tag => tag.includes("高性能后端实战"))) {
   column = "perf";

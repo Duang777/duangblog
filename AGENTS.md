@@ -148,6 +148,13 @@ Short, fast notes: one post = one recent thing (new tool, a long article worth f
 
 **Shape:** what you saw → what you think → whether to follow up. No weekly digests, no link dumps.
 
+## thinking (standalone column)
+
+**Tag:** `thinking`  
+**Hub:** `src/content/posts/thinking.md`
+
+Close readings and judgments after a long piece or playbook. Not a mechanism series, not a digest dump.
+
 **Skills (required for 后端专栏 prose):**
 
 1. `source-driven-development` when naming library/API behavior: fetch official docs for the version you cite
@@ -226,6 +233,7 @@ End without a corporate-sounding checklist if the body already made the points. 
 ## Files
 
 - Posts: `src/content/posts/*.md`
+- thinking hub: `src/content/posts/thinking.md`
 - 后端专栏 hub: `src/content/posts/backend-column.md`
 - 请求过境 (sub-column): `src/content/posts/request-crossing.mdx`
 - Pi 深度解析 hub: `src/content/posts/pi-deep-dive.md`

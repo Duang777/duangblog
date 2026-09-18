@@ -223,6 +223,10 @@ html[data-theme="dark"] body::before {
   --column-tint: color-mix(in oklab, #8a7a4a 55%, var(--accent));
 }
 
+.post-card[data-column="thinking"] {
+  --column-tint: color-mix(in oklab, #6a5a48 55%, var(--muted-foreground));
+}
+
 /* Today’s pick owns the edge — hide column scent so two rules never stack. */
 .post-card.is-today-pick[data-column]::after {
   display: none;
@@ -1706,6 +1710,10 @@ html[data-theme="dark"] .about-doodle--letter-p {
 
 .home-column.is-digest {
   --column-ink: color-mix(in oklab, #3d6b7a 70%, var(--foreground));
+}
+
+.home-column.is-thinking {
+  --column-ink: color-mix(in oklab, #5a4a3a 70%, var(--foreground));
 }
 
 .home-column.is-backend {
@@ -3609,32 +3617,69 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   }
 }
 
+.table-scroll {
+  margin: 1rem 0 1.25rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 0.52rem;
+  background: color-mix(in oklab, var(--background) 84%, var(--muted) 16%);
+}
+
 .app-prose table {
   width: 100%;
+  min-width: 42rem;
   margin: 1rem 0 1.2rem;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
   border-radius: 0.52rem;
   background: color-mix(in oklab, var(--background) 84%, var(--muted) 16%);
-  overflow: hidden;
+}
+
+.app-prose .table-scroll table {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-width: 46rem;
 }
 
 .app-prose thead th {
   background: color-mix(in oklab, var(--background) 70%, var(--accent) 6%);
-  color: var(--foreground);
+  color: var(--muted-foreground);
   font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .app-prose th,
 .app-prose td {
-  padding: 0.46rem 0.58rem;
+  padding: 0.5rem 0.64rem;
   border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   border-inline-end: 1px solid color-mix(in oklab, var(--border) 62%, transparent);
   text-align: left;
   vertical-align: top;
-  line-height: 1.58;
-  font-size: 0.84rem;
+  line-height: 1.5;
+  font-size: 0.82rem;
+  white-space: normal;
+}
+
+.app-prose tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: color-mix(in oklab, var(--background) 92%, var(--muted) 8%);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.app-prose tbody tr:hover td,
+.app-prose tbody tr:hover th {
+  background: color-mix(in oklab, var(--muted) 28%, var(--background));
 }
 
 .app-prose tr:first-child th {
@@ -3650,15 +3695,20 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   border-inline-end: 0;
 }
 
+.app-prose .spectrum-table .is-cost {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
 @media (max-width: 900px) {
   .article-diagram-head {
     grid-template-columns: 1fr;
   }
 
   .app-prose table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+    display: table;
   }
 }
 
