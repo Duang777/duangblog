@@ -32,5 +32,9 @@ public/pagefind
 # docker compose
 compose.override.yaml
 
+# agent scratch: local memory notes and generated verification artifacts
+.workbuddy/
+outputs/
+
 .tmp-feishu/
 .tmp-about-*.png
