@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [跨会话、跨天记忆：Agent 的“记忆”到底是什么？](/posts/agent-memory-across-sessions/)
 - [跨会话状态与目标持久化：2026 年 long-horizon Agent 的四条路线](/posts/long-horizon-agent-four-routes/)
 - [《Jev 工程学》解读：KV cache 的暴政，与 coding agent 的下一种架构](/posts/jev-engineering-kv-cache/)
 - [解读 Cursor《How Cursor Turned AI Agents Into Better Engineers》](/posts/cursor-agents-better-engineers/)
