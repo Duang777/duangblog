@@ -65,5 +65,8 @@
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "typescript": "^6.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@ibm/plex-mono", "esbuild", "sharp"]
   }
 }
