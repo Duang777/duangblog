@@ -105,6 +105,22 @@ LoopX 的做法：用 Todo 依赖图记住 What；用机器可读的 resume 条�
 
 Anthropic 在云端做这件事，Karpathy 在个人知识库做这件事，Cursor 在代码库做这件事。而我关心的是：在 Agent 控制面做这件事：把记忆和执行缝合在一起。模型负责聪明，系统负责记得。让 Agent 不再每次从零开始。
 
----
+## 参考
 
-参考来源：[Anthropic Managed Agents Dreams](https://platform.claude.com/docs/en/managed-agents/dreams)｜[New in Claude Managed Agents](https://claude.com/blog/new-in-claude-managed-agents)｜[Hindsight: Your 1M-Token Context Window Is Not Memory](https://hindsight.vectorize.io/blog/2026/07/22/context-window-is-not-memory)｜[Vectorize: Do AI Agents Learn Between Sessions?](https://vectorize.io/articles/do-ai-agents-learn-between-sessions)｜[Karpathy LLM Wiki](https://developer.cloud.tencent.cn/article/2680461)｜[Mem0: State of AI Agent Memory 2026](https://mem0.ai/blog/state-of-ai-agent-memory-2026)｜[arXiv 2603.04814](https://arxiv.org/html/2603.04814)｜核验日期：2026-09-23
+- [Anthropic Managed Agents Dreams 官方文档](https://platform.claude.com/docs/en/managed-agents/dreams)
+- [Claude 官方博客：New in Claude Managed Agents](https://claude.com/blog/new-in-claude-managed-agents)
+- [Anthropic Managed Agents 增加持久记忆](https://opentools.ai/news/anthropic-managed-agents-add-memory-persistent-state-for-ai-that-actually-ships)
+- [OpenAI 研究发布页](https://openai.com/zh-Hans-CN/research/index/release/)
+- [Hindsight：Your 1M-Token Context Window Is Not Memory](https://hindsight.vectorize.io/blog/2026/07/22/context-window-is-not-memory)
+- [Vectorize：Do AI Agents Learn Between Sessions?](https://vectorize.io/articles/do-ai-agents-learn-between-sessions)
+- [DEV Community：Why bigger context windows won't kill memory systems](https://dev.to/codecoradev/why-bigger-context-windows-wont-kill-memory-systems-1fmh)
+- [Karpathy 的 LLM Wiki（腾讯云解读）](https://developer.cloud.tencent.cn/article/2680461)
+- [Mem0：AI Agent Memory 2026 评测报告](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
+- [Mem0 vs Letta vs Zep（2026 对比）](https://aiworkflowlab.dev/article/agent-memory-mem0-vs-letta-vs-zep-2026)
+- [Cursor Projects：Agents That Work While You Sleep](https://www.joinnextdev.com/blog/cursor-projects-launches-agents-that-work-while-you-sleep)
+- [Augmentable：2026 年 AI Agent 记忆全景](https://augmentable.ai/blog/state-of-ai-agent-memory-2026)
+- [arXiv：记忆 vs 长上下文的成本-性能分析](https://arxiv.org/html/2603.04814)
+- [arXiv：MemMachine，保真记忆系统](https://arxiv.org/html/2604.04853)
+- [第一财经：智能体上下文争夺战](http://m.toutiao.com/group/7688653522044994089/)
+
+核验日期：2026-09-23

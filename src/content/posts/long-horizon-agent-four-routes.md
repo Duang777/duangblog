@@ -94,6 +94,13 @@ LoopX 走的是另一条路线：不绑定具体模型或 runtime，而是做成
 
 把这几条路线放在一起看，结论是清晰的：跨会话要保住的东西已经从聊天记录中抽离出来，Anthropic 与 OpenAI 倾向于自家 harness 内的 artifact 与目标对象，Salesforce 将其产品化为企业级 durable runtime，LoopX 则提供可挂在任意现有 harness 上的开放控制面。问题已经形成共识，解法正在从提示工程转向状态与治理工程。
 
----
+## 参考
 
-参考来源：[Anthropic Engineering Blog《Effective Harnesses for Long-Running Agents》](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)（2025-11）｜[anthropics/cwc-long-running-agents](https://github.com/anthropics/cwc-long-running-agents)｜[Claude Code 文档（/goal，2026-05）](https://code.claude.com/docs/en/goal)｜[OpenAI Codex CLI 文档（/goal，2026-04 起）](https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex)｜[Salesforce long-horizon agents](https://www.salesforce.com/blog/long-horizon-agents/)（2026-09）｜[LoopX 项目 README](https://github.com/huangruiteng/loopx) 与 LHTB 基准｜核验日期：2026-09-23
+- [Anthropic Engineering Blog《Effective Harnesses for Long-Running Agents》（2025-11）](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [anthropics/cwc-long-running-agents](https://github.com/anthropics/cwc-long-running-agents)
+- [Claude Code 文档（/goal，2026-05）](https://code.claude.com/docs/en/goal)
+- [OpenAI Codex CLI 文档（/goal，2026-04 起）](https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex)
+- [Salesforce long-horizon agents（2026-09）](https://www.salesforce.com/blog/long-horizon-agents/)
+- [LoopX 项目 README](https://github.com/huangruiteng/loopx)
+
+核验日期：2026-09-23
