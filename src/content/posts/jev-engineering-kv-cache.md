@@ -63,41 +63,7 @@ TypeSafe 创始人 Diogo Almeida 有一份 12 页的设计笔记《Jev 工程学
   <p class="article-embed-note-title">图解：典型 CLI coding agent 会话的 token 份额</p>
   <p class="article-embed-note-lead">估算区间，输入密集视角，重复读取每次计数。单位：%</p>
   <figure class="perf-scene">
-    <svg class="perf-svg" viewBox="0 0 640 340" role="img" aria-label="读文件 30-40%，搜索加命令输出约三分之一，写代码仅 4-10%">
-      <text class="perf-label" x="8" y="46">读文件内容</text>
-      <rect class="perf-hbar" x="467" y="30" width="89" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="476" y="46">30–40</text>
-
-      <text class="perf-label" x="8" y="86">命令输出</text>
-      <rect class="perf-hbar" x="289" y="70" width="89" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="298" y="86">10–20</text>
-
-      <text class="perf-label" x="8" y="126">搜索代码库</text>
-      <rect class="perf-hbar" x="289" y="110" width="71" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="298" y="126">10–18</text>
-
-      <text class="perf-label" x="8" y="166">推理与规划</text>
-      <rect class="perf-hbar" x="244" y="150" width="89" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="253" y="166">5–15</text>
-
-      <text class="perf-label" x="8" y="206">系统提示 / schema</text>
-      <rect class="perf-hbar" x="244" y="190" width="62" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="253" y="206">5–12</text>
-
-      <text class="perf-label is-tail" x="8" y="246">写和编辑代码</text>
-      <rect class="perf-hbar is-tail" x="236" y="230" width="53" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="245" y="246">4–10</text>
-
-      <text class="perf-label" x="8" y="286">向用户解释</text>
-      <rect class="perf-hbar" x="218" y="270" width="27" height="22" rx="3"></rect>
-      <text class="perf-chip-sub" x="250" y="286">2–5</text>
-
-      <line class="perf-axis" x1="210" y1="304" x2="610" y2="304"></line>
-      <text class="perf-caption" x="210" y="326">0%</text>
-      <text class="perf-caption" x="343" y="326">15%</text>
-      <text class="perf-caption" x="477" y="326">30%</text>
-      <text class="perf-caption" x="610" y="326" text-anchor="end">45%</text>
-    </svg>
+<svg class="perf-svg" viewBox="0 0 640 340" role="img" aria-label="读文件 30-40%，搜索加命令输出约三分之一，写代码仅 4-10%"><text class="perf-label" x="8" y="46">读文件内容</text><rect class="perf-hbar" x="467" y="30" width="89" height="22" rx="3"/><text class="perf-chip-sub" x="476" y="46">30-40</text><text class="perf-label" x="8" y="86">命令输出</text><rect class="perf-hbar" x="289" y="70" width="89" height="22" rx="3"/><text class="perf-chip-sub" x="298" y="86">10-20</text><text class="perf-label" x="8" y="126">搜索代码库</text><rect class="perf-hbar" x="289" y="110" width="71" height="22" rx="3"/><text class="perf-chip-sub" x="298" y="126">10-18</text><text class="perf-label" x="8" y="166">推理与规划</text><rect class="perf-hbar" x="244" y="150" width="89" height="22" rx="3"/><text class="perf-chip-sub" x="253" y="166">5-15</text><text class="perf-label" x="8" y="206">系统提示 / schema</text><rect class="perf-hbar" x="244" y="190" width="62" height="22" rx="3"/><text class="perf-chip-sub" x="253" y="206">5-12</text><text class="perf-label is-tail" x="8" y="246">写和编辑代码</text><rect class="perf-hbar is-tail" x="236" y="230" width="53" height="22" rx="3"/><text class="perf-chip-sub" x="245" y="246">4-10</text><text class="perf-label" x="8" y="286">向用户解释</text><rect class="perf-hbar" x="218" y="270" width="27" height="22" rx="3"/><text class="perf-chip-sub" x="250" y="286">2-5</text><line class="perf-axis" x1="210" y1="304" x2="610" y2="304"/><text class="perf-caption" x="210" y="326">0%</text><text class="perf-caption" x="343" y="326">15%</text><text class="perf-caption" x="477" y="326">30%</text><text class="perf-caption" x="610" y="326" text-anchor="end">45%</text></svg>
   </figure>
   <p class="article-embed-note-foot">写代码——coding agent 存在的理由——是最小的开支项之一；读取与搜索合计接近三分之二。</p>
 </section>
@@ -117,12 +83,12 @@ TypeSafe 创始人 Diogo Almeida 有一份 12 页的设计笔记《Jev 工程学
 
 笔记提出的替代架构，围绕一个带类型的显式状态 harness 构建，Jev 在每一轮做决策。几个核心主张：
 
-- **Jev 不是写代码的模型，而是旁边那层决策层。**harness 把当前状态和预定义问题交给 Jev，Jev 返回 choice、score、noul 这类类型化答案，再由前沿模型、子 agent 和工具去执行实际工作。
-- **元注意力：把上下文本身当成决策。**对每个查询，Jev 先判断现有上下文有多好（复用缓存还是重建），再决定如何构造新上下文；上下文块按查询逐个打分，同一个 grep 结果对一个问题可能是相关命中、对下一个问题完全不可见——这就是查询感知的压缩，compaction 所缺的属性。
-- **三级披露：模型先看一张廉价的全局地图，只为选中的东西付细节的钱。**短片段描述可用动作，schema 在需要时动态加载，用完即丢——电池之争因此消解。
-- **条件化指令：AGENTS.md 按条件加载。**指令附着到条件上而不是会话上，并且免疫于压缩（条件成立时重新加载）。
-- **安全感知的路由：路由的第三个轴是信任。**按子任务可能触碰的文件类型（公开文档、应用代码、密钥、专有研究代码）决定可用模型。
-- **后台处理与极端并行。**只读的后台任务共享一次检索；显式区分读写让并发可处理，只读任务永不争锁。
+- **Jev 不是写代码的模型，而是旁边那层决策层。** harness 把当前状态和预定义问题交给 Jev，Jev 返回 choice、score、noul 这类类型化答案，再由前沿模型、子 agent 和工具去执行实际工作。
+- **元注意力：把上下文本身当成决策。** 对每个查询，Jev 先判断现有上下文有多好（复用缓存还是重建），再决定如何构造新上下文；上下文块按查询逐个打分，同一个 grep 结果对一个问题可能是相关命中、对下一个问题完全不可见——这就是查询感知的压缩，compaction 所缺的属性。
+- **三级披露：模型先看一张廉价的全局地图，只为选中的东西付细节的钱。** 短片段描述可用动作，schema 在需要时动态加载，用完即丢——电池之争因此消解。
+- **条件化指令：AGENTS.md 按条件加载。** 指令附着到条件上而不是会话上，并且免疫于压缩（条件成立时重新加载）。
+- **安全感知的路由：路由的第三个轴是信任。** 按子任务可能触碰的文件类型（公开文档、应用代码、密钥、专有研究代码）决定可用模型。
+- **后台处理与极端并行。** 只读的后台任务共享一次检索；显式区分读写让并发可处理，只读任务永不争锁。
 
 ## 6. 这份笔记怎么读
 
