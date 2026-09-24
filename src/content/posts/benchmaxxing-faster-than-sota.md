@@ -10,6 +10,8 @@ description: Max Woolf 让 Agent 把 Rust 迭代到比 SOTA 库更快。拆 Benc
 revisions:
   - date: 2026-09-25
     note: 首发。按成稿整理，挂到 thinking。
+  - date: 2026-09-25
+    note: 改第一段口吻。
 ---
 
 > [!NOTE]
@@ -19,7 +21,7 @@ revisions:
 
 2026-09 · 深度调研
 
-2026 年 9 月 21 日，Max Woolf（minimaxir，前 BuzzFeed 高级数据科学家）发布了一篇 26 分钟的长文，标题直白得有些挑衅：《Writing Rust code that's faster than state-of-the-art libraries by asking agents to make the code faster》。让 Agent 把 Rust 代码迭代到比现有最先进库更快。这并非一篇“观点预告”式的 vaguepost：他公开了全部 prompt、全部基准结果与全部反作弊约束。本文拆解这篇博客的方法论：迭代式性能优化的标准管线、约束如何取代模糊目标、Agent 作弊的典型形态与防御、以及“把提示工程用到极致”的几组技巧。
+2026 年 9 月 21 日，Max Woolf（minimaxir，前 BuzzFeed 高级数据科学家）发布了一篇 26 分钟的长文，标题有些挑衅：《Writing Rust code that's faster than state-of-the-art libraries by asking agents to make the code faster》。让 Agent 把 Rust 代码迭代到比现有最先进库更快。这并非一篇“观点预告”式的 vaguepost：他公开了全部 prompt、全部基准结果与全部反作弊约束。本文拆解这篇博客的方法论：迭代式性能优化的标准管线、约束如何取代模糊目标、Agent 作弊的典型形态与防御、以及“把提示工程用到极致”的几组技巧。
 
 ## 1. 核心主张：Agent 可以写出比 SOTA 更快的 Rust 代码
 
