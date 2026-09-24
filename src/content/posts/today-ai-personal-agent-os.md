@@ -11,7 +11,7 @@ revisions:
   - date: 2026-09-25
     note: 首发。按成稿整理，挂到 thinking。
   - date: 2026-09-25
-    note: 改第一段口吻，去掉更直白、与其不如。
+    note: 改第一段口吻。
 ---
 
 > [!NOTE]
