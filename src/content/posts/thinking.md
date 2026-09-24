@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [让 Agent 迭代出比 SOTA 库更快的代码：Max Woolf 的“Benchmaxxing”实践拆解](/posts/benchmaxxing-faster-than-sota/)
 - [Today AI 深度调研：一个想“读懂你”的个人 Agent 操作系统](/posts/today-ai-personal-agent-os/)
 - [跨会话、跨天记忆：Agent 的“记忆”到底是什么？](/posts/agent-memory-across-sessions/)
 - [跨会话状态与目标持久化：2026 年 long-horizon Agent 的四条路线](/posts/long-horizon-agent-four-routes/)
