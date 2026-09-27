@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [怎么写一个好的 CLI：2026 年的人机双用户设计](/posts/cli-human-agent-design-2026/)
 - [为 AI 驱动的代码现代化做准备：Anthropic 六步方法论](/posts/ai-driven-code-modernization/)
 - [让 Claude 给自己提速 3 倍：Anthropic 两周性能冲刺的工程复盘](/posts/claude-ai-3x-faster-two-weeks/)
 - [Claude Tag 深度调研：把 Agent 请进 Slack 的“组织级队友”](/posts/claude-tag-slack-teammate/)
