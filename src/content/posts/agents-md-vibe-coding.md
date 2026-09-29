@@ -1,7 +1,7 @@
 ---
 author: Duang
 pubDatetime: 2026-09-29T15:00:00+08:00
-title: AGENTS.md 与 Vibe Coding 调研报告
+title: "AGENTS.md 编写 & 从零开始的 Vibe/Agentic Coding：前沿实践摘要"
 featured: true
 draft: false
 tags:
