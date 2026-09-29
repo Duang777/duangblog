@@ -61,19 +61,19 @@ revisions:
 
 ### 2. 应该写什么（检查清单）
 
-- [ ] 命令放在最前面：安装、dev、build、test、lint、typecheck，带上具体参数，最好注明怎么“跑单个测试”。(GitHub Blog、Claude Code)
+- [ ] 命令放在最前面：安装、dev、build、test、lint、typecheck，带上具体参数，最好注明怎么“跑单个测试”。([GitHub Blog](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)、[Claude Code](https://code.claude.com/docs/en/best-practices))
 
-- [ ] 技术栈写清版本：比如写“React 18 + TypeScript + Vite + Tailwind”，不要只写“React 项目”。(GitHub Blog)
+- [ ] 技术栈写清版本：比如写“React 18 + TypeScript + Vite + Tailwind”，不要只写“React 项目”。([GitHub Blog](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/))
 
-- [ ] 项目地图 + WHY/WHAT/HOW：说明各目录/包分别是做什么的、项目的目的、agent 怎样验证自己的改动。(HumanLayer、Codex 最佳实践)
+- [ ] 项目地图 + WHY/WHAT/HOW：说明各目录/包分别是做什么的、项目的目的、agent 怎样验证自己的改动。([HumanLayer](https://www.humanlayer.dev/blog/writing-a-good-claude-md)、[Codex 最佳实践](https://developers.openai.com/codex/learn/best-practices))
 
-- [ ] “完成”的定义：交付前必须通过哪些检查。(Codex 最佳实践)
+- [ ] “完成”的定义：交付前必须通过哪些检查。([Codex 最佳实践](https://developers.openai.com/codex/learn/best-practices))
 
-- [ ] 三级边界：✅ 可以直接做 / ⚠️ 先问（schema、新依赖、CI）/ 🚫 禁止（提交密钥、改 vendor 或生产配置）。“永远不要提交密钥”是最常见也最有用的约束。(GitHub Blog)
+- [ ] 三级边界：✅ 可以直接做 / ⚠️ 先问（schema、新依赖、CI）/ 🚫 禁止（提交密钥、改 vendor 或生产配置）。“永远不要提交密钥”是最常见也最有用的约束。([GitHub Blog](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/))
 
-- [ ] git/PR 规范，以及非显而易见的坑（必需的环境变量、奇怪的构建步骤）。(Claude Code)
+- [ ] git/PR 规范，以及非显而易见的坑（必需的环境变量、奇怪的构建步骤）。([Claude Code](https://code.claude.com/docs/en/best-practices))
 
-- [ ] 与默认习惯不同的风格规则，用指向规范示例文件的引用代替粘贴代码。(Cursor Rules、HumanLayer)
+- [ ] 与默认习惯不同的风格规则，用指向规范示例文件的引用代替粘贴代码。([Cursor Rules](https://cursor.com/docs/context/rules)、[HumanLayer](https://www.humanlayer.dev/blog/writing-a-good-claude-md))
 
 ### 3. 不要写什么
 
