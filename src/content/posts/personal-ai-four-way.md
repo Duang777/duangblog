@@ -219,7 +219,7 @@ Dots 对安全的设计是本次发布的重头。安装软件、修改密码等
 
 四方格局的分歧可以浓缩为一个问题：Personal AI 的价值主要由谁创造。Meta 押注模型能力与分发，让 AI 成为 WhatsApp 里的 ambient 层；Today AI 押注产品层的状态管理，Context 多不等于 Memory 好，围绕用户维护持续更新的状态档案是模型之外的独立价值；Manus/Cue 押注 Agent 的独立性，给 Agent 身份、算力与支付能力，把它从“工具”推向“独立行动主体”；OpenAI Dots 押注常驻与治理，让 Agent 在后台持续工作，同时用 Boundaries 与只读工具把自主性限制在用户许可的边界内。肖弘的表述可以概括这一代竞争的共同点：“云电脑不再是从属功能，而可能是未来很核心的一层基础设施”。四家的 Agent 都不再活在聊天框里，而是活在一台持续运行的机器上。
 
-**作者点评**：四方格局的本质是“Personal AI 的价值由谁创造”的四种答案：模型（Muse）、状态（Today）、身份（Manus/Cue）、治理（Dots）。但共同点比分歧更值得注意。四家的 Agent 都不再活在聊天框里，而是活在一台持续运行的机器上，云电脑正在成为新的基础设施层。
+**作者点评**：Muse 押模型和分发，Today 押一份会更新的用户状态。Manus 和 Cue 押 Agent 自己的邮箱、电话和钱包，Dots 押后台一直干活，并用 Boundaries 把没许可的操作挡住。肖弘说云电脑以后可能变成很核心的一层基础设施，四家现在都给 Agent 配了一台一直开着的电脑。
 
 <aside class="duang-whisper" aria-label="Duang">
   <div class="duang-whisper-jar-row">
