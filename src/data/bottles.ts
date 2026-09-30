@@ -170,6 +170,13 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-opencli-bottle.png",
     foundIn: "Agent 拆解 · OpenCLI",
   },
+  {
+    id: "cloud-pc",
+    name: "云电脑瓶",
+    note: "瓶口顶着一小朵云，瓶肚里坐着一台小电脑。四家都买了这一台。",
+    src: "/images/childlike-sketch-cloud-pc-bottle.png",
+    foundIn: "thinking · Personal AI 四方格局",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

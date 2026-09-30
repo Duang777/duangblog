@@ -8,6 +8,7 @@ import { PI_LINGO } from "./pi";
 import { DSH_LINGO } from "./dsh";
 import { AGENT_ARCH_LINGO } from "./agent-arch";
 import { OPENCLI_LINGO } from "./opencli";
+import { PERSONAL_AI_LINGO } from "./personal-ai";
 
 export type { LingoTerm } from "./types";
 
@@ -53,5 +54,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   AGENT_ARCH_LINGO,
   PI_LINGO,
   DSH_LINGO,
-  OPENCLI_LINGO
+  OPENCLI_LINGO,
+  PERSONAL_AI_LINGO
 );
