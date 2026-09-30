@@ -191,6 +191,27 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-desk-bottle.png",
     foundIn: "thinking · Personal AI 四方格局",
   },
+  {
+    id: "amp",
+    name: "放大瓶",
+    note: "细长瓶子，肚子里三只盒子越往下越大。一次请求会变成好几次模型调用。",
+    src: "/images/childlike-sketch-amp-bottle.png",
+    foundIn: "thinking · OpenAI Agents SDK",
+  },
+  {
+    id: "loop",
+    name: "移交瓶",
+    note: "圆罐子，肚子里画着一个没封口的圈。Agent 把话交出去，再交回来。",
+    src: "/images/childlike-sketch-loop-bottle.png",
+    foundIn: "thinking · OpenAI Agents SDK",
+  },
+  {
+    id: "span",
+    name: "追踪瓶",
+    note: "矮瓶子长了两条腿，肚子里叠着四格。每一格是链路里的一段。",
+    src: "/images/childlike-sketch-span-bottle.png",
+    foundIn: "thinking · OpenAI Agents SDK",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
