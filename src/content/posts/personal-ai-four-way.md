@@ -36,7 +36,7 @@ revisions:
 
 Meta 于 2025 年成立 Meta Superintelligence Labs（MSL），以约 143 亿美元投资 Scale AI 换取 49% 股权，并请 Scale 创始人 Alexandr Wang 掌舵。MSL 用了九个月从零重建训练栈：架构、优化器、预训练管线全部重做，而不是延续 Llama 路线。2026-04-08，Muse Spark 作为 MSL 首款模型发布（开发代号 Avocado），同时宣告了 Meta 旗舰模型首次“不带开放权重”发布：这结束了 Llama 时代“开源主力”的叙事。随后节奏明显加快：7 月 9 日 Muse Spark 1.1 与 Meta Model API 公开预览，7 月 7 日 Muse Image 上线、Muse Video 预览，8 月 5 日 Muse Code 与 Muse Spark 1.2 发布，8 月 10 日开源 30B 的 Muse Glimmer，9 月 2 日 Muse Spark 1.3 发布。五个月四次迭代，Muse 从单模型变成覆盖推理、媒体、编码、本地部署的家族。
 
-**作者点评：**Meta 用 143 亿美元买的不只是 Scale 的工程能力，而是把训练栈重建周期压缩到九个月的时间窗口。五个月四次迭代说明 MSL 的打法不是“憋大招”，而是快速发布、用产品反馈校准，这和 Llama 时代的长周期开源节奏完全不同。
+**作者点评**：Meta 用 143 亿美元买的不只是 Scale 的工程能力，而是把训练栈重建周期压缩到九个月的时间窗口。五个月四次迭代说明 MSL 的打法不是“憋大招”，而是快速发布、用产品反馈校准，这和 Llama 时代的长周期开源节奏完全不同。
 
 ## 02 Muse 家族全景：五个月的版本演进
 
@@ -52,20 +52,20 @@ Meta 于 2025 年成立 Meta Superintelligence Labs（MSL），以约 143 亿美
 
 口径说明：Arena 排名与各项基准分数均为 Meta 或第三方平台自报/汇总，未完全经独立复现；Spark 1.2 的 Terminal-Bench 数字来自 Meta 官方发布。
 
-**作者点评：**这张表最值得注意的不是单个分数，而是产品矩阵的扩张速度：从单模型到“推理 + 媒体 + 编码 + 本地”只用了五个月。Meta 相当于把 OpenAI 用三年走完的路并行压缩，靠的是 33 亿日活的分发底座兜底。Video 尚未成熟就开放预览，本质是先占位、再迭代。
+**作者点评**：这张表最值得注意的不是单个分数，而是产品矩阵的扩张速度：从单模型到“推理 + 媒体 + 编码 + 本地”只用了五个月。Meta 相当于把 OpenAI 用三年走完的路并行压缩，靠的是 33 亿日活的分发底座兜底。Video 尚未成熟就开放预览，本质是先占位、再迭代。
 
 <aside class="duang-whisper" aria-label="Duang">
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-shelf-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">云电脑瓶</span>
+    <span class="duang-whisper-jar-note">货架瓶</span>
   </div>
   <p class="duang-whisper-body">五个月四次上架。分数可以后补，货架得先占上。</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -77,7 +77,7 @@ Muse Spark 与 Claude/GPT 的架构哲学差异在 DataCamp 的对比中被概�
 
 更值得关注的是战略转向。Muse Spark 是 Meta 第一个不开源权重的旗舰模型，与 Llama 累计 12 亿次下载的开源传统形成断裂。Vibecoderz 的分析把 Muse Image 的发布称为“分布即优势”：Meta 不需要造出世界最好的模型，它把足够好的模型接入 33 亿日活用户已经在用的 WhatsApp、Instagram 与 Facebook。这是 Midjourney 和 ChatGPT 作为“目的地产品”不具备的 ambient generation（环境式生成）场景。开源/闭源的摇摆（Spark 闭源，接着 Glimmer 开源，再宣布 Spark 1.2 开源）说明 Meta 仍在权衡开发者生态与产品控制权。
 
-**作者点评：**“分布即优势”是对 Meta 战略最准确的概括：它不需要造出最好的模型，只需要让足够好的模型出现在用户已经天天打开的界面里。开源/闭源的摇摆不是立场问题，而是阶段选择。Glimmer 开源安抚社区，Spark 闭源守住产品控制权。
+**作者点评**：“分布即优势”是对 Meta 战略最准确的概括：它不需要造出最好的模型，只需要让足够好的模型出现在用户已经天天打开的界面里。开源/闭源的摇摆不是立场问题，而是阶段选择。Glimmer 开源安抚社区，Spark 闭源守住产品控制权。
 
 <details class="marginalia" open>
   <summary>分发</summary>
@@ -92,7 +92,7 @@ Muse Image 的最大创新不在画质而在“Agent 化”：它不是把 promp
 
 这一设计在中文社区也引起关注：真正的突破不是单张图片质量，而是“Spark 先思考，Image 再生成媒体组件，然后拼成网站、游戏或动画”的联合 Agent 编排，以及 WhatsApp 聊天历史作为图像 Agent working memory 的产品形态。
 
-**作者点评：**self-refinement 在 RL 中涌现而非显式设计，这个细节比画质更重要：它说明“Agent 化”不是产品层的包装，而是训练目标里长出来的能力。当模型学会先思考再生成、生成后自我修正，图像生成的竞争就从模型参数转向编排能力。
+**作者点评**：self-refinement 在 RL 中涌现而非显式设计，这个细节比画质更重要：它说明“Agent 化”不是产品层的包装，而是训练目标里长出来的能力。当模型学会先思考再生成、生成后自我修正，图像生成的竞争就从模型参数转向编排能力。
 
 ## 05 Muse Code：Meta 对 Agentic Coding 的正式入场
 
@@ -104,13 +104,13 @@ Muse Image 的最大创新不在画质而在“Agent 化”：它不是把 promp
 
 定价采用双档：Standard 档 $1.25/$4.25（每百万 token）不用于训练；Contributor 档 $0.10/$0.20，便宜 12-21 倍，但 Meta 可用你的 prompt 与输出做训练。企业机密工作负载不能直接套用 Contributor 档做 TCO 对比。Meta 演示了 1000+ 次工具调用、最长 24 小时的 GPU kernel 优化任务来证明长程能力。
 
-**作者点评：**持久后台 Agent 与本地事件日志，本质是把“长任务的状态”从模型上下文挪到文件系统，与 Anthropic 的 harness 思路同构。Contributor 档“以数据换低价”是 Meta 最直接的商业化设计，但成本转移给了用户的私有数据，企业采用必须算清这笔账。
+**作者点评**：持久后台 Agent 与本地事件日志，本质是把“长任务的状态”从模型上下文挪到文件系统，与 Anthropic 的 harness 思路同构。Contributor 档“以数据换低价”是 Meta 最直接的商业化设计，但成本转移给了用户的私有数据，企业采用必须算清这笔账。
 
 ## 06 Muse Glimmer 与开源回归
 
 2026-08-10，MSL 发布 30B 的 Muse Glimmer（Apache 2.0），是 Muse 家族首个开源权重，可本地运行；同日宣布 Spark 1.2 权重将在修改版 Llama 社区许可下开源。这与 8 月行业整体开源势头（Alibaba Qwen3.8、MiniMax H3 等）一致。但值得注意：Spark 1.2 的开源承诺截至 9 月中旬仍未兑现，Muse 家族的主力模型仍是闭源。Meta 的路线更像“旗舰闭源 + 周边开源”，与 Llama 时代的“旗舰开源”策略形成对比。
 
-**作者点评：**“旗舰闭源 + 周边开源”是 Meta 对 Llama 传统的折中：开源 30B 保持社区话语权，旗舰 Spark 保住产品与 API 利润。但开源承诺的兑现节奏（Spark 1.2 至今未开源）值得跟踪。社区对 Meta 的信任取决于承诺是否按时落地。
+**作者点评**：“旗舰闭源 + 周边开源”是 Meta 对 Llama 传统的折中：开源 30B 保持社区话语权，旗舰 Spark 保住产品与 API 利润。但开源承诺的兑现节奏（Spark 1.2 至今未开源）值得跟踪。社区对 Meta 的信任取决于承诺是否按时落地。
 
 ## 07 Today AI：国产 Personal AI 的产品定位
 
@@ -118,7 +118,7 @@ Muse Image 的最大创新不在画质而在“Agent 化”：它不是把 promp
 
 产品界面上，左侧是持续进行的对话流，右侧是个人总面板，集中展示“今天”（当日需要关注的项目与进展）、“任务”（对话创建或独立新建、交给 AI 持续执行）、“记忆”（AI 长期相处形成的用户信息，可查看/修改/删除）与“AI 伙伴专区”（为 AI 命名、切换性格、查看日记与亲密度）。这种“任务世界围绕用户运转”的设计，是它和主流 Agent 最直观的区隔。
 
-**作者点评：**齐俊元把 2014 年注册的域名做成 Personal AI，是“产品人创业”而非“模型人创业”的典型：不赌模型能力，赌产品层对用户状态的理解深度。四端覆盖加基础版免费，说明获客押在“主动服务”带来的留存上，而不是一次性付费。
+**作者点评**：齐俊元把 2014 年注册的域名做成 Personal AI，是“产品人创业”而非“模型人创业”的典型：不赌模型能力，赌产品层对用户状态的理解深度。四端覆盖加基础版免费，说明获客押在“主动服务”带来的留存上，而不是一次性付费。
 
 ## 08 Today AI 的 Memory 系统：先验经验作为 Harness
 
@@ -126,20 +126,20 @@ Today AI 的北极星指标是 DAU，但衡量标准不是用户发起多少查�
 
 品玩的分析区分了 Context 与 Memory：Context 是 AI 某一刻能看到的原始材料（邮件、日历、文件、设备），Memory 则是从这些材料里判断哪些信息重要、应该如何更新、何时影响行动。前者解决“AI 看见了什么”，后者解决“AI 接下来还应该记得什么”。Today AI 的 Memory 系统并不是简单让 LLM 自行判断重点，而是把产品团队针对工作、健康、学习等场景设计的“先验经验”写进系统，指导它如何收集信息、如何解读用户行为（比如用户主动发出的邮件比营销邮件更反映真实意图，阅读或忽略邮件也是隐含信号）、何种信息值得进入名为 Memories 的结构化档案。Houdao 的解读把这套先验经验称为驾驭模型的 Harness：即使用同一个底层模型，对人的理解方式不同，做出来的 Personal AI 也会截然不同。
 
-**作者点评：**“先验经验作为 Harness”是全文最重要的概念：它把“记什么、何时行动”从模型的隐式行为变成产品团队可设计、可迭代的显式系统。Context 不等于 Memory 这句话值得所有 Agent 产品团队反复读。大多数人做的是上下文管理，不是记忆。
+**作者点评**：“先验经验作为 Harness”是全文最重要的概念：它把“记什么、何时行动”从模型的隐式行为变成产品团队可设计、可迭代的显式系统。Context 不等于 Memory 这句话值得所有 Agent 产品团队反复读。大多数人做的是上下文管理，不是记忆。
 
 <aside class="duang-whisper" aria-label="Duang">
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-letter-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">云电脑瓶</span>
+    <span class="duang-whisper-jar-note">来信瓶</span>
   </div>
   <p class="duang-whisper-body">看见邮件不算记得你。记得你，是分得清哪封信是你本人写的。</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -160,7 +160,7 @@ Today AI 的北极星指标是 DAU，但衡量标准不是用户发起多少查�
 
 官方示例：系统监测到用户前一晚睡眠不足六小时，且上午十点有重要会议，会主动询问是否把原计划的锻炼调整到晚上。这一决策综合了健康数据（睡眠）、日程（会议）与个人习惯（锻炼计划）。产品还会在一天开始时生成简报、主动梳理待办。AI TNT 的深度体验补充了产品层细节：Today AI 接入 Notion、Slack、GitHub 等 MCP 连接器，但不是“连完让用户自然语言调用”，而是为每个连接产品预先设计具体功能路径（如 Notion 的“把一段需求做成网页链接”“把一周的散页做成简报”），解决用户面对 AI 助理“不知道该让它做什么”的痛点；支持 Excel/PDF/PPT 等文件导出，对话可并行处理（生成 Excel 时继续聊别的话题）。
 
-**作者点评：**“任务组织”到“用户状态组织”的切换，是 Personal AI 与工具型 Agent 的分水岭：前者保存“任务进行到哪”，后者保存“人处于什么状态”。难点在主动的边界。主动过头就是骚扰，Today AI 用可查看、可修改、可删除的记忆给主动性留了刹车，这是产品成熟度的体现。
+**作者点评**：“任务组织”到“用户状态组织”的切换，是 Personal AI 与工具型 Agent 的分水岭：前者保存“任务进行到哪”，后者保存“人处于什么状态”。难点在主动的边界。主动过头就是骚扰，Today AI 用可查看、可修改、可删除的记忆给主动性留了刹车，这是产品成熟度的体现。
 
 ## 10 Manus 归来：从 Meta 收购到独立重启
 
@@ -170,7 +170,7 @@ Manus 2.0 的核心不是功能叠加，而是底层架构换新。官方发布�
 
 产品层面，Manus 2.0 引入 Cloud Computer（云电脑）与 Automations：Manus 为项目提供独立的云端运行环境，可以租用云上的 Linux、Mac、Windows，项目可持续运行，Agent 围绕一个项目持续工作，用户无需每次从头交代背景。桌面端 Manus Studio 新增视频编辑器与游戏开发环境：视频编辑器采用类似剪映的时间线，片段、图片、文字、动效、音频作为独立素材层，可单独替换任一素材与台词；游戏开发环境支持多人联机。肖弘在朋友圈的表述更直白：Manus 从一开始就是“通用智能体”（general agent），做出来的时候世界上还没有 Codex 和 Claude Code；“Manus 挺像卖电脑的生意”，大家买电脑主要为了工作，但如果一台电脑不能看视频、打游戏，是无聊的。视频编辑器与游戏开发正是“电脑不该只能工作”的落地。他同时透露正在组建团队开发面向国内市场的产品。
 
-**作者点评：**Cascade“轻量起步、按需加载”是对 Agent 成本问题的一次正面回应：Token 消耗降 23.2% 说明成本问题不只是模型价格，还有架构上的惰性。把所有能力常驻在上下文里本身就是浪费。Cloud Computer 则是把“Agent 的工作空间”产品化的尝试，从对话转向拥有一台机器。
+**作者点评**：Cascade“轻量起步、按需加载”是对 Agent 成本问题的一次正面回应：Token 消耗降 23.2% 说明成本问题不只是模型价格，还有架构上的惰性。把所有能力常驻在上下文里本身就是浪费。Cloud Computer 则是把“Agent 的工作空间”产品化的尝试，从对话转向拥有一台机器。
 
 ## 11 Cue：给 Agent 一个“身份”
 
@@ -178,7 +178,7 @@ Manus 2.0 的核心不是功能叠加，而是底层架构换新。官方发布�
 
 Cue 与 Meta Muse 的对比尤其直接。虎嗅的报道概括为：Cue 给 AI 一个“身份”，Muse 则选择给 AI 一张“脸”。用户可以为 Muse 定制外观、名字和服饰，Muse 的核心是“一个超级私人助理”统一处理购物、邮件等日常事务；Cue 更接近“一群可以被雇佣、分工的数字人”。产品细节上，Cue 支持自带模型（BYOD），用户可在 Manus 中使用不同模型或 API 密钥，比 Muse 的封闭模型更灵活；Cue 处于抢先体验阶段，凭邀请码免费使用，实测被评价“用户引导体验在同类产品中做得最清晰”。但身份设计也带来体验断点：有用户反馈已连接 Gmail、让它写邮件，Cue 的第一选择却是用 Agent 自己的邮箱发出。在以用户身份对外沟通的场景中，这个设计确实会造成困扰。肖弘还透露，Cue 的宣传视频不是调用视频模型生成的，而是用 Manus Studio 写代码再转成视频。
 
-**作者点评：**给 Agent 邮箱、电话、钱包，是“Agent 从工具到主体”的具象化：它不再借用户的身份行事，而是拥有自己的身份。但身份边界（用自己的邮箱还是用户的邮箱发信）也暴露了新问题。主体性越强，责任归属越模糊，这需要产品设计和监管共同回答。
+**作者点评**：给 Agent 邮箱、电话、钱包，是“Agent 从工具到主体”的具象化：它不再借用户的身份行事，而是拥有自己的身份。但身份边界（用自己的邮箱还是用户的邮箱发信）也暴露了新问题。主体性越强，责任归属越模糊，这需要产品设计和监管共同回答。
 
 <details class="marginalia" open>
   <summary>身份边界</summary>
@@ -195,7 +195,7 @@ Dots 对安全的设计是本次发布的重头。安装软件、修改密码等
 
 商业与生态层面，Dots 面向 ChatGPT Pro（$100/$200 每月）与 Business Premium（$20 每月）用户分批开放，首个 dot 包含在订阅内，当前每位用户一个 dot，未来支持多个 dot 并行与 specialist dots（企业专属 dot，拥有独立身份、凭据与系统记录访问权限，并计划通过 Microsoft Agent 365 做企业治理集成）。OpenAI 同步发布接近 Astra 能力但价格为其 1/5 的 GPT-6.1 Sol，并披露正在洽谈至少 300 亿美元新融资、投前估值约 1.4 万亿美元。与之对照，Meta Muse 上线 13 天累计下载约 260 万次、美国移动端日活 64.2 万，正把个人 Agent 从开发者和专业用户推向更广泛的消费者。
 
-**作者点评：**Dots 最值得关注的不是能力而是安全设计：只读工具加 Boundaries 三档、敏感操作强审批，说明 OpenAI 把“常驻 Agent”当成需要治理的系统而非单纯的助手。同日暂缓 GPT-6.1 Astra 更是信号。安全未达标就发布，会毁掉整个产品线。
+**作者点评**：Dots 最值得关注的不是能力而是安全设计：只读工具加 Boundaries 三档、敏感操作强审批，说明 OpenAI 把“常驻 Agent”当成需要治理的系统而非单纯的助手。同日暂缓 GPT-6.1 Astra 更是信号。安全未达标就发布，会毁掉整个产品线。
 
 <details class="marginalia" open>
   <summary>只读</summary>
@@ -219,20 +219,20 @@ Dots 对安全的设计是本次发布的重头。安装软件、修改密码等
 
 四方格局的分歧可以浓缩为一个问题：Personal AI 的价值主要由谁创造。Meta 押注模型能力与分发，让 AI 成为 WhatsApp 里的 ambient 层；Today AI 押注产品层的状态管理，Context 多不等于 Memory 好，围绕用户维护持续更新的状态档案是模型之外的独立价值；Manus/Cue 押注 Agent 的独立性，给 Agent 身份、算力与支付能力，把它从“工具”推向“独立行动主体”；OpenAI Dots 押注常驻与治理，让 Agent 在后台持续工作，同时用 Boundaries 与只读工具把自主性限制在用户许可的边界内。肖弘的表述可以概括这一代竞争的共同点：“云电脑不再是从属功能，而可能是未来很核心的一层基础设施”。四家的 Agent 都不再活在聊天框里，而是活在一台持续运行的机器上。
 
-**作者点评：**四方格局的本质是“Personal AI 的价值由谁创造”的四种答案：模型（Muse）、状态（Today）、身份（Manus/Cue）、治理（Dots）。但共同点比分歧更值得注意。四家的 Agent 都不再活在聊天框里，而是活在一台持续运行的机器上，云电脑正在成为新的基础设施层。
+**作者点评**：四方格局的本质是“Personal AI 的价值由谁创造”的四种答案：模型（Muse）、状态（Today）、身份（Manus/Cue）、治理（Dots）。但共同点比分歧更值得注意。四家的 Agent 都不再活在聊天框里，而是活在一台持续运行的机器上，云电脑正在成为新的基础设施层。
 
 <aside class="duang-whisper" aria-label="Duang">
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-desk-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">云电脑瓶</span>
+    <span class="duang-whisper-jar-note">电脑瓶</span>
   </div>
   <p class="duang-whisper-body">四家故事不一样。电脑倒是都买了一台。</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -247,6 +247,20 @@ Dots 对安全的设计是本次发布的重头。安装软件、修改密码等
 - **安全成为发布门槛**：OpenAI 因安全不达标暂缓 GPT-6.1 Astra，Muse 的家庭地址泄露事件引发讨论，Dots 用只读工具 + Boundaries 三档 + 敏感操作强审批回应。Agent 的自主性越大，权限边界与审计能力越是核心卖点。
 - **模型层与产品层的分工仍在下探**：Today AI 用场景化先验经验在模型之外建立价值，Manus 用 Cascade 架构在 harness 层降低 32% 成本，Muse 与 Dots 则在模型层直接开卷。对开发者与产品团队而言，可借鉴的判断没有变：模型能力正在商品化，Personal AI 的差异化在“如何把 Context 变成 Memory、如何让行动在正确的时机发生”。这是产品层的 Harness 工程，不是提示工程；Agent 的组织单位正从“任务”转向“用户”，而这一次，还叠加了“身份”与“常驻”两个新变量。
 
-**作者点评：**2026 年 9 月的这一周，Personal AI 从概念变成货架上的商品。对从业者而言可执行的判断是：模型层能力正在商品化，差异化在状态管理、身份设计与权限治理；对普通用户而言，真正需要警惕的不是 AI 有多强，而是它获得了多少权限、记忆是否可审计。
+**作者点评**：2026 年 9 月的这一周，Personal AI 从概念变成货架上的商品。对从业者而言可执行的判断是：模型层能力正在商品化，差异化在状态管理、身份设计与权限治理；对普通用户而言，真正需要警惕的不是 AI 有多强，而是它获得了多少权限、记忆是否可审计。
 
-资料来源：Meta AI 官方博客《Introducing Muse Image and Muse Video》（2026-07-07）、《Introducing Muse Spark 1.1》（2026-07-09）；Manus 官方博客《Introducing Manus 2.0》（2026-09-28）、《Manus Resumes Independent Operations》（2026-09-01）；36氪《Manus 回来了，更新 2.0 并发布全天候智能体 Cue》（2026-09-29）；虎嗅/凤凰网《Manus 续了一命》（2026-09-29）；品玩《齐俊元重启 12 年前的 Today.ai》（2026-09-09）；Houdao AI《Today.ai 发布个人 AI 助理》（2026-09-23）；OpenAI 官方《Introducing dots》（2026-09-29）；华尔街见闻《OpenAI 应战 Meta：发布个人 AI 助手 Dots》（2026-09-30）；The Verge / CBS News / Analytics Insight 对 Dots 的报道（2026-09-29/30）；Shattered《OpenAI's dots Reach 4,000+ Apps》（2026-09-29）；AI Wiki Muse Spark 条目（2026-09-24）。核验日期 2026-09-30。所有基准分数、Arena 排名与增长数据均为厂商或平台自报口径。
+资料来源。核验日期 2026-09-30。基准分数、Arena 排名和增长数据都是厂商或平台自报。
+
+- [Introducing Muse Image and Muse Video](https://ai.meta.com/blog/introducing-muse-image-muse-video-msl/) · Meta AI · 2026-07-07
+- [Introducing Muse Spark 1.1](https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/) · Meta AI · 2026-07-09
+- [Manus Resumes Independent Operations](https://manus.im/blog/manus-resumes-independent-operations) · Manus · 2026-09-01
+- [Introducing Manus 2.0](https://manus.im/blog/introducing-manus-2-0) · Manus · 2026-09-28
+- [Manus 发布 2.0 版和个人智能体 Cue](https://www.36kr.com/p/4003830453686403) · 36氪 · 2026-09-29
+- [Manus 续了一命](https://www.163.com/dy/article/L825C9AE051188EA.html) · 虎嗅，经网易转载 · 2026-09-29
+- [Today.ai 发布个人 AI 助理](https://www.houdao.com/d/22472-Today-ai-fa-bu-ge-ren-AI-zhu-li-yi-chang-qi-ji-yi-he-zhu-dong-xing-tiao-zhan-xian-you-Agent-fan-shi) · Houdao AI · 2026-09-23
+- [Introducing dots](https://openai.com/index/introducing-dots/) · OpenAI · 2026-09-29
+- [OpenAI 应战 Meta：发布个人 AI 助手 Dots](https://www.sohu.com/a/1082748197_130887) · 2026-09-30
+- [OpenAI launches Dots, its Muse competitor](https://www.theverge.com/ai-artificial-intelligence/1002033/openai-dots-launch-muse-competitor) · The Verge · 2026-09-29
+- [Sam Altman unveils dots](https://www.cbsnews.com/news/sam-altman-openai-dots-chatgpt-agents-safety/) · CBS News · 2026-09-29
+- [OpenAI DevDay 2026：Dots 与 GPT-6.1 Sol](https://www.analyticsinsight.net/news/openai-devday-2026-20-ai-tools-gpt-61-sol-dots) · Analytics Insight · 2026-09-29
+- [Muse Spark](https://aiwiki.ai/wiki/muse_spark) · AI Wiki · 2026-09-24

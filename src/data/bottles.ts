@@ -171,10 +171,24 @@ export const BOTTLES: BottleDef[] = [
     foundIn: "Agent 拆解 · OpenCLI",
   },
   {
-    id: "cloud-pc",
-    name: "云电脑瓶",
-    note: "瓶口顶着一小朵云，瓶肚里坐着一台小电脑。四家都买了这一台。",
-    src: "/images/childlike-sketch-cloud-pc-bottle.png",
+    id: "shelf",
+    name: "货架瓶",
+    note: "细长瓶颈，瓶肚里搁着一小排盒子。先占位子，分数以后再补。",
+    src: "/images/childlike-sketch-shelf-bottle.png",
+    foundIn: "thinking · Personal AI 四方格局",
+  },
+  {
+    id: "letter",
+    name: "来信瓶",
+    note: "圆肚子，瓶口卡着一封信。看见信，不等于记得是谁写的。",
+    src: "/images/childlike-sketch-letter-bottle.png",
+    foundIn: "thinking · Personal AI 四方格局",
+  },
+  {
+    id: "desk",
+    name: "电脑瓶",
+    note: "矮瓶子长了两条腿，肚子里坐着一台小显示器。",
+    src: "/images/childlike-sketch-desk-bottle.png",
     foundIn: "thinking · Personal AI 四方格局",
   },
 ];

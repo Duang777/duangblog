@@ -57,14 +57,14 @@ Scope note: Arena ranks and benchmark scores are self-reported by Meta or aggreg
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-shelf-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">Cloud PC jar</span>
+    <span class="duang-whisper-jar-note">Shelf jar</span>
   </div>
   <p class="duang-whisper-body">Five releases in five months. Scores can come later. The shelf has to be taken first.</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -131,14 +131,14 @@ PingWest separates Context and Memory. Context is the raw material the AI can se
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-letter-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">Cloud PC jar</span>
+    <span class="duang-whisper-jar-note">Letter jar</span>
   </div>
   <p class="duang-whisper-body">Seeing the mail is not remembering you. Remembering you is knowing which letter you actually wrote.</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -224,14 +224,14 @@ The split compresses into one question: who mainly creates the value of Personal
   <div class="duang-whisper-jar-row">
     <img
       class="duang-whisper-jar"
-      src="/images/childlike-sketch-cloud-pc-bottle.png"
+      src="/images/childlike-sketch-desk-bottle.png"
       alt=""
       width="88"
       height="88"
       loading="lazy"
       decoding="async"
     />
-    <span class="duang-whisper-jar-note">Cloud PC jar</span>
+    <span class="duang-whisper-jar-note">Desk jar</span>
   </div>
   <p class="duang-whisper-body">Four stories. One purchase. Everybody bought the computer.</p>
   <p class="duang-whisper-sign">Duang</p>
@@ -248,4 +248,18 @@ In the last week of September 2026 the Personal AI field took shape inside seven
 
 **Author's note:** In that week of September 2026, Personal AI went from a concept to goods on a shelf. For people building it, the executable judgment is: model-layer capability is becoming a commodity, and the difference is state management, identity design, and permission governance. For everyone else, the thing to watch is not how strong the AI is. It is how much permission it received, and whether the memory can be audited.
 
-Sources: Meta AI, Introducing Muse Image and Muse Video (2026-07-07) and Introducing Muse Spark 1.1 (2026-07-09). Manus, Introducing Manus 2.0 (2026-09-28) and Manus Resumes Independent Operations (2026-09-01). 36Kr on Manus 2.0 and Cue (2026-09-29). Huxiu / ifeng, Manus got another life (2026-09-29). PingWest on Qi Junyuan restarting Today.ai (2026-09-09). Houdao AI on Today.ai (2026-09-23). OpenAI, Introducing dots (2026-09-29). Wallstreetcn on OpenAI answering Meta with Dots (2026-09-30). The Verge, CBS News, and Analytics Insight on Dots (2026-09-29/30). Shattered, OpenAI's dots Reach 4,000+ Apps (2026-09-29). AI Wiki entry on Muse Spark (2026-09-24). Checked 2026-09-30. Benchmark scores, Arena ranks, and growth numbers are vendor or platform figures.
+Sources. Checked 2026-09-30. Benchmark scores, Arena ranks, and growth numbers are vendor or platform figures.
+
+- [Introducing Muse Image and Muse Video](https://ai.meta.com/blog/introducing-muse-image-muse-video-msl/) · Meta AI · 2026-07-07
+- [Introducing Muse Spark 1.1](https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/) · Meta AI · 2026-07-09
+- [Manus Resumes Independent Operations](https://manus.im/blog/manus-resumes-independent-operations) · Manus · 2026-09-01
+- [Introducing Manus 2.0](https://manus.im/blog/introducing-manus-2-0) · Manus · 2026-09-28
+- [Manus ships 2.0 and the personal agent Cue](https://www.36kr.com/p/4003830453686403) · 36Kr · 2026-09-29
+- [Manus got another life](https://www.163.com/dy/article/L825C9AE051188EA.html) · Huxiu, via NetEase · 2026-09-29
+- [Today.ai ships a personal AI assistant](https://www.houdao.com/d/22472-Today-ai-fa-bu-ge-ren-AI-zhu-li-yi-chang-qi-ji-yi-he-zhu-dong-xing-tiao-zhan-xian-you-Agent-fan-shi) · Houdao AI · 2026-09-23
+- [Introducing dots](https://openai.com/index/introducing-dots/) · OpenAI · 2026-09-29
+- [OpenAI answers Meta with the personal assistant Dots](https://www.sohu.com/a/1082748197_130887) · 2026-09-30
+- [OpenAI launches Dots, its Muse competitor](https://www.theverge.com/ai-artificial-intelligence/1002033/openai-dots-launch-muse-competitor) · The Verge · 2026-09-29
+- [Sam Altman unveils dots](https://www.cbsnews.com/news/sam-altman-openai-dots-chatgpt-agents-safety/) · CBS News · 2026-09-29
+- [OpenAI DevDay 2026: Dots and GPT-6.1 Sol](https://www.analyticsinsight.net/news/openai-devday-2026-20-ai-tools-gpt-61-sol-dots) · Analytics Insight · 2026-09-29
+- [Muse Spark](https://aiwiki.ai/wiki/muse_spark) · AI Wiki · 2026-09-24
