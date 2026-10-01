@@ -212,6 +212,27 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-span-bottle.png",
     foundIn: "Agent 系统架构设计 · OpenAI Agents SDK",
   },
+  {
+    id: "spec",
+    name: "规格瓶",
+    note: "细高瓶子，肚子里三只空方格。规格没写完，后面的选择都是猜的。",
+    src: "/images/childlike-sketch-spec-bottle.png",
+    foundIn: "thinking · 生产级 Agent 手册",
+  },
+  {
+    id: "stop",
+    name: "停止瓶",
+    note: "圆罐子，瓶口被一横挡住。循环到点就停，不等模型自己说停。",
+    src: "/images/childlike-sketch-stop-bottle.png",
+    foundIn: "thinking · 生产级 Agent 手册",
+  },
+  {
+    id: "fence",
+    name: "边界瓶",
+    note: "矮罐子长了两条腿，肚子里一道小栅栏。谁能调用，写在栅栏这边。",
+    src: "/images/childlike-sketch-fence-bottle.png",
+    foundIn: "thinking · 生产级 Agent 手册",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

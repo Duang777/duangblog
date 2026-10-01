@@ -10,6 +10,7 @@ import { AGENT_ARCH_LINGO } from "./agent-arch";
 import { OPENCLI_LINGO } from "./opencli";
 import { PERSONAL_AI_LINGO } from "./personal-ai";
 import { AGENTS_SDK_LINGO } from "./agents-sdk";
+import { PRODUCTION_AGENT_LINGO } from "./production-agent";
 
 export type { LingoTerm } from "./types";
 
@@ -57,5 +58,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   DSH_LINGO,
   OPENCLI_LINGO,
   PERSONAL_AI_LINGO,
-  AGENTS_SDK_LINGO
+  AGENTS_SDK_LINGO,
+  PRODUCTION_AGENT_LINGO
 );

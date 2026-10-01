@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [生产级 AI Agent 项目实施手册：从需求到可运行系统](/posts/production-agent-handbook/)
 - [Personal AI 元年：Muse、Today AI、Manus/Cue 与 OpenAI Dots 的四方格局](/posts/personal-ai-four-way/)
 - [AGENTS.md 编写 & 从零开始的 Vibe/Agentic Coding：前沿实践摘要](/posts/agents-md-vibe-coding/)
 - [怎么写一个好的 CLI：2026 年的人机双用户设计](/posts/cli-human-agent-design-2026/)
