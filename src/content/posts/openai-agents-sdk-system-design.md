@@ -5,11 +5,11 @@ title: "系统设计面试题拆解｜OpenAI Agents SDK｜2026-09-30"
 featured: true
 draft: false
 tags:
-  - thinking
+  - Agent 系统架构设计
 description: OpenAI Agents SDK 用很少的原语做生产级多智能体。这篇按面试的九个维度拆容量、架构、并发、可用和一致性。
 revisions:
   - date: 2026-10-01
-    note: 首发。按成稿整理，挂到 thinking。
+    note: 首发。按成稿整理，挂到 Agent 系统架构设计。
 ---
 
 > [!NOTE]
@@ -19,7 +19,7 @@ revisions:
 
 2026-09-30 · 系统设计面试拆解
 
-本文挂在 [thinking](/tags/thinking/)。
+**系列说明**｜这是 [Agent 系统架构设计](/posts/agent-system-architecture/) 专栏的一篇侧记，不进六篇编号。
 
 ## 一、需求澄清与功能边界
 

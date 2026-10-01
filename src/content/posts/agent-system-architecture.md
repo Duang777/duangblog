@@ -21,3 +21,7 @@ description: 不绑某个框架，从定义、光谱到支柱与可靠性，把 
 另有一篇不进编号的侧记，专挖生产里绕不开的观测面：
 
 - [Agent 时代的 Trace 到底怎么做](/posts/agent-trace-observability/)
+
+面试拆解也不进编号：
+
+- [系统设计面试题拆解｜OpenAI Agents SDK｜2026-09-30](/posts/openai-agents-sdk-system-design/)
