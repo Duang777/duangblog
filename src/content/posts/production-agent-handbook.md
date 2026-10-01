@@ -188,7 +188,7 @@ FastAPI middleware 适合 request-id、耗时、可信代理、安全头、跨�
 
 **图 1｜请求入口、Agent 编排与依赖边界**
 
-![图 1 请求入口、Agent 编排与依赖边界](https://feishu.cn/file/GSvmbm9r8o91GXx9RpicLyAcn8b)
+![图 1 请求入口、Agent 编排与依赖边界](/images/handbook-fig-request.png)
 
 ## 4. 身份、租户、授权与限流
 
@@ -349,7 +349,7 @@ class ToolExecutor(Protocol):
 
 **图 2｜有界 Agent 运行循环与受控工具执行**
 
-![图 2 有界 Agent 运行循环与受控工具执行](https://feishu.cn/file/BG21bjmSWosTMqx92mNcYQaonyh)
+![图 2 有界 Agent 运行循环与受控工具执行](/images/handbook-fig-loop.png)
 
 ## 8. 状态、Session、Run、检查点、长期任务与审批
 
@@ -506,7 +506,7 @@ Metrics 放低基数维度：任务类型、状态、provider、工具名、错�
 
 **图 3｜无状态实例、持久恢复与依赖故障降级**
 
-![图 3 无状态实例、持久恢复与依赖故障降级](https://feishu.cn/file/FChnbsbn1oIadwxj9pJc8I8xnrg)
+![图 3 无状态实例、持久恢复与依赖故障降级](/images/handbook-fig-recovery.png)
 
 ## 15. 给编程 Agent 的分阶段复制粘贴提示词
 
@@ -514,7 +514,7 @@ Metrics 放低基数维度：任务类型、状态、provider、工具名、错�
 
 **图 4｜编程 Agent 分阶段实施路径**
 
-![图 4 编程 Agent 分阶段实施路径](https://feishu.cn/file/C6nYbjQm8oL0ZYxpQmZcEOEgnag)
+![图 4 编程 Agent 分阶段实施路径](/images/handbook-fig-phases.png)
 
 ### 通用前缀（每阶段可附在提示词末尾）
 
