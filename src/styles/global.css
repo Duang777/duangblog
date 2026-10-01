@@ -1162,6 +1162,20 @@ html[data-theme="dark"] .app-prose .duang-whisper-jar {
   }
 }
 
+@media (min-width: 640px) and (max-width: 1279px) {
+  .app-prose .marginalia {
+    float: inline-end;
+    clear: inline-end;
+    width: 12rem;
+    max-width: 44%;
+    margin: 0.15rem 0 0.75rem 0.85rem;
+  }
+
+  .app-prose .marginalia + :is(p, ul, ol, blockquote) {
+    overflow: hidden;
+  }
+}
+
 /* About page: a small timeline and a signature-style contact line. */
 .about-timeline {
   list-style: none;
