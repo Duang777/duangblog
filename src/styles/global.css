@@ -1046,7 +1046,32 @@ html[data-theme="dark"] .app-prose .duang-whisper-jar {
   }
 }
 
-@media (max-width: 1279px) {
+@media (min-width: 640px) and (max-width: 1279px) {
+  .app-prose .duang-whisper {
+    float: inline-end;
+    clear: inline-end;
+    width: 10.25rem;
+    max-width: 44%;
+    margin: 0.15rem 0 0.75rem 0.85rem;
+    padding-inline-start: 0.65rem;
+    border-inline-start: 1px dashed
+      color-mix(in oklab, var(--accent) 40%, var(--border));
+  }
+
+  .app-prose .duang-whisper-jar {
+    width: 3.6rem;
+  }
+
+  .app-prose .duang-whisper + :is(p, ul, ol, blockquote) {
+    overflow: hidden;
+  }
+
+  .app-prose :is(h2, h3, h4, h5) {
+    clear: inline-end;
+  }
+}
+
+@media (max-width: 639px) {
   .app-prose .duang-whisper {
     max-width: none;
     margin: 0.85rem 0;
