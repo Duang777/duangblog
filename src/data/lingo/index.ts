@@ -12,6 +12,7 @@ import { PERSONAL_AI_LINGO } from "./personal-ai";
 import { AGENTS_SDK_LINGO } from "./agents-sdk";
 import { PRODUCTION_AGENT_LINGO } from "./production-agent";
 import { PI_DURABLE_LINGO } from "./pi-durable";
+import { CLAUDE_MODS_LINGO } from "./claude-mods";
 
 export type { LingoTerm } from "./types";
 
@@ -61,5 +62,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   PERSONAL_AI_LINGO,
   AGENTS_SDK_LINGO,
   PRODUCTION_AGENT_LINGO,
-  PI_DURABLE_LINGO
+  PI_DURABLE_LINGO,
+  CLAUDE_MODS_LINGO
 );

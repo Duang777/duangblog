@@ -247,6 +247,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-slab-bottle.png",
     foundIn: "最新速递 · Pi Durable",
   },
+  {
+    id: "hook",
+    name: "挂钩瓶",
+    note: "细高瓶子，肚子里一只小钩。不把事件交出去，链就停在这里。",
+    src: "/images/childlike-sketch-hook-bottle.png",
+    foundIn: "最新速递 · Claude Code Mods",
+  },
+  {
+    id: "panel",
+    name: "面板瓶",
+    note: "圆罐子，肚子里一只空方框。界面能重画，权限框那一块动不了。",
+    src: "/images/childlike-sketch-panel-bottle.png",
+    foundIn: "最新速递 · Claude Code Mods",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
