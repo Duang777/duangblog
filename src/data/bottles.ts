@@ -233,6 +233,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-fence-bottle.png",
     foundIn: "thinking · 生产级 Agent 手册",
   },
+  {
+    id: "revive",
+    name: "存活瓶",
+    note: "细高瓶子，肚子里一只空方格和一短横。崩溃以后，做到哪一步还在。",
+    src: "/images/childlike-sketch-revive-bottle.png",
+    foundIn: "最新速递 · Pi Durable",
+  },
+  {
+    id: "slab",
+    name: "地基瓶",
+    note: "圆罐子坐在一块厚石板上。存储是地基，不是后来补的一层。",
+    src: "/images/childlike-sketch-slab-bottle.png",
+    foundIn: "最新速递 · Pi Durable",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
