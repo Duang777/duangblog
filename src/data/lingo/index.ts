@@ -13,6 +13,7 @@ import { AGENTS_SDK_LINGO } from "./agents-sdk";
 import { PRODUCTION_AGENT_LINGO } from "./production-agent";
 import { PI_DURABLE_LINGO } from "./pi-durable";
 import { CLAUDE_MODS_LINGO } from "./claude-mods";
+import { MULTI_HARNESS_LINGO } from "./multi-harness";
 
 export type { LingoTerm } from "./types";
 
@@ -63,5 +64,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   AGENTS_SDK_LINGO,
   PRODUCTION_AGENT_LINGO,
   PI_DURABLE_LINGO,
-  CLAUDE_MODS_LINGO
+  CLAUDE_MODS_LINGO,
+  MULTI_HARNESS_LINGO
 );

@@ -261,6 +261,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-panel-bottle.png",
     foundIn: "最新速递 · Claude Code Mods",
   },
+  {
+    id: "wire",
+    name: "单线瓶",
+    note: "细高瓶子，肚子里一横。训练器只看得见打到模型上的那一串请求。",
+    src: "/images/childlike-sketch-wire-bottle.png",
+    foundIn: "最新速递 · 多 Harness 强化学习",
+  },
+  {
+    id: "tally",
+    name: "记分瓶",
+    note: "圆罐子，肚子里三道短竖。答对还不够，调用少一点才有分。",
+    src: "/images/childlike-sketch-tally-bottle.png",
+    foundIn: "最新速递 · 多 Harness 强化学习",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

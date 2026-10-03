@@ -15,6 +15,7 @@ description: 最近在看的内容。
 
 已整理：
 
+- [多 Harness 强化学习终极指南（全文翻译）](/posts/multi-harness-rl/)
 - [Claude Code Mods：把编码 Agent 变成可编程的运行时](/posts/claude-code-mods/)
 - [Pi Durable：把 Agent 变成杀不死的进程，长时运行 Agent 的持久化 harness 调研](/posts/pi-durable-harness/)
 - [DeepSeek Harness 深度解析：一切皆插件的 Agent 运行时](/posts/deepseek-harness-plugin-runtime/)
