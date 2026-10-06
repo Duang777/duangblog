@@ -275,6 +275,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-tally-bottle.png",
     foundIn: "最新速递 · 多 Harness 强化学习",
   },
+  {
+    id: "sheet",
+    name: "考卷瓶",
+    note: "细高瓶子，肚子里三道横线。七个子系统都要表态，说不做也算一笔。",
+    src: "/images/childlike-sketch-sheet-bottle.png",
+    foundIn: "thinking · Harness Engineering",
+  },
+  {
+    id: "blank",
+    name: "空圈瓶",
+    note: "圆罐子，肚子里一个空圈。四百万行里没有框架，也没有向量检索。",
+    src: "/images/childlike-sketch-blank-bottle.png",
+    foundIn: "thinking · Harness Engineering",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
