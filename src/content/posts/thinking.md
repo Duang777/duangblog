@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [Code Mode 突然又火了？它其实是 Cloudflare 一年前提出的设计](/posts/code-mode-lineage/)
 - [Harness Engineering：一份源码解剖，和一个学科的诞生](/posts/harness-engineering-anatomy/)
 - [生产级 AI Agent 项目实施手册：从需求到可运行系统](/posts/production-agent-handbook/)
 - [Personal AI 元年：Muse、Today AI、Manus/Cue 与 OpenAI Dots 的四方格局](/posts/personal-ai-four-way/)

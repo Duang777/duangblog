@@ -289,6 +289,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-blank-bottle.png",
     foundIn: "thinking · Harness Engineering",
   },
+  {
+    id: "crate",
+    name: "沙箱瓶",
+    note: "细高瓶子，肚子里一只小方盒。代码在盒子里跑，密钥不进去。",
+    src: "/images/childlike-sketch-crate-bottle.png",
+    foundIn: "thinking · Code Mode",
+  },
+  {
+    id: "scroll",
+    name: "卷脚本瓶",
+    note: "圆罐子，肚子里一圈螺旋。循环写一次，模型只看最后一行。",
+    src: "/images/childlike-sketch-scroll-bottle.png",
+    foundIn: "thinking · Code Mode",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

@@ -15,6 +15,7 @@ import { PI_DURABLE_LINGO } from "./pi-durable";
 import { CLAUDE_MODS_LINGO } from "./claude-mods";
 import { MULTI_HARNESS_LINGO } from "./multi-harness";
 import { HARNESS_ESSAY_LINGO } from "./harness-essay";
+import { CODE_MODE_LINGO } from "./code-mode";
 
 export type { LingoTerm } from "./types";
 
@@ -67,5 +68,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   PI_DURABLE_LINGO,
   CLAUDE_MODS_LINGO,
   MULTI_HARNESS_LINGO,
-  HARNESS_ESSAY_LINGO
+  HARNESS_ESSAY_LINGO,
+  CODE_MODE_LINGO
 );
