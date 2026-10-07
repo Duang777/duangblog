@@ -303,6 +303,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-scroll-bottle.png",
     foundIn: "thinking · Code Mode",
   },
+  {
+    id: "gate",
+    name: "小门瓶",
+    note: "圆罐子，肚子上开着一扇小门。目标从这里进去，流程从这里出来。",
+    src: "/images/childlike-sketch-gate-bottle.png",
+    foundIn: "thinking · pstack",
+  },
+  {
+    id: "tag",
+    name: "点名瓶",
+    note: "圆罐子，脖子上挂着一张小牌。点了名字，就得说出改了哪个决定。",
+    src: "/images/childlike-sketch-tag-bottle.png",
+    foundIn: "thinking · pstack",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {

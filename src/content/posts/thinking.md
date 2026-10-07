@@ -13,6 +13,7 @@ description: 一点小想法。
 
 已整理：
 
+- [拆解 pstack：怎么给 Agent 做一套 skill 体系](/posts/pstack-skill-system/)
 - [Code Mode 突然又火了？它其实是 Cloudflare 一年前提出的设计](/posts/code-mode-lineage/)
 - [Harness Engineering：一份源码解剖，和一个学科的诞生](/posts/harness-engineering-anatomy/)
 - [生产级 AI Agent 项目实施手册：从需求到可运行系统](/posts/production-agent-handbook/)

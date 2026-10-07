@@ -16,6 +16,7 @@ import { CLAUDE_MODS_LINGO } from "./claude-mods";
 import { MULTI_HARNESS_LINGO } from "./multi-harness";
 import { HARNESS_ESSAY_LINGO } from "./harness-essay";
 import { CODE_MODE_LINGO } from "./code-mode";
+import { PSTACK_LINGO } from "./pstack";
 
 export type { LingoTerm } from "./types";
 
@@ -69,5 +70,6 @@ export const LINGO_TERMS: LingoTerm[] = mergeLingoPacks(
   CLAUDE_MODS_LINGO,
   MULTI_HARNESS_LINGO,
   HARNESS_ESSAY_LINGO,
-  CODE_MODE_LINGO
+  CODE_MODE_LINGO,
+  PSTACK_LINGO
 );
