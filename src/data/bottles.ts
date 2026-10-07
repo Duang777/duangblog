@@ -317,6 +317,20 @@ export const BOTTLES: BottleDef[] = [
     src: "/images/childlike-sketch-tag-bottle.png",
     foundIn: "thinking · pstack",
   },
+  {
+    id: "evidence",
+    name: "证据瓶",
+    note: "圆罐子，肚子上三点连成一条线。从慢走到原因，中间不能断。",
+    src: "/images/childlike-sketch-evidence-bottle.png",
+    foundIn: "高性能后端实战 · 生产可观测性",
+  },
+  {
+    id: "crowd",
+    name: "基数瓶",
+    note: "圆罐子，肚子里挤满小点。标签一多，监控自己先倒。",
+    src: "/images/childlike-sketch-crowd-bottle.png",
+    foundIn: "高性能后端实战 · 生产可观测性",
+  },
 ];
 
 export function getBottle(id: string): BottleDef | undefined {
