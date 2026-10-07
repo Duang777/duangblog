@@ -39,6 +39,14 @@ export const PRODUCTION_OBS_LINGO: LingoTerm[] = [
     subtitle: "Metrics 标签别塞身份",
     definition:
       "把 user_id、request_id、完整 URL 写进指标标签，每个值都长出一条时间序列。用户一多，监控存储自己先被压垮。这些值放日志和 Trace，指标标签用归一化后的 route。",
-    aliases: ["高基数（Cardinality）", "高基数"],
+    aliases: ["高基数（Cardinality）", "Sampling 与 Cardinality", "Cardinality 的规则", "高基数"],
+  },
+  {
+    id: "low-cardinality-label",
+    title: "低基数",
+    subtitle: "指标标签只放取值少的维度",
+    definition:
+      "指标标签只放 service、route、method、status_code 这种取值很少的维度。user_id、request_id、完整 URL 取值海量，放进去会把时间序列撑爆，那些值留给 Trace 和日志。",
+    aliases: ["低基数"],
   },
 ];
