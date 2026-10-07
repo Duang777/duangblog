@@ -1963,8 +1963,50 @@ html[data-theme="dark"] .about-doodle--letter-p {
 
 /* Homepage phenology + idea bottle — top of content, after hero. */
 .home-aside-notes-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
   padding-top: 1.25rem;
   padding-bottom: 0.25rem;
+}
+
+/* Keyboard in the empty left of that band. Plate matches the page. */
+.home-hairline,
+.home-hero-figure {
+  --hairline-plate: var(--background);
+}
+
+.home-hairline {
+  display: none;
+  width: 12.5rem;
+  flex: none;
+}
+
+[data-theme="light"] .home-hairline,
+[data-theme="light"] .home-hero-figure {
+  --hairline-plate: var(--background);
+  --hairline-hi: #141413;
+  --hairline-edge: #6f6e6a;
+  --hairline-mid: #c4c2b8;
+  --hairline-lo: #e4e2d8;
+  --hairline-stroke: 0.85;
+}
+
+[data-theme="dark"] .home-hairline,
+[data-theme="dark"] .home-hero-figure {
+  --hairline-plate: var(--background);
+  --hairline-hi: #f3f0e6;
+  --hairline-edge: #8a877e;
+  --hairline-mid: #4a4946;
+  --hairline-lo: #242422;
+  --hairline-stroke: 0.85;
+}
+
+@media (min-width: 768px) {
+  .home-hairline {
+    display: block;
+  }
 }
 
 .home-aside-notes {
@@ -1972,6 +2014,7 @@ html[data-theme="dark"] .about-doodle--letter-p {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.25rem;
+  margin-inline-start: auto;
 }
 
 .home-phenology {
@@ -2812,6 +2855,8 @@ html[data-theme="dark"] .jar-mini-lid-ring {
   header,
   footer,
   .home-hero,
+  .home-hero-figure,
+  .home-hairline,
   .home-term,
   .post-thread,
   .post-chapter-trail,

@@ -96,6 +96,14 @@ const t = useTranslations(locale);
     </div>
   </div>
 
+  <div class="home-hero-figure">
+    <div
+      data-figure="riffle"
+      data-label="一叠卡片。指针下的那张会立起来，方向键可以逐张翻。"
+    >
+    </div>
+  </div>
+
   <a
     href="#posts"
     class="home-hero-scroll text-muted-foreground hover:text-accent absolute inset-x-0 bottom-6 z-10 mx-auto flex w-fit flex-col items-center gap-1 text-xs tracking-wide"
@@ -134,6 +142,22 @@ const t = useTranslations(locale);
 
   body:has(main[data-layout="index"]) > header.home-header-solid > div {
     border-bottom-color: var(--border);
+  }
+
+  /* The card tray stays in the hero's empty right side. */
+  .home-hero-figure {
+    display: none;
+  }
+
+  @media (min-width: 1100px) {
+    .home-hero-figure {
+      display: block;
+      position: absolute;
+      z-index: 5;
+      right: max(1.25rem, calc(50% - 36rem));
+      bottom: 4.75rem;
+      width: 10.5rem;
+    }
   }
 
   body.home-paper-wrinkle::before {
@@ -177,6 +201,8 @@ const t = useTranslations(locale);
     overflow: hidden;
   }
 
+  :global(body.is-home-booting .home-hero-figure),
+  :global(body.is-home-booting .home-hairline),
   :global(body.is-home-booting .home-aside-notes-wrap),
   :global(body.is-home-booting .home-columns),
   :global(body.is-home-booting .home-seam),
@@ -319,5 +345,7 @@ const t = useTranslations(locale);
 
 <script>
   import { bindHomeHeroPageLoad } from "@/scripts/home-term";
+  import { bindHomeHairline } from "@/scripts/home-hairline";
   bindHomeHeroPageLoad();
+  bindHomeHairline();
 </script>
