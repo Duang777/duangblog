@@ -36,9 +36,7 @@ function mountFigures() {
 export function bindHomeHairline() {
   const w = window as unknown as { __homeHairlineBound?: boolean };
   const boot = () => {
-    if (
-      !document.querySelector(".home-hairline, .home-hero-figure")
-    ) {
+    if (!document.querySelector(".home-hairline, .home-hero-figure")) {
       clearFigures();
       return;
     }

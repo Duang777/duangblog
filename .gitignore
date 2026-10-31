@@ -38,3 +38,6 @@ outputs/
 
 .tmp-feishu/
 .tmp-about-*.png
+
+# wrangler local dev state
+.wrangler/
