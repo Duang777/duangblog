@@ -18,16 +18,28 @@ const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 // The media URL expires about 25 minutes after it is issued.
 const CACHE_SECONDS = 600;
+// Seen hanging from Cloudflare's edge; the browser falls back well before this.
+const UPSTREAM_TIMEOUT_MS = 5000;
+
+/**
+ * NetEase's public outlink. It answers with a 302 to the media for free songs
+ * and to `music.163.com/404` for VIP ones, and it decides by the caller's IP:
+ * overseas callers get the 404 for every song.
+ */
+export function outerUrl(id: number) {
+  return `https://music.163.com/song/media/outer/url?id=${id}.mp3`;
+}
 
 export function parseSongId(raw: string): number | null {
   return /^\d{1,15}$/.test(raw) ? Number(raw) : null;
 }
 
 export async function resolveNetease(id: number): Promise<NeteaseResolution> {
-  const outer = `https://music.163.com/song/media/outer/url?id=${id}.mp3`;
+  const outer = outerUrl(id);
   const response = await fetch(outer, {
     redirect: "manual",
     headers: { "User-Agent": USER_AGENT },
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
   const location = response.headers.get("location");
   if (!location) return { playable: false };

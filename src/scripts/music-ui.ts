@@ -229,7 +229,7 @@ function ink(el: Element) {
   return getComputedStyle(el).getPropertyValue("--foreground").trim() || "#000";
 }
 
-function drawScope(canvas: HTMLCanvasElement, node: AnalyserNode | null) {
+function drawScope(canvas: HTMLCanvasElement, node: player.Meter | null) {
   const { ctx, w, h, dpr } = fitCanvas(canvas);
   if (!ctx) return;
   ctx.clearRect(0, 0, w, h);
@@ -260,7 +260,7 @@ function drawScope(canvas: HTMLCanvasElement, node: AnalyserNode | null) {
 }
 
 /** Reads the analyser once per frame; null when nothing is audible. */
-function readFrequencies(node: AnalyserNode | null) {
+function readFrequencies(node: player.Meter | null) {
   if (!node || state.status !== "playing") return null;
   if (freqData?.length !== node.frequencyBinCount) {
     freqData = new Uint8Array(node.frequencyBinCount);

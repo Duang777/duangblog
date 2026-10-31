@@ -9,8 +9,12 @@ import {
 import {
   NETEASE_API_PATH,
   type NeteaseResolution,
+  outerUrl,
 } from "@/lib/netease-resolve";
+import { createPulse, type Meter } from "@/scripts/music-pulse";
 import { createSynth, type Synth } from "@/scripts/music-synth";
+
+export type { Meter } from "@/scripts/music-pulse";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused";
 
@@ -26,12 +30,29 @@ type Engine = {
   /** Between the sources and the analyser, so the meters fade in with the sound. */
   gain: GainNode;
   analyser: AnalyserNode;
+  /** Plays CORS media through the analyser. */
+  routed: HTMLAudioElement;
+  /**
+   * Plays media without CORS, outside the graph: Web Audio would silence it.
+   * Its meters come from `pulse`.
+   */
+  direct: HTMLAudioElement;
+  /** Whichever element holds the current song. */
   audio: HTMLAudioElement;
+  pulse: Meter;
   synth: Synth;
 };
 
+/**
+ * `cors` media can feed the analyser. NetEase's outlink cannot: the browser
+ * follows it itself, so it plays wherever the visitor can reach NetEase.
+ */
+type Media = { url: string; cors: boolean };
+
 // NetEase media URLs expire about 25 minutes after they are issued.
 const NETEASE_URL_TTL_MS = 20 * 60 * 1000;
+// Past this the site's resolver counts as down and the outlink takes over.
+const RESOLVE_TIMEOUT_MS = 3500;
 
 const listeners = new Set<(state: PlayerState) => void>();
 const measuredDurations = new Map<string, number>();
@@ -41,8 +62,11 @@ const unavailable = new Set<string>();
 
 // Resolved NetEase media URLs by song id. A URL in hand lets a click call
 // audio.play() in its own task; Safari refuses play() once a fetch sits between.
-const resolved = new Map<number, { url: string | null; at: number }>();
-const resolving = new Map<number, Promise<string | null>>();
+const resolved = new Map<number, { media: Media; at: number }>();
+const resolving = new Map<number, Promise<Media>>();
+// When the fade-in started, in performance.now() time; drives `direct.volume`.
+let fadeFrom = 0;
+let fadeFrame = 0;
 
 let state: PlayerState = { status: "idle" };
 let queue: QueueItem[] = [];
@@ -74,33 +98,63 @@ function ensureEngine(): Engine {
   const gain = ctx.createGain();
   gain.connect(analyser);
 
-  const audio = new Audio();
-  audio.preload = "auto";
+  const routed = new Audio();
   // NetEase media is cross-origin; without CORS the analyser would read silence.
-  audio.crossOrigin = "anonymous";
-  ctx.createMediaElementSource(audio).connect(gain);
-  audio.addEventListener("loadedmetadata", () => {
-    if (state.status !== "idle" && Number.isFinite(audio.duration)) {
-      measuredDurations.set(state.track.id, audio.duration);
-    }
-  });
-  audio.addEventListener("ended", () => {
-    if (state.status === "playing") next();
-  });
-  // Load failures before playback reject audio.play(); this catches the ones after.
-  audio.addEventListener("error", () => {
-    if (state.status === "playing" && state.track.source.kind !== "seed") {
-      fail(state.track);
-    }
-  });
+  routed.crossOrigin = "anonymous";
+  ctx.createMediaElementSource(routed).connect(gain);
+  const direct = new Audio();
 
-  engine = { ctx, gain, analyser, audio, synth: createSynth(ctx, gain) };
+  for (const audio of [routed, direct]) {
+    audio.preload = "auto";
+    audio.addEventListener("loadedmetadata", () => {
+      if (
+        audio === engine?.audio &&
+        state.status !== "idle" &&
+        Number.isFinite(audio.duration)
+      ) {
+        measuredDurations.set(state.track.id, audio.duration);
+      }
+    });
+    audio.addEventListener("ended", () => {
+      if (audio === engine?.audio && state.status === "playing") next();
+    });
+    // Load failures before playback reject audio.play(); this catches the ones after.
+    audio.addEventListener("error", () => {
+      if (
+        audio === engine?.audio &&
+        state.status === "playing" &&
+        state.track.source.kind !== "seed"
+      ) {
+        fail(state.track);
+      }
+    });
+  }
+
+  const pulse = createPulse(() => ({
+    seconds: direct.currentTime,
+    level: direct.paused ? 0 : fadeLevel(),
+  }));
+  engine = {
+    ctx,
+    gain,
+    analyser,
+    routed,
+    direct,
+    audio: routed,
+    pulse,
+    synth: createSynth(ctx, gain),
+  };
   return engine;
 }
 
 function silence(e: Engine) {
-  e.audio.pause();
+  e.routed.pause();
+  e.direct.pause();
   e.synth.stop();
+}
+
+function fadeLevel() {
+  return Math.min(1, Math.max(0, (performance.now() - fadeFrom) / CUE_MS.fade));
 }
 
 /** Silent now, then up to full over a short ramp once `delayMs` has passed. */
@@ -112,32 +166,56 @@ function fadeIn(e: Engine, delayMs: number) {
   gain.setValueAtTime(0, now);
   gain.setValueAtTime(0, from);
   gain.linearRampToValueAtTime(1, from + CUE_MS.fade / 1000);
+
+  // The direct element sits outside the graph, so its volume follows by hand.
+  // iOS ignores element volume; there the sound just starts at full.
+  fadeFrom = performance.now() + delayMs;
+  cancelAnimationFrame(fadeFrame);
+  const ramp = () => {
+    const level = fadeLevel();
+    e.direct.volume = level;
+    if (level < 1) fadeFrame = requestAnimationFrame(ramp);
+  };
+  ramp();
 }
 
 function reducedMotion() {
   return matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function freshUrl(id: number) {
+function freshMedia(id: number) {
   const hit = resolved.get(id);
-  return hit && Date.now() - hit.at < NETEASE_URL_TTL_MS ? hit : null;
+  return hit && Date.now() - hit.at < NETEASE_URL_TTL_MS ? hit.media : null;
 }
 
-async function fetchUrl(id: number) {
-  const response = await fetch(`${NETEASE_API_PATH}${id}`);
-  if (!response.ok) throw new Error(`resolve ${id}: ${response.status}`);
-  const resolution = (await response.json()) as NeteaseResolution;
-  const url = resolution.playable ? resolution.url : null;
-  resolved.set(id, { url, at: Date.now() });
-  return url;
+/**
+ * The site's resolver hands back CORS media, but only when NetEase serves the
+ * server's region. Otherwise the visitor's browser follows the outlink itself;
+ * a VIP song then fails to load and is skipped like any other failure.
+ */
+async function fetchMedia(id: number): Promise<Media> {
+  let media: Media = { url: outerUrl(id), cors: false };
+  try {
+    const response = await fetch(`${NETEASE_API_PATH}${id}`, {
+      signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS),
+    });
+    if (response.ok) {
+      const resolution = (await response.json()) as NeteaseResolution;
+      if (resolution.playable) media = { url: resolution.url, cors: true };
+    }
+  } catch {
+    // Unreachable or slow resolver: the outlink still plays in mainland China.
+  }
+  resolved.set(id, { media, at: Date.now() });
+  return media;
 }
 
-function resolveUrl(id: number): Promise<string | null> {
-  const hit = freshUrl(id);
-  if (hit) return Promise.resolve(hit.url);
+function resolveMedia(id: number): Promise<Media> {
+  const hit = freshMedia(id);
+  if (hit) return Promise.resolve(hit);
   let pending = resolving.get(id);
   if (!pending) {
-    pending = fetchUrl(id).finally(() => resolving.delete(id));
+    pending = fetchMedia(id).finally(() => resolving.delete(id));
     resolving.set(id, pending);
   }
   return pending;
@@ -146,17 +224,14 @@ function resolveUrl(id: number): Promise<string | null> {
 /** Resolves every NetEase song ahead of the click; already fresh ones cost nothing. */
 export function warm() {
   for (const item of queue) {
-    if (item.source.kind === "netease") {
-      resolveUrl(item.source.id).catch(() => undefined);
-    }
+    if (item.source.kind === "netease") void resolveMedia(item.source.id);
   }
 }
 
-/** The media URL without waiting when it is already known, else a promise. */
-function mediaUrl(source: Exclude<Source, { kind: "seed" }>) {
-  if (source.kind === "file") return source.url;
-  const hit = freshUrl(source.id);
-  return hit ? hit.url : resolveUrl(source.id);
+/** The media without waiting when it is already known, else a promise. */
+function mediaFor(source: Exclude<Source, { kind: "seed" }>) {
+  if (source.kind === "file") return { url: source.url, cors: true };
+  return freshMedia(source.id) ?? resolveMedia(source.id);
 }
 
 function isStale(source: Source) {
@@ -193,12 +268,13 @@ async function start(track: QueueItem, resume: boolean) {
       else e.synth.start(source);
     } else {
       if (!reuse) {
-        const known = mediaUrl(source);
-        const url = known instanceof Promise ? await known : known;
+        const known = mediaFor(source);
+        const media = known instanceof Promise ? await known : known;
         if (gen !== generation) return;
-        if (url === null) throw new Error(`${track.id} cannot play here`);
-        e.audio.src = url;
-        e.audio.currentTime = startAt;
+        const element = media.cors ? e.routed : e.direct;
+        e.audio = element;
+        element.src = media.url;
+        element.currentTime = startAt;
       }
       loaded = reuse ? loaded : { id: track.id, at: Date.now() };
       await Promise.all([e.audio.play(), resuming]);
@@ -329,8 +405,12 @@ export function stop() {
   setState({ status: "idle" });
 }
 
-export function analyser() {
-  return engine?.analyser ?? null;
+export function analyser(): Meter | null {
+  if (!engine) return null;
+  const track = currentTrack();
+  const direct =
+    track?.source.kind !== "seed" && engine.audio === engine.direct;
+  return direct ? engine.pulse : engine.analyser;
 }
 
 export function durationOf(track: QueueItem) {

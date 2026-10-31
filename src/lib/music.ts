@@ -11,7 +11,7 @@ export type TrackStatus = "released" | "demo" | "sketch";
 export type Source =
   | { kind: "file"; url: string }
   | { kind: "seed"; bpm: number; key: string; seed: number }
-  /** Resolved to a media URL through /api/netease/<id> at play time. */
+  /** Asks /api/netease/<id> for CORS media first, else plays NetEase's outlink. */
   | { kind: "netease"; id: number };
 
 export type SeedSource = Extract<Source, { kind: "seed" }>;
