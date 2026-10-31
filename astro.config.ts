@@ -1,3 +1,4 @@
+import type { AstroIntegration } from "astro";
 import {
   defineConfig,
   envField,
@@ -20,10 +21,34 @@ import {
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
 import config from "./astro-paper.config";
+import {
+  handleNeteaseRequest,
+  NETEASE_API_PATH,
+} from "./src/lib/netease-resolve";
+
+// Production serves /api/netease/<id> from functions/api/netease/[id].ts on
+// Cloudflare Pages. The dev server has no Functions runtime, so it mounts the
+// same handler; the static build is untouched.
+const neteaseDevApi: AstroIntegration = {
+  name: "netease-dev-api",
+  hooks: {
+    "astro:server:setup": ({ server }) => {
+      server.middlewares.use(NETEASE_API_PATH, (req, res) => {
+        const id = (req.url ?? "").replace(/^\//, "").split("?")[0];
+        void handleNeteaseRequest(id).then(async response => {
+          res.statusCode = response.status;
+          response.headers.forEach((value, key) => res.setHeader(key, value));
+          res.end(await response.text());
+        });
+      });
+    },
+  },
+};
 
 export default defineConfig({
   site: config.site.url,
   integrations: [
+    neteaseDevApi,
     // Must come before other markdown-processing integrations
     mermaid({
       theme: "neutral",
@@ -35,6 +60,8 @@ export default defineConfig({
     sitemap({
       filter: page =>
         !page.includes("/traffic") &&
+        // Redirect stub; the music landing is `/`.
+        !page.endsWith("/music/") &&
         (config.features?.showArchives !== false ||
           !page.endsWith("/archives/")),
     }),

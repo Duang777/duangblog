@@ -1,0 +1,35 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { getBlogHomeUrl } from "@/utils/blogHome";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const musicHome = getRelativeLocaleUrl(locale, "");
+---
+
+<header class="mx-bar">
+  <a class="mx-bar-mark" href={musicHome}>DUANG RECORDS</a>
+  <nav class="mx-bar-nav" aria-label="音乐">
+    <a class="mx-bar-link" href={`${musicHome}#tracklist`}>曲目</a>
+    <button
+      type="button"
+      id="theme-btn"
+      class="mx-bar-theme"
+      title="切换深浅色"
+      aria-label="auto"
+      aria-live="polite"
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.5"></circle>
+        <path d="M8 1.5a6.5 6.5 0 0 1 0 13z"></path>
+      </svg>
+    </button>
+    <a class="mx-bar-enter" href={getBlogHomeUrl(locale)} data-enter-blog>
+      <kbd aria-hidden="true">B</kbd>
+      <span class="mx-bar-enter-text">进入博客</span>
+      <svg class="mx-bar-enter-arrow" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M2 8h11M9 4l4 4-4 4"></path>
+      </svg>
+    </a>
+  </nav>
+</header>

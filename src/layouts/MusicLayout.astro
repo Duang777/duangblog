@@ -1,0 +1,56 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MusicBar from "@/components/music/MusicBar.astro";
+import PlayerBar from "@/components/music/PlayerBar.astro";
+import { QUEUE_ELEMENT_ID } from "@/lib/music";
+import { getQueue } from "@/lib/music-tracks";
+import "@/styles/music.css";
+
+type Props = {
+  title: string;
+  description: string;
+  /** The `/` landing: plays the entrance once and hides the bar under the hero. */
+  landing?: boolean;
+};
+
+const { title, description, landing = false } = Astro.props;
+
+const queue = await getQueue();
+// `<` is escaped so a title can never close the script tag early.
+const queueJson = JSON.stringify(queue).replace(/</g, "\\u003c");
+---
+
+<Layout title={title} description={description}>
+  <script is:inline define:vars={{ landing }}>
+    if (
+      landing &&
+      !window.__softNav &&
+      !matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      document.documentElement.setAttribute("data-mx-intro", "");
+    }
+  </script>
+  <div class="music-scope" data-hero-in={landing ? "" : undefined}>
+    <a class="mx-skip" href="#main-content">跳到正文</a>
+    <MusicBar />
+    <main id="main-content" class="music-main">
+      <slot />
+    </main>
+    <PlayerBar />
+  </div>
+  <script
+    is:inline
+    type="application/json"
+    id={QUEUE_ELEMENT_ID}
+    set:html={queueJson}
+  />
+</Layout>
+
+<script>
+  import { bindMusicUI } from "@/scripts/music-ui";
+  import { bindMusicMotion } from "@/scripts/music-motion";
+  import { bindEnterBlog } from "@/scripts/music-wipe";
+  bindMusicUI();
+  bindMusicMotion();
+  bindEnterBlog();
+</script>

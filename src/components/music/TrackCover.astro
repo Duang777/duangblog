@@ -1,0 +1,30 @@
+---
+import { Image } from "astro:assets";
+import GeneratedCover from "@/components/music/GeneratedCover.astro";
+import { hashSeed, trackCode } from "@/lib/music";
+import type { Track } from "@/lib/music-tracks";
+
+type Props = {
+  track: Track;
+};
+
+const { track } = Astro.props;
+const code = trackCode(track.data.side, track.data.no);
+---
+
+{
+  track.data.cover ? (
+    <Image
+      src={track.data.cover}
+      alt={`${code} ${track.data.title} 的封面`}
+      widths={[480, 960]}
+      sizes="(min-width: 900px) 480px, 100vw"
+    />
+  ) : (
+    <GeneratedCover
+      code={code}
+      title={track.data.title}
+      seed={hashSeed(track.id)}
+    />
+  )
+}

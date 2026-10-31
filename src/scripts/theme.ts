@@ -43,12 +43,61 @@ function reflect(): void {
     ?.setAttribute("content", bg);
 }
 
+const REVEAL_ATTR = "data-theme-reveal";
+const REVEAL_MS = 620;
+
+function flip(): void {
+  themeValue = themeValue === LIGHT ? DARK : LIGHT;
+  persist();
+}
+
+/**
+ * The new theme spreads from the button as a circle. The attribute scopes the
+ * view-transition CSS to this one transition, so page navigations keep theirs.
+ */
+function revealFrom(button: Element): void {
+  const root = document.documentElement;
+  const box = button.getBoundingClientRect();
+  const x = box.left + box.width / 2;
+  const y = box.top + box.height / 2;
+  const radius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+  root.setAttribute(REVEAL_ATTR, "");
+  const transition = document.startViewTransition(flip);
+  void transition.ready
+    .then(() =>
+      root.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${radius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: REVEAL_MS,
+          easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      )
+    )
+    .catch(() => undefined);
+  void transition.finished.finally(() => root.removeAttribute(REVEAL_ATTR));
+}
+
+function onThemeClick(event: Event): void {
+  const button = event.currentTarget as Element;
+  const canReveal =
+    typeof document.startViewTransition === "function" &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (canReveal) revealFrom(button);
+  else flip();
+}
+
 function setup(): void {
   reflect();
-  document.querySelector("#theme-btn")?.addEventListener("click", () => {
-    themeValue = themeValue === LIGHT ? DARK : LIGHT;
-    persist();
-  });
+  document.querySelector("#theme-btn")?.addEventListener("click", onThemeClick);
 }
 
 setup();

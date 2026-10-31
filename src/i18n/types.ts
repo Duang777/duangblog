@@ -5,6 +5,7 @@ export interface UIStrings {
     tags: string;
     about: string;
     archives: string;
+    music: string;
     search: string;
     /** Link to the personal landing / works site */
     works: string;

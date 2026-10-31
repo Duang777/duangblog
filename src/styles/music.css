@@ -1,0 +1,2349 @@
+/*
+ * Music section only. Imported by MusicLayout, so it leaves with the page on
+ * ClientRouter navigation. Tokens are overridden on <html> so the body ground
+ * turns monochrome too. Spacing sticks to multiples of 8px (0.5rem).
+ */
+
+html[data-theme]:has(.music-scope) {
+  --background: #f3f3ef;
+  --foreground: #0b0b0b;
+  --accent: #0b0b0b;
+  --accent-foreground: #f3f3ef;
+  --muted: #e2e2de;
+  --muted-foreground: #5f5f5f;
+  --border: #c9c9c4;
+  --card: #f9f9f6;
+  --card-foreground: #0b0b0b;
+  --ring: #0b0b0b;
+}
+
+html[data-theme="dark"]:has(.music-scope) {
+  --background: #0b0b0b;
+  --foreground: #efefea;
+  --accent: #efefea;
+  --accent-foreground: #0b0b0b;
+  --muted: #1d1d1d;
+  --muted-foreground: #8f8f8a;
+  --border: #333331;
+  --card: #121212;
+  --card-foreground: #efefea;
+  --ring: #efefea;
+}
+
+.music-scope {
+  --mx-display: "Inter Variable", "Inter", system-ui, sans-serif;
+  --mx-mono:
+    var(--font-google-sans-code), "IBM Plex Mono", ui-monospace, monospace;
+  --mx-line: 1px solid var(--foreground);
+  --mx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mx-bar-h: 3.5rem;
+  --mx-player-h: 4.5rem;
+  --mx-gutter: 2rem;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow-x: clip;
+  padding-bottom: var(--mx-player-h);
+}
+
+.music-scope :focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+.music-scope ::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-skip {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 70;
+  translate: 0 -200%;
+  border: var(--mx-line);
+  padding: 0.5rem 1rem;
+  background: var(--background);
+  font-family: var(--mx-mono);
+  font-size: 0.75rem;
+}
+
+.mx-skip:focus-visible {
+  translate: 0 0;
+}
+
+.music-main > :not(.mx-hero) {
+  width: min(1180px, 100% - 2 * var(--mx-gutter));
+  margin-inline: auto;
+}
+
+/* ---------- shared type ---------- */
+
+.mx-kicker,
+.mx-meta,
+.mx-smallprint,
+.mx-section-count {
+  font-family: var(--mx-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mx-kicker {
+  display: block;
+  color: var(--muted-foreground);
+}
+
+.mx-num,
+.mx-section-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.mx-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: var(--mx-line);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mx-section-title {
+  font-family: var(--mx-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+}
+
+.mx-section-count {
+  color: var(--muted-foreground);
+}
+
+/* ---------- top bar ---------- */
+
+.mx-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--mx-bar-h);
+  border-bottom: var(--mx-line);
+  padding-inline: var(--mx-gutter);
+  background: var(--background);
+}
+
+.mx-bar-mark {
+  font-family: var(--mx-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mx-bar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--mx-mono);
+  font-size: 0.8125rem;
+}
+
+.mx-bar-link {
+  text-decoration: none;
+}
+
+.mx-bar-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.mx-bar-theme {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+}
+
+.mx-bar-theme svg {
+  width: 1rem;
+  height: 1rem;
+  transition: rotate 400ms var(--mx-ease);
+}
+
+.mx-bar-theme circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+}
+
+.mx-bar-theme path {
+  fill: currentColor;
+}
+
+html[data-theme="dark"] .mx-bar-theme svg {
+  rotate: 180deg;
+}
+
+.mx-bar-enter {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border: 1.5px solid var(--foreground);
+  border-radius: 999px;
+  padding: 0 1.125rem 0 0.375rem;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: var(--mx-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 0 0 0 var(--foreground);
+  transition:
+    color 300ms var(--mx-ease),
+    box-shadow 300ms var(--mx-ease),
+    scale 150ms ease-out;
+}
+
+/* Paper sweeps in from the left on hover, so the button turns over like a page. */
+.mx-bar-enter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--background);
+  transform: translateX(-101%);
+  transition: transform 380ms var(--mx-ease);
+}
+
+.mx-bar-enter:hover,
+.mx-bar-enter:focus-visible {
+  color: var(--foreground);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.mx-bar-enter:hover::before,
+.mx-bar-enter:focus-visible::before {
+  transform: translateX(0);
+}
+
+.mx-bar-enter kbd {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--mx-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition:
+    background 300ms var(--mx-ease),
+    color 300ms var(--mx-ease);
+}
+
+.mx-bar-enter:hover kbd,
+.mx-bar-enter:focus-visible kbd {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-bar-enter-arrow {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: mx-enter-nudge 3.2s var(--mx-ease) 1.6s infinite;
+}
+
+.mx-bar-enter:hover .mx-bar-enter-arrow,
+.mx-bar-enter:focus-visible .mx-bar-enter-arrow {
+  animation: none;
+  translate: 3px 0;
+  transition: translate 300ms var(--mx-ease);
+}
+
+@keyframes mx-enter-nudge {
+  0%,
+  72%,
+  100% {
+    translate: 0 0;
+  }
+  80% {
+    translate: 4px 0;
+  }
+  88% {
+    translate: 0 0;
+  }
+  94% {
+    translate: 2px 0;
+  }
+}
+
+/* ---------- hero: one viewport on a 12-column grid ---------- */
+
+.mx-hero {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
+  column-gap: 1.5rem;
+  height: calc(100svh - var(--mx-bar-h));
+  min-height: 30rem;
+  padding: 1.5rem var(--mx-gutter) 0;
+}
+
+.mx-meta {
+  grid-column: 1 / 4;
+  grid-row: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 0;
+  padding-top: 1.5rem;
+  border-top: var(--mx-line);
+}
+
+.mx-now-label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+}
+
+.mx-now-state::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  vertical-align: 0.05em;
+}
+
+html[data-music="playing"] .mx-now-state {
+  color: var(--foreground);
+}
+
+html[data-music="playing"] .mx-now-state::before {
+  background: currentColor;
+  animation: mx-blink 1.2s steps(2, jump-none) infinite;
+}
+
+@keyframes mx-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.mx-now {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mx-now-code {
+  color: var(--muted-foreground);
+}
+
+.mx-now-title {
+  overflow: hidden;
+  font-family: var(--mx-display);
+  font-size: clamp(1.75rem, 2.6vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-transform: none;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mx-now-artist {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/*
+ * One slot under the title: the SIDE A queue while nothing plays, the lyric
+ * once a song with lyrics is on. Both share one grid cell and crossfade.
+ */
+.mx-slot {
+  display: grid;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.mx-slot > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.mx-queue {
+  transition:
+    opacity 180ms ease,
+    visibility 180ms;
+}
+
+.mx-slot:has(> .mx-lyric:not([hidden])) > .mx-queue {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mx-queue-head {
+  margin-bottom: 0.5rem;
+  color: var(--muted-foreground);
+}
+
+.mx-queue-row {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  width: 100%;
+  padding: 0.375rem 0;
+  color: var(--muted-foreground);
+  font: inherit;
+  text-align: left;
+  transition:
+    color 150ms ease,
+    scale 150ms ease-out;
+}
+
+/* Nothing current yet: the first row is the one the title above shows. */
+.mx-queue-row:hover,
+.mx-queue-row[data-current],
+.mx-queue-list:not(:has([data-current])) > :first-child > .mx-queue-row {
+  color: var(--foreground);
+}
+
+.mx-queue-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* The current row, or the hovered one, carries the play triangle. */
+.mx-queue-row:is(:hover, [data-current]) .mx-queue-code::after,
+.mx-queue-list:not(:has([data-current])) > :first-child .mx-queue-code::after {
+  content: "";
+  width: 0.4rem;
+  height: 0.5rem;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  translate: 1px 0;
+}
+
+.mx-queue-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.mx-queue-dur {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- lyrics ---------- */
+
+.mx-lyric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  transition: opacity 180ms ease;
+}
+
+@starting-style {
+  .mx-lyric {
+    opacity: 0;
+  }
+}
+
+.mx-lyric[hidden] {
+  display: none;
+}
+
+/* Two lines of room whether the line is short or long, so the title above never shifts. */
+.mx-lyric-now {
+  grid-column: 1 / -1;
+  display: -webkit-box;
+  min-height: 2.4em;
+  overflow: hidden;
+  font-family: var(--mx-display);
+  font-size: clamp(1.0625rem, 1.35vw, 1.375rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-transform: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/*
+ * Inline on purpose: an inline box lays its background out as if every
+ * wrapped fragment sat on one line, so the fill runs line by line.
+ */
+.mx-lyric-ink {
+  --dim: color-mix(in srgb, var(--foreground) 26%, transparent);
+  background: linear-gradient(
+    90deg,
+    var(--foreground) calc(var(--fill, 0) * 100%),
+    var(--dim) calc(var(--fill, 0) * 100%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mx-lyric-next {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.mx-lyric-open,
+.mx-lyrics-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-self: start;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.375rem 0.25rem 0.75rem;
+  color: var(--foreground);
+  font-family: var(--mx-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  transition:
+    background 150ms,
+    color 150ms,
+    border-color 150ms,
+    scale 150ms ease-out;
+}
+
+.mx-lyric-open kbd,
+.mx-lyrics-close kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding-inline: 0.25rem;
+  font: inherit;
+  font-size: 0.625rem;
+}
+
+.mx-lyric-open:hover,
+.mx-lyrics-close:hover {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-lyrics {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--mx-mono);
+}
+
+.mx-lyrics[open] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  animation: mx-sheet-in 560ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+/* Focus lands on the sheet itself so Space keeps playing and pausing. */
+.mx-lyrics:focus-visible {
+  outline: none;
+}
+
+.mx-lyrics::backdrop {
+  background: var(--background);
+}
+
+html[data-lyrics-open] {
+  overflow: hidden;
+}
+
+@keyframes mx-sheet-in {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.mx-lyrics-head,
+.mx-lyrics-foot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem var(--mx-gutter);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.mx-lyrics-head,
+.mx-lyrics-foot {
+  grid-column: 1 / -1;
+}
+
+.mx-lyrics-head {
+  border-bottom: var(--mx-line);
+}
+
+.mx-lyrics-art {
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  width: min(30vw, 62vh);
+  aspect-ratio: 1;
+  margin-right: var(--mx-gutter);
+  border: var(--mx-line);
+  background: var(--foreground);
+}
+
+.mx-lyrics-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.1);
+}
+
+.mx-lyrics-art:not(:has(img[src])) {
+  display: none;
+}
+
+.mx-lyrics-foot {
+  border-top: var(--mx-line);
+  color: var(--muted-foreground);
+}
+
+.mx-lyrics-code {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.mx-lyrics-title {
+  font-family: var(--mx-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.mx-lyrics-artist {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mx-lyrics-close {
+  margin-left: auto;
+  flex: none;
+}
+
+.mx-lyrics-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 42vh var(--mx-gutter);
+  scrollbar-width: none;
+  -webkit-mask: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+  mask: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+}
+
+.mx-lyrics-line {
+  display: block;
+  max-width: 22ch;
+  padding: 0.12em 0;
+  color: var(--foreground);
+  font-family: var(--mx-display);
+  font-size: clamp(1.75rem, 4.4vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  text-align: left;
+  opacity: max(0.08, 0.72 - var(--d, 6) * 0.13);
+  transition: opacity 420ms var(--mx-ease);
+}
+
+.mx-lyrics-line[data-current],
+.mx-lyrics-line:hover {
+  opacity: 1;
+}
+
+.mx-lyrics-line:not([data-current]) .mx-lyric-ink {
+  background: none;
+  color: inherit;
+}
+
+.mx-lyrics-hint {
+  white-space: nowrap;
+}
+
+.mx-lyrics-bar {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.mx-lyrics-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--foreground);
+  transform-origin: 0 50%;
+  scale: var(--p, 0) 1;
+}
+
+.mx-lyrics-time {
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mx-transport {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.mx-tbtn {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mx-tbtn > svg {
+  box-sizing: content-box;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0.875rem;
+  border: var(--mx-line);
+  border-radius: 50%;
+  fill: currentColor;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 150ms ease-out;
+}
+
+.mx-tbtn--main > svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 1.125rem;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-tbtn:hover > svg {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-tbtn:active > svg {
+  transform: scale(0.97);
+}
+
+.mx-tbtn > kbd {
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: 0.6875rem;
+}
+
+.mx-tbtn > .mx-glyph-pause,
+.mx-tbtn[data-pausing] > .mx-glyph-play {
+  display: none;
+}
+
+.mx-tbtn[data-pausing] > .mx-glyph-pause {
+  display: block;
+}
+
+.mx-stage {
+  grid-column: 4 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-height: 0;
+  container-type: size;
+}
+
+/*
+ * Sleeve, a gap, then the turntable: columns 65.6 / 6 / 100. The record is
+ * 65.6% of the turntable's width, so the sleeve is exactly record-sized, and
+ * the record sits 120.1% of its own width right of the sleeve's centre.
+ */
+.mx-deck {
+  display: grid;
+  grid-template-columns: 65.6fr 6fr 100fr;
+  align-items: center;
+  width: min(100cqw, 100cqh * 2.145);
+  aspect-ratio: 171.6 / 80;
+}
+
+.mx-deck > .tt {
+  grid-column: 3;
+}
+
+.mx-sleeve {
+  position: relative;
+  z-index: 2;
+  grid-column: 1;
+  aspect-ratio: 1;
+  border: var(--mx-line);
+  background: var(--foreground);
+}
+
+/* Glare for the pointer tilt in music-pointer.ts; --glare is 0 at rest. */
+.mx-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 50%),
+    rgb(255 255 255 / 0.38),
+    rgb(255 255 255 / 0.08) 38%,
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+  opacity: var(--glare, 0);
+}
+
+/* Hidden covers are display:none so a long playlist's lazy images stay unloaded. */
+.mx-sleeve-cover {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.mx-sleeve-cover[data-current],
+.mx-sleeve:not(:has([data-current])) > .mx-sleeve-cover:first-child {
+  display: block;
+  animation: mx-fade 400ms var(--mx-ease);
+}
+
+.mx-sleeve-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.1);
+}
+
+/*
+ * Covers printed as 1-bit dither by music-dither.ts, a few pixels per cell.
+ * The <img> under each print is the fallback for no script, reduced data or a
+ * cover the canvas cannot read.
+ */
+.mx-print {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  visibility: hidden;
+}
+
+[data-print="ok"] > .mx-print {
+  visibility: visible;
+}
+
+@media (scripting: enabled) {
+  :has(> .mx-print):not([data-print="failed"]) > img {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  :has(> .mx-print) > img {
+    visibility: visible;
+  }
+
+  .mx-print {
+    display: none;
+  }
+}
+
+.mx-print,
+:has(> .mx-print) > img {
+  outline: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  outline-offset: -1px;
+}
+
+.mx-word {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  /* Letters stretch upwards past their row; they must not swallow clicks on the controls above. */
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(5, 0.76em);
+  /* Fixed tracks: a letter changing weight never pushes its neighbours. */
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  margin-left: -0.03em;
+  font-family: var(--mx-display);
+  font-size: min((100vw - 2 * var(--mx-gutter)) / 3.8, 38svh);
+  font-weight: 900;
+  line-height: 0.76;
+  user-select: none;
+}
+
+/* Clips only the bottom edge: letters rise out of it and stretch upwards freely. */
+.mx-cell {
+  display: block;
+  clip-path: inset(-40% -20% 0 -20%);
+  text-align: center;
+}
+
+.mx-letter {
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+
+.mx-foot {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 3rem;
+  margin-top: 0.5rem;
+}
+
+.mx-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mx-mono);
+  font-size: 0.75rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mx-cue-line {
+  position: relative;
+  width: 1px;
+  height: 1.5rem;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.mx-cue-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--foreground);
+  translate: 0 -100%;
+  animation: mx-cue 2.4s var(--mx-ease) infinite;
+}
+
+@keyframes mx-cue {
+  50% {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 100%;
+  }
+}
+
+.mx-hairline {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: block;
+  width: calc(100% + 2 * var(--mx-gutter));
+  height: 3rem;
+  margin-inline: calc(-1 * var(--mx-gutter));
+}
+
+/* ---------- turntable ---------- */
+
+.tt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  border: var(--mx-line);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      circle at 88% 17.5%,
+      color-mix(in srgb, var(--foreground) 6%, transparent) 0 9%,
+      transparent 9.2%
+    ),
+    var(--card);
+  user-select: none;
+}
+
+.tt-speed {
+  position: absolute;
+  top: 3.5%;
+  left: 4%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mx-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+}
+
+.tt-led {
+  width: 0.45rem;
+  height: 0.45rem;
+  border: 1px solid var(--foreground);
+  border-radius: 50%;
+}
+
+html[data-music="playing"] .tt-led {
+  background: var(--foreground);
+}
+
+/* Geometry shares the arm's 500x400 viewBox: platter centred at (200,200). */
+.tt-platter {
+  position: absolute;
+  left: 5%;
+  top: 6.25%;
+  width: 70%;
+  height: 87.5%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    var(--foreground) 0 0.8deg,
+    transparent 0.8deg 5deg
+  );
+  -webkit-mask: radial-gradient(
+    circle closest-side,
+    transparent 96%,
+    #000 96.5%
+  );
+  mask: radial-gradient(circle closest-side, transparent 96%, #000 96.5%);
+}
+
+.tt-record {
+  position: absolute;
+  left: 7.2%;
+  top: 9%;
+  width: 65.6%;
+  height: 82%;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  rotate: var(--scratch, 0deg);
+  cursor: grab;
+  touch-action: none;
+}
+
+.tt-record[data-scratching] {
+  cursor: grabbing;
+}
+
+/* music-motor.ts turns the disc and the platter. */
+.tt-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tt-vinyl {
+  fill: var(--foreground);
+}
+
+.tt-groove {
+  fill: none;
+  stroke: var(--background);
+  stroke-width: 0.6;
+}
+
+.tt-gap {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 2.4;
+}
+
+.tt-label {
+  fill: var(--background);
+}
+
+/* A picture disc: the cover sits inside the ring text, which stays on plain paper. */
+.tt-label-art,
+.tt-label-edge {
+  display: none;
+}
+
+.tt[data-picture] .tt-label-art {
+  display: inline;
+  image-rendering: pixelated;
+}
+
+.tt[data-picture] .tt-label-edge {
+  display: inline;
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 1;
+}
+
+.tt[data-picture] :is(.tt-label-mark, .tt-label-cat) {
+  display: none;
+}
+
+.tt-label-ring {
+  fill: var(--foreground);
+  font-family: var(--mx-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+}
+
+.tt-label-mark {
+  fill: var(--foreground);
+  font-family: var(--mx-display);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-anchor: middle;
+}
+
+.tt-label-cat {
+  fill: var(--foreground);
+  font-family: var(--mx-mono);
+  font-size: 6.5px;
+  letter-spacing: 0.1em;
+  text-anchor: middle;
+}
+
+.tt-spindle {
+  fill: var(--foreground);
+}
+
+.tt-sheen {
+  pointer-events: none;
+  position: absolute;
+  left: 7.2%;
+  top: 9%;
+  width: 65.6%;
+  height: 82%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 20deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--background) 16%, transparent) 25deg,
+    transparent 60deg 180deg,
+    color-mix(in srgb, var(--background) 12%, transparent) 210deg,
+    transparent 245deg
+  );
+  -webkit-mask: radial-gradient(circle closest-side, transparent 33%, #000 34%);
+  mask: radial-gradient(circle closest-side, transparent 33%, #000 34%);
+}
+
+.tt-arm {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tt-arm-base {
+  fill: var(--card);
+  stroke: var(--foreground);
+  stroke-width: 1;
+}
+
+/* music-arm.ts writes the angle every frame; it rests at 0deg until then. */
+.tt-arm-swing {
+  transform-origin: 440px 70px;
+}
+
+/* A plinth-coloured outline keeps the arm readable over a record of the same ink. */
+.tt-arm-halo {
+  stroke: var(--card);
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.tt-arm-tube {
+  stroke: var(--foreground);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.tt-arm-weight,
+.tt-arm-head,
+.tt-arm-pivot {
+  fill: var(--foreground);
+}
+
+.tt-arm-head {
+  stroke: var(--card);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.tt-arm-grab {
+  fill: transparent;
+}
+
+.tt[data-arm-live] .tt-arm-grab {
+  pointer-events: all;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tt[data-arm-dragging],
+.tt[data-arm-dragging] .tt-arm-grab {
+  cursor: grabbing;
+}
+
+.tt-ring-track,
+.tt-ring {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.tt-ring-track {
+  stroke: var(--border);
+}
+
+.tt-ring {
+  stroke: var(--foreground);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.tt-start {
+  position: absolute;
+  right: 3.5%;
+  bottom: 4.5%;
+  border: var(--mx-line);
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  background: var(--background);
+  font-family: var(--mx-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.tt-start[data-pausing],
+.tt-start:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* Centred under the record, which sits at 40% of the plinth's width. */
+.tt-hint {
+  position: absolute;
+  left: 40%;
+  bottom: 4.5%;
+  translate: -50% 0;
+  border: var(--mx-line);
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  background: var(--background);
+  font-family: var(--mx-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--mx-ease);
+}
+
+[data-arm-time] {
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-hint[data-show] {
+  opacity: 1;
+}
+
+/* ---------- marquee ---------- */
+
+.mx-marquee {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-family: var(--mx-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-mask: linear-gradient(
+    90deg,
+    transparent,
+    #000 4rem calc(100% - 4rem),
+    transparent
+  );
+  mask: linear-gradient(
+    90deg,
+    transparent,
+    #000 4rem calc(100% - 4rem),
+    transparent
+  );
+}
+
+html[data-music="playing"] .mx-marquee {
+  color: var(--foreground);
+}
+
+.mx-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: mx-marquee 48s linear infinite;
+}
+
+.mx-marquee-track > span {
+  padding-inline-end: 0.5ch;
+}
+
+@keyframes mx-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- below the fold ---------- */
+
+.mx-tracklist {
+  margin-top: 6rem;
+  scroll-margin-top: calc(var(--mx-bar-h) + 1.5rem);
+}
+
+.mx-tracklist + .mx-tracklist {
+  margin-top: 4.5rem;
+}
+
+/* ---------- tracklist ---------- */
+
+.mx-sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: 2rem 3rem;
+}
+
+.mx-side-title {
+  margin-bottom: 0.5rem;
+  font-family: var(--mx-display);
+  font-size: 1.5rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.tl-list {
+  border-top: var(--mx-line);
+}
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, auto) minmax(1rem, 1fr) auto 3.5rem;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0.5rem;
+  font-family: var(--mx-mono);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.tl-row {
+  position: relative;
+}
+
+.tl-row:hover,
+.tl-row[data-current] {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* music-ui.ts writes --tl-progress on the current row every frame. */
+.tl-progress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: currentColor;
+  transform-origin: 0 50%;
+  scale: var(--tl-progress, 0) 1;
+  opacity: 0;
+}
+
+.tl-row[data-current] .tl-progress {
+  opacity: 0.9;
+}
+
+.tl-eq {
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.tl-eq > i {
+  flex: 1;
+  height: 100%;
+  background: currentColor;
+  transform-origin: 50% 100%;
+  animation: tl-eq 0.8s ease-in-out infinite alternate;
+}
+
+.tl-eq > i:nth-child(2) {
+  animation-duration: 0.62s;
+  animation-delay: -0.3s;
+}
+
+.tl-eq > i:nth-child(3) {
+  animation-duration: 0.95s;
+  animation-delay: -0.55s;
+}
+
+@keyframes tl-eq {
+  from {
+    scale: 1 0.2;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+
+/* While a row plays, its glyph becomes the meter; hovering shows the pause glyph again. */
+html[data-music="playing"] .tl-row[data-current]:not(:hover) .tl-eq {
+  display: inline-flex;
+}
+
+html[data-music="playing"] .tl-row[data-current]:not(:hover) .tl-glyph {
+  display: none;
+}
+
+.tl-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 45;
+  width: 9rem;
+  aspect-ratio: 1;
+  border: var(--mx-line);
+  background: var(--foreground);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.tl-float[data-show] {
+  visibility: visible;
+}
+
+.tl-float img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.1);
+}
+
+@media not ((hover: hover) and (pointer: fine)) {
+  .tl-float {
+    display: none;
+  }
+}
+
+.tl-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.tl-glyph {
+  width: 0.55rem;
+  height: 0.65rem;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0;
+}
+
+.tl-row:hover .tl-glyph,
+.tl-row[data-current] .tl-glyph {
+  opacity: 1;
+}
+
+/* Optical centre: the triangle's mass sits left of its box. */
+.tl-code:not([data-pausing]) .tl-glyph {
+  translate: 1px 0;
+}
+
+.tl-code[data-pausing] .tl-glyph {
+  clip-path: polygon(
+    0 0,
+    35% 0,
+    35% 100%,
+    0 100%,
+    0 0,
+    65% 0,
+    100% 0,
+    100% 100%,
+    65% 100%,
+    65% 0
+  );
+}
+
+.tl-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tl-qs {
+  flex: none;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 0.375em;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+/* Hovering the tag also hovers its row, which is already inverted. */
+.tl-qs:hover {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.tl-title,
+.tl-artist {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-title {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* A long artist list gives way before the title does. */
+.tl-artist {
+  flex-shrink: 3;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+}
+
+a.tl-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tl-leader {
+  align-self: end;
+  height: 0.5em;
+  margin-bottom: 0.3em;
+  background-image: radial-gradient(currentColor 0.9px, transparent 1.1px);
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  background-size: 6px 4px;
+  opacity: 0.7;
+}
+
+.tl-status,
+.tl-tag {
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 0.35em;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.tl-tag {
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+/* Pinned to the last column so a hidden tag never shifts it left. */
+.tl-dur {
+  grid-column: -2 / -1;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The whole VIP row is the link out to NetEase. */
+.tl-row--out {
+  position: relative;
+}
+
+/* z-index: the translucent artist would otherwise paint over the overlay. */
+.tl-out::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.tl-gone {
+  display: none;
+}
+
+.tl-row[data-unavailable] {
+  cursor: default;
+}
+
+.tl-row[data-unavailable]:hover {
+  background: none;
+  color: inherit;
+}
+
+.tl-row[data-unavailable] > :not(.tl-gone) {
+  opacity: 0.45;
+}
+
+.tl-row[data-unavailable] .tl-glyph {
+  opacity: 0;
+}
+
+.tl-row[data-unavailable] .tl-gone {
+  display: inline;
+}
+
+.tl-gone:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.tl-desc {
+  grid-column: 2 / -1;
+  margin-top: 0.15rem;
+  font-family: var(--font-app, inherit);
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.mx-smallprint {
+  margin-top: 1.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  text-transform: none;
+}
+
+/* ---------- studio cards ---------- */
+
+.mx-studio {
+  margin-top: 4.5rem;
+}
+
+.mx-studio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+.mx-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--mx-line);
+  padding: 1rem;
+  color: var(--foreground);
+}
+
+.mx-card-art {
+  width: 100%;
+  height: 10rem;
+  margin-bottom: 1rem;
+}
+
+.mx-card-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-top: var(--mx-line);
+  padding-top: 0.6rem;
+  font-family: var(--mx-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.mx-card-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.mx-card-line {
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+
+/* ---------- player bar ---------- */
+
+.mx-player {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 50;
+  border-top: var(--mx-line);
+  background: var(--background);
+  color: var(--foreground);
+  transition:
+    translate 400ms var(--mx-ease),
+    visibility 0s;
+}
+
+/* On the landing the hero carries playback; the bar arrives once it scrolls away. */
+.music-scope[data-hero-in] .mx-player {
+  translate: 0 100%;
+  visibility: hidden;
+  transition:
+    translate 400ms var(--mx-ease),
+    visibility 0s 400ms;
+}
+
+.mx-player-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1fr) auto 7.5rem;
+  align-items: center;
+  gap: 1rem;
+  width: min(1180px, 100% - 2rem);
+  height: var(--mx-player-h);
+  margin-inline: auto;
+  font-family: var(--mx-mono);
+  font-size: 0.8rem;
+}
+
+.mx-player-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mx-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+}
+
+.mx-icon-btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: currentColor;
+}
+
+.mx-icon-btn:hover {
+  background: var(--muted);
+}
+
+.mx-icon-btn--main {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-icon-btn--main:hover {
+  background: var(--foreground);
+  opacity: 0.85;
+}
+
+.mx-glyph-pause,
+[data-pausing] > .mx-glyph-play {
+  display: none;
+}
+
+[data-pausing] > .mx-glyph-pause {
+  display: block;
+}
+
+.mx-player-now {
+  display: flex;
+  gap: 0.75rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.mx-player-code {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mx-player-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mx-scrub {
+  width: 100%;
+  accent-color: var(--foreground);
+}
+
+.mx-scrub[data-off] {
+  visibility: hidden;
+}
+
+.mx-player-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mx-spectrum {
+  display: block;
+  width: 100%;
+  height: 1.75rem;
+}
+
+/* ---------- track page ---------- */
+
+.sleeve {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  margin-top: 3rem;
+}
+
+.sleeve-cover {
+  position: sticky;
+  top: 1.5rem;
+  border: var(--mx-line);
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.sleeve-cover img,
+.gen-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gen-cover-ground {
+  fill: var(--foreground);
+}
+
+.gen-cover-ink {
+  fill: var(--background);
+}
+
+.gen-cover-ink-stroke {
+  fill: none;
+  stroke: var(--background);
+}
+
+.gen-cover-code {
+  fill: var(--background);
+  font-family: var(--mx-display);
+  font-size: 220px;
+  font-weight: 900;
+  letter-spacing: -0.07em;
+  paint-order: stroke;
+  stroke: var(--foreground);
+  stroke-width: 14px;
+}
+
+.gen-cover-meta {
+  fill: var(--background);
+  font-family: var(--mx-mono);
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  paint-order: stroke;
+  stroke: var(--foreground);
+  stroke-width: 8px;
+}
+
+.sleeve-title {
+  margin-top: 0.5rem;
+  font-family: var(--mx-display);
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: -0.065em;
+  line-height: 0.88;
+}
+
+.sleeve-desc {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+}
+
+.sleeve-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.75rem;
+  border-top: var(--mx-line);
+  font-family: var(--mx-mono);
+  font-size: 0.85rem;
+}
+
+.sleeve-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.55rem 0;
+}
+
+.sleeve-meta > div:nth-child(odd) {
+  padding-right: 1rem;
+}
+
+.sleeve-meta > div:nth-child(even) {
+  padding-left: 1rem;
+  border-left: 1px solid var(--border);
+}
+
+.sleeve-meta dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.sleeve-meta dt {
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sleeve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.mx-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: var(--mx-line);
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem 0.85rem 1.25rem;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: var(--mx-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.mx-play svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: currentColor;
+}
+
+.mx-play:hover {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.mx-qs {
+  border: var(--mx-line);
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--mx-mono);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition:
+    background 150ms,
+    color 150ms;
+}
+
+.mx-qs:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mx-play-text::after {
+  content: "播放";
+}
+
+.mx-play[data-pausing] .mx-play-text::after {
+  content: "暂停";
+}
+
+.sleeve-notes {
+  margin-top: 2.5rem;
+  border-top: var(--mx-line);
+  padding-top: 1.5rem;
+  max-width: 40rem;
+}
+
+.music-scope .sleeve-notes :is(strong, b, a) {
+  color: var(--foreground);
+}
+
+.sleeve-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 4rem;
+  border-top: var(--mx-line);
+  padding-top: 1rem;
+}
+
+.sleeve-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--mx-mono);
+  text-decoration: none;
+}
+
+.sleeve-nav-link:hover span:last-child {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sleeve-nav-link--next {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* ---------- press feedback ---------- */
+
+.mx-icon-btn,
+.mx-bar-theme,
+.tt-start,
+.tl-code {
+  transition: scale 150ms ease-out;
+}
+
+:is(
+  .mx-icon-btn,
+  .mx-bar-theme,
+  .mx-bar-enter,
+  .tt-start,
+  .tl-code,
+  .mx-lyric-open,
+  .mx-lyrics-close,
+  .mx-queue-row
+):active {
+  scale: 0.97;
+}
+
+/* ---------- entrance (first load of / only) ---------- */
+
+@keyframes mx-rise {
+  from {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+}
+
+@keyframes mx-drop {
+  from {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+}
+
+@keyframes mx-letter-in {
+  from {
+    translate: 0 105%;
+  }
+}
+
+@keyframes mx-record-out {
+  from {
+    translate: -120.1% 0;
+  }
+}
+
+@keyframes mx-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+[data-mx-intro] .mx-bar > * {
+  animation: mx-drop 500ms var(--mx-ease) both;
+}
+
+[data-mx-intro] .mx-bar > :last-child {
+  animation-delay: 80ms;
+}
+
+[data-mx-intro] .mx-letter {
+  animation: mx-letter-in 640ms var(--mx-ease) calc(120ms + var(--i) * 70ms)
+    both;
+}
+
+[data-mx-intro] .mx-deck {
+  animation: mx-rise 600ms var(--mx-ease) 80ms both;
+}
+
+[data-mx-intro] .tt-record {
+  animation: mx-record-out 900ms cubic-bezier(0.65, 0, 0.15, 1) 280ms both;
+}
+
+[data-mx-intro] .tt-sheen {
+  animation: mx-fade 240ms linear 940ms both;
+}
+
+[data-mx-intro] .mx-meta,
+[data-mx-intro] .mx-foot,
+[data-mx-intro] .mx-hairline {
+  animation: mx-fade 500ms linear 500ms both;
+}
+
+/* ---------- scroll reveals ---------- */
+
+.music-scope[data-reveal-armed] [data-reveal] {
+  opacity: 0;
+  translate: 0 1.5rem;
+  transition:
+    opacity 600ms var(--mx-ease) var(--reveal-delay, 0ms),
+    translate 600ms var(--mx-ease) var(--reveal-delay, 0ms);
+}
+
+.music-scope[data-reveal-armed] [data-reveal][data-shown] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 860px) {
+  .music-scope {
+    --mx-gutter: 1rem;
+    --mx-bar-h: 3rem;
+  }
+
+  .sleeve {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sleeve-cover {
+    position: static;
+  }
+
+  /* Word, deck and meta sit as one block in the middle; playback keeps the bottom. */
+  .mx-hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows:
+      minmax(0, 1fr) auto auto auto minmax(0, 1fr)
+      auto auto;
+    padding-top: 1.5rem;
+  }
+
+  .mx-word {
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .mx-stage {
+    grid-column: 1;
+    grid-row: 3;
+    margin-top: 1.5rem;
+    container-type: inline-size;
+  }
+
+  .mx-deck {
+    display: block;
+    width: 100cqw;
+    aspect-ratio: 5 / 4;
+  }
+
+  .mx-sleeve,
+  .mx-lyrics-art {
+    display: none;
+  }
+
+  /* Title beside the transport, the lyric across the full width under both. */
+  .mx-meta {
+    grid-column: 1;
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.25rem 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .mx-now-label,
+  .mx-tbtn > kbd,
+  .mx-lyric-open kbd,
+  .mx-lyrics-close kbd {
+    display: none;
+  }
+
+  .mx-now {
+    display: contents;
+  }
+
+  .mx-now > :not(.mx-slot) {
+    grid-column: 1;
+  }
+
+  .mx-transport {
+    grid-column: 2;
+    grid-row: 1 / 4;
+  }
+
+  .mx-slot {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+  }
+
+  .mx-now-title {
+    font-size: 1.5rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .mx-transport {
+    gap: 0.5rem;
+  }
+
+  .mx-foot {
+    grid-row: 6;
+  }
+
+  .mx-hairline {
+    grid-row: 7;
+  }
+
+  .mx-bar-nav {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .music-scope {
+    --mx-player-h: 6.5rem;
+  }
+
+  .mx-bar-enter {
+    gap: 0.4rem;
+    height: 2.25rem;
+    padding-right: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .mx-bar-enter kbd {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .mx-bar-mark {
+    font-size: 0.8125rem;
+  }
+
+  .mx-player-inner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    row-gap: 0.5rem;
+  }
+
+  .mx-scrub {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .mx-spectrum {
+    display: none;
+  }
+
+  .tl-row {
+    grid-template-columns: 3rem minmax(0, auto) minmax(0.5rem, 1fr) auto auto;
+  }
+
+  .tl-status {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mx-bar-enter-arrow,
+  .mx-marquee-track,
+  .mx-cue-line::after,
+  .tl-eq > i {
+    animation: none;
+  }
+
+  .tl-eq > i:nth-child(1) {
+    scale: 1 0.55;
+  }
+
+  .tl-eq > i:nth-child(3) {
+    scale: 1 0.75;
+  }
+
+  .tl-float {
+    display: none;
+  }
+
+  .mx-player {
+    transition: none;
+  }
+
+  .mx-sleeve-cover,
+  .mx-lyrics[open] {
+    animation: none;
+  }
+
+  .mx-lyrics-line,
+  .mx-queue,
+  .mx-queue-row,
+  .mx-lyric {
+    transition: none;
+  }
+}

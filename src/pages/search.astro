@@ -1,5 +1,6 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { getBlogHomeUrl } from "@/utils/blogHome";
 import "@pagefind/default-ui/css/ui.css";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -20,7 +21,7 @@ if (config.features.search !== "pagefind" && notFoundUrl) {
 
 const backUrl = config.features.showBackButton
   ? `${Astro.url.pathname}`
-  : getRelativeLocaleUrl(locale, "");
+  : getBlogHomeUrl(locale);
 
 const pagefindBundlePath = getAssetPath("pagefind/");
 

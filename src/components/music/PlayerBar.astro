@@ -1,0 +1,64 @@
+<section
+  class="mx-player"
+  transition:persist="music-player"
+  aria-label="播放器"
+>
+  <div class="mx-player-inner">
+    <div class="mx-player-buttons">
+      <button
+        type="button"
+        class="mx-icon-btn"
+        data-music-action="prev"
+        aria-label="上一首"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 5h2v14H6zM19 5v14L9 12z"></path>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="mx-icon-btn mx-icon-btn--main"
+        data-music-action="toggle"
+        aria-label="播放"
+      >
+        <svg class="mx-glyph-play" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 4.5v15L20.5 12z"></path>
+        </svg>
+        <svg class="mx-glyph-pause" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"></path>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="mx-icon-btn"
+        data-music-action="next"
+        aria-label="下一首"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 5h2v14h-2zM5 5v14l10-7z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <p class="mx-player-now">
+      <span class="mx-player-code" data-player-code>--</span>
+      <span class="mx-player-title" data-player-title>还没放歌</span>
+    </p>
+
+    <input
+      class="mx-scrub"
+      type="range"
+      min="0"
+      max="1"
+      step="0.1"
+      value="0"
+      aria-label="播放进度"
+      data-player-scrub
+      data-off
+    />
+
+    <span class="mx-player-time" data-player-time aria-live="off">0:00</span>
+
+    <canvas class="mx-spectrum" data-music-spectrum aria-hidden="true"></canvas>
+  </div>
+</section>

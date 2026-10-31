@@ -5,6 +5,7 @@
 // `astro:jsx` SSR virtual module during the static build.
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { getBlogHomeUrl } from "@/utils/blogHome";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getPostUrl } from "@/utils/getPostPaths";
 import { slugifyStr } from "@/utils/slugify";
@@ -22,7 +23,7 @@ const navItems = [
     id: "home",
     label: t.nav.home,
     group: t.command.navGroup,
-    href: getRelativeLocaleUrl(locale, ""),
+    href: getBlogHomeUrl(locale),
     icon: "home",
   },
   {

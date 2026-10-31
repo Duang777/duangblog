@@ -1,0 +1,132 @@
+---
+import { render } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import MusicLayout from "@/layouts/MusicLayout.astro";
+import TrackCover from "@/components/music/TrackCover.astro";
+import { STATUS_LABEL, trackCode } from "@/lib/music";
+import { getTracks, toQueueItem, type Track } from "@/lib/music-tracks";
+import config from "@/config";
+
+export async function getStaticPaths() {
+  const tracks = await getTracks();
+  return tracks.map((track, i) => ({
+    params: { slug: track.id },
+    props: {
+      track,
+      prev: tracks[i - 1] ?? null,
+      next: tracks[i + 1] ?? null,
+    },
+  }));
+}
+
+type Props = {
+  track: Track;
+  prev: Track | null;
+  next: Track | null;
+};
+
+const { track, prev, next } = Astro.props;
+const { data } = track;
+const item = toQueueItem(track);
+const { Content } = await render(track);
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const hrefOf = (t: Track) => getRelativeLocaleUrl(locale, `music/${t.id}`);
+const labelOf = (t: Track) =>
+  `${trackCode(t.data.side, t.data.no)} ${t.data.title}`;
+
+const meta: [string, string][] = [
+  ["Side", data.side],
+  ["No", String(data.no)],
+  ["BPM", String(data.bpm)],
+  ["Key", data.key],
+  ["Status", STATUS_LABEL[data.status]],
+  ["Release", data.releaseDate.toISOString().slice(0, 10)],
+];
+const durationText = data.duration ?? (data.audio ? "--:--" : "LOOP");
+---
+
+<MusicLayout
+  title={`${item.code} ${data.title} | 音乐 | ${config.site.title}`}
+  description={data.description}
+>
+  <article class="sleeve">
+    <div class="sleeve-cover">
+      <TrackCover track={track} />
+    </div>
+
+    <div class="sleeve-body">
+      <p class="mx-kicker">SIDE {data.side} · {item.code}</p>
+      <h1 class="sleeve-title">{data.title}</h1>
+      <p class="sleeve-desc">{data.description}</p>
+
+      <dl class="sleeve-meta">
+        {
+          meta.map(([term, value]) => (
+            <div>
+              <dt>{term}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))
+        }
+        <div>
+          <dt>Duration</dt>
+          <dd data-duration-for={track.id}>{durationText}</dd>
+        </div>
+      </dl>
+
+      <div class="sleeve-actions">
+        <button
+          type="button"
+          class="mx-play"
+          data-music-action="toggle"
+          data-track-id={track.id}
+          aria-label={`播放 ${item.code} ${data.title}`}
+          data-label-play={`播放 ${item.code} ${data.title}`}
+          data-label-pause={`暂停 ${item.code} ${data.title}`}
+        >
+          <svg class="mx-glyph-play" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 4.5v15L19.5 12z"></path>
+          </svg>
+          <svg class="mx-glyph-pause" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"></path>
+          </svg>
+          <span class="mx-play-text" aria-hidden="true"></span>
+        </button>
+
+        {
+          data.qishui && (
+            <a class="mx-qs" href={data.qishui} target="_blank" rel="noopener">
+              在汽水音乐收听
+            </a>
+          )
+        }
+      </div>
+
+      <div class="app-prose sleeve-notes">
+        <Content />
+      </div>
+    </div>
+  </article>
+
+  <nav class="sleeve-nav" aria-label="上一首和下一首">
+    {
+      prev ? (
+        <a href={hrefOf(prev)} class="sleeve-nav-link">
+          <span class="mx-kicker">上一首</span>
+          <span>{labelOf(prev)}</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+    {
+      next && (
+        <a href={hrefOf(next)} class="sleeve-nav-link sleeve-nav-link--next">
+          <span class="mx-kicker">下一首</span>
+          <span>{labelOf(next)}</span>
+        </a>
+      )
+    }
+  </nav>
+</MusicLayout>

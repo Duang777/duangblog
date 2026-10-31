@@ -1,0 +1,66 @@
+---
+import { mulberry32 } from "@/lib/music";
+
+type Props = {
+  code: string;
+  title: string;
+  seed: number;
+};
+
+const { code, title, seed } = Astro.props;
+const rand = mulberry32(seed);
+const SIZE = 600;
+
+const focus = { x: 180 + rand() * 240, y: 140 + rand() * 200 };
+const usesRings = rand() < 0.5;
+
+const rings = usesRings
+  ? Array.from({ length: 10 + Math.floor(rand() * 10) }, (_, i) => ({
+      r: 24 + i * (18 + rand() * 14),
+      width: 1 + Math.floor(rand() * 3) * 3,
+    }))
+  : [];
+
+// Halftone: dot size falls off with distance from the focal point, wobbled by a seeded wave.
+const CELL = 20;
+const wave = 0.02 + rand() * 0.03;
+const dots = usesRings
+  ? []
+  : Array.from({ length: (SIZE / CELL) ** 2 }, (_, i) => {
+      const x = (i % (SIZE / CELL)) * CELL + CELL / 2;
+      const y = Math.floor(i / (SIZE / CELL)) * CELL + CELL / 2;
+      const d = Math.hypot(x - focus.x, y - focus.y);
+      const level =
+        Math.max(0, 1 - d / 420) * (0.75 + 0.25 * Math.sin(d * wave));
+      return { x, y, r: +(level * CELL * 0.48).toFixed(2) };
+    }).filter(dot => dot.r > 0.6);
+---
+
+<svg
+  class="gen-cover"
+  viewBox={`0 0 ${SIZE} ${SIZE}`}
+  role="img"
+  aria-label={`${code} ${title} 的封面`}
+>
+  <rect class="gen-cover-ground" width={SIZE} height={SIZE}></rect>
+  {
+    rings.map(ring => (
+      <circle
+        class="gen-cover-ink-stroke"
+        cx={focus.x.toFixed(1)}
+        cy={focus.y.toFixed(1)}
+        r={ring.r.toFixed(1)}
+        stroke-width={ring.width}
+      />
+    ))
+  }
+  {
+    dots.map(dot => (
+      <circle class="gen-cover-ink" cx={dot.x} cy={dot.y} r={dot.r} />
+    ))
+  }
+  <text class="gen-cover-meta" x="32" y="52">DUANG RECORDS</text>
+  <text class="gen-cover-meta" x="568" y="52" text-anchor="end">33⅓ RPM</text>
+  <text class="gen-cover-code" x="22" y="560">{code}</text>
+  <text class="gen-cover-meta" x="568" y="560" text-anchor="end">{title}</text>
+</svg>

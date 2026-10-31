@@ -1,0 +1,16 @@
+---
+import { idleTicker } from "@/lib/music";
+
+type Props = {
+  hasPlayable: boolean;
+};
+
+const text = idleTicker(Astro.props.hasPlayable);
+---
+
+<div class="mx-marquee" aria-hidden="true">
+  <div class="mx-marquee-track">
+    <span data-marquee-text>{text}</span>
+    <span data-marquee-text>{text}</span>
+  </div>
+</div>

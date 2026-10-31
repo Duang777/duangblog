@@ -3,11 +3,11 @@
  * Clicking the site name on the homepage drops one short line
  * instead of re-navigating to the page you are already on.
  */
-import { getRelativeLocaleUrl } from "astro:i18n";
+import { getBlogHomeUrl } from "@/utils/blogHome";
 import config from "@/config";
 
 const locale = Astro.currentLocale ?? config.site.lang;
-const homeHref = getRelativeLocaleUrl(locale, "");
+const homeHref = getBlogHomeUrl(locale);
 
 const whispers = [
   "先把一次请求走完，再谈抽象。",

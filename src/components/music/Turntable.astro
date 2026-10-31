@@ -1,0 +1,111 @@
+---
+type Props = {
+  side?: string;
+};
+
+const { side = "A" } = Astro.props;
+
+// Fine grooves, plus a few wider gaps where one track ends and the next starts.
+const grooves = Array.from({ length: 40 }, (_, i) => 72 + i * 3.1);
+const trackGaps = [104, 138, 170];
+const labelText = `DUANG RECORDS · 33⅓ RPM · SIDE ${side} · `;
+---
+
+<figure class="tt" role="group" aria-label="唱机">
+  <span class="tt-speed" aria-hidden="true">
+    <span class="tt-led"></span>33⅓ RPM
+  </span>
+
+  <div class="tt-platter" aria-hidden="true"></div>
+
+  <button
+    type="button"
+    class="tt-record"
+    data-turntable-record
+    data-music-action="toggle"
+    aria-label="播放唱片"
+    data-label-play="播放唱片，按住拖动可以搓碟"
+    data-label-pause="暂停唱片，按住拖动可以搓碟"
+  >
+    <svg class="tt-disc" viewBox="0 0 400 400" aria-hidden="true">
+      <defs>
+        <path
+          id="tt-label-path"
+          d="M200 200m-48 0a48 48 0 1 1 96 0a48 48 0 1 1 -96 0"></path>
+        <clipPath id="tt-label-clip">
+          <circle cx="200" cy="200" r="42"></circle>
+        </clipPath>
+      </defs>
+      <circle class="tt-vinyl" cx="200" cy="200" r="198"></circle>
+      {
+        grooves.map((r, i) => (
+          <circle
+            class="tt-groove"
+            cx="200"
+            cy="200"
+            r={r}
+            style={`opacity:${i % 3 === 0 ? 0.22 : 0.1}`}
+          />
+        ))
+      }
+      {trackGaps.map(r => <circle class="tt-gap" cx="200" cy="200" r={r} />)}
+      <circle class="tt-label" cx="200" cy="200" r="64"></circle>
+      <image
+        class="tt-label-art"
+        data-label-art
+        x="158"
+        y="158"
+        width="84"
+        height="84"
+        preserveAspectRatio="none"
+        clip-path="url(#tt-label-clip)"
+      />
+      <circle class="tt-label-edge" cx="200" cy="200" r="42.5"></circle>
+      <text class="tt-label-ring">
+        <textPath href="#tt-label-path" textLength="296">{labelText}</textPath>
+      </text>
+      <text class="tt-label-mark" x="200" y="196">DUANG</text>
+      <text class="tt-label-cat" x="200" y="212">DR-001 · {side}</text>
+      <circle class="tt-spindle" cx="200" cy="200" r="3.5"></circle>
+    </svg>
+  </button>
+
+  <div class="tt-sheen" aria-hidden="true"></div>
+
+  <svg class="tt-arm" viewBox="0 0 500 400" aria-hidden="true">
+    <circle class="tt-ring-track" cx="200" cy="200" r="181"></circle>
+    <circle
+      class="tt-ring"
+      data-arm-ring
+      cx="200"
+      cy="200"
+      r="181"
+      pathLength="1"
+      transform="rotate(-90 200 200)"></circle>
+    <circle class="tt-arm-base" cx="440" cy="70" r="26"></circle>
+    <g class="tt-arm-swing">
+      <rect class="tt-arm-weight" x="428" y="22" width="24" height="26" rx="3"
+      ></rect>
+      <line class="tt-arm-halo" x1="440" y1="52" x2="440" y2="300"></line>
+      <line class="tt-arm-tube" x1="440" y1="44" x2="440" y2="300"></line>
+      <path class="tt-arm-head" d="M440 296 l-9 30 h16 l5 -30 z"></path>
+      <circle class="tt-arm-pivot" cx="440" cy="70" r="7"></circle>
+      <circle class="tt-arm-grab" data-arm-grab cx="440" cy="308" r="26"
+      ></circle>
+    </g>
+  </svg>
+
+  <button
+    type="button"
+    class="tt-start"
+    data-music-action="toggle"
+    data-label-play="启动"
+    data-label-pause="停止"
+    aria-label="启动"
+  >
+    START · STOP
+  </button>
+
+  <p class="tt-hint" data-music-hint role="status"></p>
+  <p class="tt-hint" data-arm-time aria-hidden="true"></p>
+</figure>

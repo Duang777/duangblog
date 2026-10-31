@@ -1,5 +1,6 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { getBlogHomeUrl } from "@/utils/blogHome";
 import IconUnderline from "@/assets/icons/IconUnderline.svg";
 import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
 import IconArchive from "@/assets/icons/IconArchive.svg";
@@ -54,7 +55,7 @@ const isActive = (path: string) => {
       class="brand-lockup absolute flex items-center gap-2 py-1 sm:static sm:my-auto sm:gap-2.5"
     >
       <a
-        href={getRelativeLocaleUrl(locale, "")}
+        href={getBlogHomeUrl(locale)}
         class="font-serif text-xl leading-none font-semibold whitespace-nowrap sm:text-2xl"
       >
         {site.title}
@@ -104,6 +105,11 @@ const isActive = (path: string) => {
             class:list={{ "active-nav": isActive("/tags") }}
           >
             {t.nav.tags}
+          </a>
+        </li>
+        <li class="col-span-2">
+          <a href={getRelativeLocaleUrl(locale, "")}>
+            {t.nav.music}
           </a>
         </li>
         <li class="col-span-2">

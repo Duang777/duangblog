@@ -40,4 +40,31 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { posts, pages };
+const tracks = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.md", base: "./src/content/tracks" }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      side: z.enum(["A", "B"]),
+      no: z.number().int().positive(),
+      releaseDate: z.date(),
+      status: z.enum(["released", "demo", "sketch"]),
+      description: z.string(),
+      /** Path under public/, e.g. "/music/night-drive.mp3". */
+      audio: z.string().optional(),
+      /** Qishui Music share link. Only linked out to; it has no embed. */
+      qishui: z.url().optional(),
+      cover: image().optional(),
+      bpm: z.number().positive().default(96),
+      /** Feeds the generative fallback when there is no audio file. */
+      key: z.string().default("A minor"),
+      duration: z
+        .string()
+        .regex(/^\d+:\d{2}$/)
+        .optional(),
+      tags: z.array(z.string()).default([]),
+      draft: z.boolean().optional(),
+    }),
+});
+
+export const collections = { posts, pages, tracks };

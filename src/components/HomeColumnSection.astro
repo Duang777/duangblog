@@ -4,8 +4,37 @@ import { getRelativeLocaleUrl } from "astro:i18n";
 import { slugifyStr } from "@/utils/slugify";
 import { getPostUrl } from "@/utils/getPostPaths";
 import Card from "@/components/Card.astro";
-import type { HomeColumnDef, HomeSubTopic } from "@/data/home-columns";
+import type {
+  HomeColumnDef,
+  HomeColumnScent,
+  HomeSubTopic,
+} from "@/data/home-columns";
 import { useTranslations } from "@/i18n";
+import markDigest from "@/assets/notion/ni-inbox.svg?raw";
+import markThinking from "@/assets/notion/ni-pen-line.svg?raw";
+import markBackend from "@/assets/notion/ni-server.svg?raw";
+import markFrontend from "@/assets/notion/ni-code.svg?raw";
+import markAgent from "@/assets/notion/ni-code-slash.svg?raw";
+import markAgentArch from "@/assets/notion/ni-folders.svg?raw";
+import markMysql from "@/assets/notion/ni-table-list.svg?raw";
+import markPerf from "@/assets/notion/ni-clipboard-bar-chart.svg?raw";
+import markMixup from "@/assets/notion/ni-quotes.svg?raw";
+import markPi from "@/assets/notion/ni-text-window.svg?raw";
+import markMisc from "@/assets/notion/ni-pencil.svg?raw";
+
+const columnMarks: Record<HomeColumnScent, string> = {
+  digest: markDigest,
+  thinking: markThinking,
+  backend: markBackend,
+  frontend: markFrontend,
+  agent: markAgent,
+  "agent-arch": markAgentArch,
+  mysql: markMysql,
+  perf: markPerf,
+  mixup: markMixup,
+  pi: markPi,
+  misc: markMisc,
+};
 
 type Props = {
   column: HomeColumnDef;
@@ -55,6 +84,11 @@ const countLabel = useSubTopics
   <div class="home-column-head">
     <div class="home-column-titles">
       <div class="home-column-title-row">
+        <span
+          class="home-column-mark"
+          aria-hidden="true"
+          set:html={columnMarks[column.scent]}
+        />
         <h2
           id={`home-column-${column.id}`}
           class="home-column-title font-serif"

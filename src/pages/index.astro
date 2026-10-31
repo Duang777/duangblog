@@ -1,0 +1,257 @@
+---
+import MusicLayout from "@/layouts/MusicLayout.astro";
+import Turntable from "@/components/music/Turntable.astro";
+import TrackCover from "@/components/music/TrackCover.astro";
+import GeneratedCover from "@/components/music/GeneratedCover.astro";
+import Marquee from "@/components/music/Marquee.astro";
+import Demos from "@/components/music/Demos.astro";
+import Tracklist from "@/components/music/Tracklist.astro";
+import StudioNotes from "@/components/music/StudioNotes.astro";
+import { neteaseSongs } from "@/data/netease";
+import { hashSeed } from "@/lib/music";
+import { getQueue, getTracks } from "@/lib/music-tracks";
+import { coverUrl, neteaseSides } from "@/lib/netease";
+import config from "@/config";
+
+const tracks = await getTracks();
+// Enough rows to fill the gap under the title without pushing the transport.
+const MINI_QUEUE_ROWS = 5;
+const queue = await getQueue();
+const miniQueue = queue.slice(0, MINI_QUEUE_ROWS);
+const queueSide = queue.every(item => item.code.startsWith("A"))
+  ? "SIDE A"
+  : "播放队列";
+const sideA = neteaseSides.find(([side]) => side === "A")?.[1] ?? [];
+const hasPlayable = tracks.length > 0 || sideA.length > 0;
+const songCount = tracks.length + neteaseSongs.length;
+const letters = [..."DUANG"];
+const firstSong = sideA[0];
+const first = tracks[0]
+  ? {
+      code: `${tracks[0].data.side}${tracks[0].data.no}`,
+      title: tracks[0].data.title,
+      artist: `${tracks[0].data.bpm} BPM`,
+    }
+  : firstSong
+    ? { code: "A1", title: firstSong.song.title, artist: firstSong.song.artist }
+    : { code: "--", title: "DUANG RECORDS", artist: "歌单还空着" };
+---
+
+<MusicLayout
+  title={`Duang Records | ${config.site.title}`}
+  description="Duang Records，网易云里常听的歌。"
+  landing
+>
+  <section class="mx-hero" aria-labelledby="mx-word" data-hero>
+    <h1 id="mx-word" class="mx-word" aria-label="Duang">
+      {
+        letters.map((letter, i) => (
+          <span class="mx-cell" aria-hidden="true">
+            <span class="mx-letter" style={`--i:${i}`}>
+              {letter}
+            </span>
+          </span>
+        ))
+      }
+    </h1>
+
+    <div class="mx-meta">
+      <p class="mx-now-label">
+        <span class="mx-now-state" data-now-state>待机</span>
+        <span>{songCount} 首</span>
+      </p>
+      <div class="mx-now">
+        <p class="mx-now-code" data-player-code data-idle={first.code}>
+          {first.code}
+        </p>
+        <p class="mx-now-title" data-player-title data-idle={first.title}>
+          {first.title}
+        </p>
+        <p class="mx-now-artist" data-player-artist data-idle={first.artist}>
+          {first.artist}
+        </p>
+        <div class="mx-slot">
+          {
+            miniQueue.length > 0 && (
+              <div class="mx-queue">
+                <p class="mx-queue-head">{queueSide}</p>
+                <ol class="mx-queue-list">
+                  {miniQueue.map(item => {
+                    const name = `${item.code} ${item.title}`;
+                    return (
+                      <li>
+                        <button
+                          type="button"
+                          class="mx-queue-row"
+                          data-music-action="toggle"
+                          data-track-id={item.id}
+                          aria-label={`播放 ${name}`}
+                          data-label-play={`播放 ${name}`}
+                          data-label-pause={`暂停 ${name}`}
+                        >
+                          <span class="mx-queue-code">{item.code}</span>
+                          <span class="mx-queue-title">{item.title}</span>
+                          <span
+                            class="mx-queue-dur"
+                            data-duration-for={item.id}
+                          >
+                            {item.duration ?? "--:--"}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            )
+          }
+          <div class="mx-lyric" data-lyric hidden>
+            <p class="mx-lyric-now">
+              <span class="mx-lyric-ink" data-lyric-now></span>
+            </p>
+            <p class="mx-lyric-next" data-lyric-next></p>
+            <button
+              type="button"
+              class="mx-lyric-open"
+              data-lyrics-toggle
+              aria-haspopup="dialog"
+            >
+              全屏歌词<kbd>L</kbd>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="mx-transport">
+        <button
+          type="button"
+          class="mx-tbtn"
+          data-music-action="prev"
+          aria-label="上一首"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 5h2v14H6zM19 5v14L9 12z"></path>
+          </svg>
+          <kbd>K</kbd>
+        </button>
+        <button
+          type="button"
+          class="mx-tbtn mx-tbtn--main"
+          data-music-action="toggle"
+          aria-label="播放"
+        >
+          <svg class="mx-glyph-play" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 4.5v15L20.5 12z"></path>
+          </svg>
+          <svg class="mx-glyph-pause" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"></path>
+          </svg>
+          <kbd>空格</kbd>
+        </button>
+        <button
+          type="button"
+          class="mx-tbtn"
+          data-music-action="next"
+          aria-label="下一首"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M16 5h2v14h-2zM5 5v14l10-7z"></path>
+          </svg>
+          <kbd>J</kbd>
+        </button>
+      </div>
+    </div>
+
+    <div class="mx-stage">
+      <div class="mx-deck">
+        <div class="mx-sleeve" aria-hidden="true">
+          {
+            tracks.map(track => (
+              <div class="mx-sleeve-cover" data-track-id={track.id}>
+                <TrackCover track={track} />
+              </div>
+            ))
+          }
+          {
+            sideA.map(({ song, queueId }) => (
+              <div
+                class="mx-sleeve-cover"
+                data-track-id={queueId}
+                data-cover={coverUrl(song)}
+              >
+                <canvas class="mx-print" />
+                <img
+                  class="mx-sleeve-img"
+                  src={coverUrl(song)}
+                  alt=""
+                  width="400"
+                  height="400"
+                  loading="lazy"
+                  decoding="async"
+                  referrerpolicy="no-referrer"
+                />
+              </div>
+            ))
+          }
+          {
+            !hasPlayable && (
+              <div class="mx-sleeve-cover">
+                <GeneratedCover
+                  code="DR"
+                  title="DUANG RECORDS"
+                  seed={hashSeed("duang-records")}
+                />
+              </div>
+            )
+          }
+        </div>
+        <Turntable />
+      </div>
+    </div>
+
+    <div class="mx-foot">
+      <Marquee hasPlayable={hasPlayable} />
+      <a class="mx-cue" href="#tracklist">
+        曲目<span class="mx-cue-line" aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <canvas class="mx-hairline" data-music-scope aria-hidden="true"></canvas>
+
+    <dialog
+      class="mx-lyrics"
+      data-lyrics-sheet
+      tabindex="-1"
+      aria-labelledby="mx-lyrics-title"
+    >
+      <header class="mx-lyrics-head">
+        <p class="mx-lyrics-code" data-player-code>--</p>
+        <h2 id="mx-lyrics-title" class="mx-lyrics-title" data-player-title>
+          歌词
+        </h2>
+        <p class="mx-lyrics-artist" data-player-artist></p>
+        <button
+          type="button"
+          class="mx-lyrics-close"
+          data-lyrics-toggle
+          aria-label="关闭歌词"
+        >
+          关闭<kbd>Esc</kbd>
+        </button>
+      </header>
+      <ol class="mx-lyrics-list" data-lyrics-list></ol>
+      <div class="mx-lyrics-art" aria-hidden="true">
+        <canvas class="mx-print"></canvas>
+        <img data-lyrics-art alt="" referrerpolicy="no-referrer" />
+      </div>
+      <footer class="mx-lyrics-foot">
+        <span class="mx-lyrics-hint">点一句跳到那里</span>
+        <span class="mx-lyrics-bar" data-lyrics-bar aria-hidden="true"></span>
+        <span class="mx-lyrics-time" data-lyrics-time>0:00</span>
+      </footer>
+    </dialog>
+  </section>
+
+  {tracks.length > 0 && <Demos tracks={tracks} />}
+  <Tracklist />
+  <StudioNotes />
+</MusicLayout>

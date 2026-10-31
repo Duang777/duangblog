@@ -1,0 +1,87 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { STATUS_LABEL, trackCode } from "@/lib/music";
+import { groupBySide, type Track } from "@/lib/music-tracks";
+import config from "@/config";
+
+type Props = {
+  tracks: Track[];
+};
+
+const { tracks } = Astro.props;
+const locale = Astro.currentLocale ?? config.site.lang;
+const sides = groupBySide(tracks);
+---
+
+<section id="demos" class="mx-tracklist" aria-labelledby="mx-demos-title">
+  <header class="mx-section-head" data-reveal>
+    <h2 id="mx-demos-title" class="mx-section-title">我的小样</h2>
+    <span class="mx-section-count">{tracks.length} 首</span>
+  </header>
+
+  <div class="mx-sides">
+    {
+      sides.map(([side, list]) => (
+        <div class="mx-side">
+          <h3 class="mx-side-title" data-reveal>
+            SIDE {side}
+          </h3>
+          <ol class="tl-list">
+            {list.map(track => {
+              const code = trackCode(track.data.side, track.data.no);
+              const name = `${code} ${track.data.title}`;
+              return (
+                <li class="tl-row" data-track-id={track.id} data-reveal>
+                  <button
+                    type="button"
+                    class="tl-code"
+                    data-music-action="toggle"
+                    data-track-id={track.id}
+                    aria-label={`播放 ${name}`}
+                    data-label-play={`播放 ${name}`}
+                    data-label-pause={`暂停 ${name}`}
+                  >
+                    <span class="tl-code-text">{code}</span>
+                    <span class="tl-glyph" aria-hidden="true" />
+                  </button>
+                  <span class="tl-name">
+                    <a
+                      class="tl-title"
+                      href={getRelativeLocaleUrl(locale, `music/${track.id}`)}
+                    >
+                      {track.data.title}
+                    </a>
+                    {track.data.qishui && (
+                      <a
+                        class="tl-qs"
+                        href={track.data.qishui}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label={`在汽水音乐收听 ${name}`}
+                      >
+                        汽水
+                      </a>
+                    )}
+                  </span>
+                  <span class="tl-leader" aria-hidden="true" />
+                  <span class="tl-status">
+                    {STATUS_LABEL[track.data.status]}
+                  </span>
+                  <span class="tl-dur" data-duration-for={track.id}>
+                    {track.data.duration ??
+                      (track.data.audio ? "--:--" : "LOOP")}
+                  </span>
+                  <span class="tl-desc">{track.data.description}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))
+    }
+  </div>
+
+  <p class="mx-smallprint" data-reveal>
+    ℗ {new Date().getFullYear()} DUANG RECORDS · 标 LOOP 的曲子还没传音频，播的是按曲速和调式生成的循环
+  </p>
+</section>

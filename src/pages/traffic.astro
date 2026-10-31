@@ -1,3 +1,7 @@
 ---
-return Astro.redirect("/", 301);
+import { getBlogHomeUrl } from "@/utils/blogHome";
+import config from "@/config";
+
+const target = getBlogHomeUrl(Astro.currentLocale ?? config.site.lang);
+return Astro.redirect(target, 301);
 ---

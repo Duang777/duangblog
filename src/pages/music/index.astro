@@ -1,0 +1,11 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import config from "@/config";
+
+// The music landing moved to `/`; keep old links working.
+const target = getRelativeLocaleUrl(
+  Astro.currentLocale ?? config.site.lang,
+  ""
+);
+return Astro.redirect(target, 301);
+---

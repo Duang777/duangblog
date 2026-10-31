@@ -1,0 +1,114 @@
+---
+import { coverUrl, neteaseSides, songUrl } from "@/lib/netease";
+
+const count = neteaseSides.reduce((sum, [, rows]) => sum + rows.length, 0);
+const hasVip = neteaseSides.some(([side]) => side === "B");
+---
+
+<section
+  id="tracklist"
+  class="mx-tracklist"
+  aria-labelledby="mx-tracklist-title"
+>
+  <header class="mx-section-head" data-reveal>
+    <h2 id="mx-tracklist-title" class="mx-section-title">曲目</h2>
+    <span class="mx-section-count">{count} 首</span>
+  </header>
+
+  <div class="mx-sides">
+    {
+      neteaseSides.map(([side, rows]) => (
+        <div class="mx-side">
+          <h3 class="mx-side-title" data-reveal>
+            SIDE {side}
+          </h3>
+          <ol class="tl-list">
+            {rows.map(({ song, code, queueId, duration }) => {
+              const name = `${code} ${song.title}`;
+              return side === "A" ? (
+                <li
+                  class="tl-row"
+                  data-track-id={queueId}
+                  data-cover={coverUrl(song)}
+                  data-reveal
+                >
+                  <button
+                    type="button"
+                    class="tl-code"
+                    data-music-action="toggle"
+                    data-track-id={queueId}
+                    aria-label={`播放 ${name}`}
+                    data-label-play={`播放 ${name}`}
+                    data-label-pause={`暂停 ${name}`}
+                  >
+                    <span class="tl-code-text">{code}</span>
+                    <span class="tl-glyph" aria-hidden="true" />
+                    <span class="tl-eq" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </button>
+                  <span class="tl-name">
+                    <span class="tl-title">{song.title}</span>
+                    <span class="tl-artist">{song.artist}</span>
+                  </span>
+                  <span class="tl-leader" aria-hidden="true" />
+                  <a
+                    class="tl-tag tl-gone"
+                    href={songUrl(song.id)}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`这首在站内放不了，去网易云听 ${name}`}
+                  >
+                    去网易云听
+                  </a>
+                  <span class="tl-dur">{duration}</span>
+                  <span class="tl-progress" aria-hidden="true" />
+                </li>
+              ) : (
+                <li
+                  class="tl-row tl-row--out"
+                  data-cover={coverUrl(song)}
+                  data-reveal
+                >
+                  <span class="tl-code">{code}</span>
+                  <span class="tl-name">
+                    <a
+                      class="tl-title tl-out"
+                      href={songUrl(song.id)}
+                      target="_blank"
+                      rel="noopener"
+                      aria-label={`去网易云听 ${name}，VIP`}
+                    >
+                      {song.title}
+                    </a>
+                    <span class="tl-artist">{song.artist}</span>
+                  </span>
+                  <span class="tl-leader" aria-hidden="true" />
+                  <span class="tl-tag" aria-hidden="true">
+                    VIP
+                  </span>
+                  <span class="tl-dur">{duration}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="tl-float" data-tl-float aria-hidden="true">
+    <canvas class="mx-print"></canvas>
+    <img alt="" width="400" height="400" referrerpolicy="no-referrer" />
+  </div>
+
+  <p class="mx-smallprint" data-reveal>
+    {
+      count === 0
+        ? "歌单还是空的"
+        : `歌来自网易云音乐${hasVip ? "，标 VIP 的只能去网易云听" : ""}`
+    }
+  </p>
+</section>
