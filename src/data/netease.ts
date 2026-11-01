@@ -23,6 +23,17 @@ export type NeteaseSong = {
 
 export const neteaseSongs: readonly NeteaseSong[] = [
   {
+    id: 1366897971,
+    title: "Inside Out",
+    artist: "Mokita",
+    album: "Inside Out",
+    cover:
+      "https://p1.music.126.net/BsI151SYkK5gNlJX0noWFw==/109951164091504603.jpg",
+    durationMs: 176005,
+    playable: true,
+    addedAt: "2026-11-02",
+  },
+  {
     id: 1870113092,
     title: "Change My Clothes",
     artist: "Dream / Alec Benjamin",
