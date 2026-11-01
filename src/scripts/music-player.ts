@@ -19,7 +19,7 @@ export type { Meter } from "@/scripts/music-pulse";
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused";
 
 export type PlayerState =
-  /** `blocked`: the browser refused to start audio for this click. */
+  /** `blocked`: the browser refused to start audio without a user gesture. */
   | { status: "idle"; blocked?: true }
   /** `cue` is set when this play started from a stop. */
   | { status: "loading" | "playing"; track: QueueItem; cue: Cue | null }
@@ -87,7 +87,7 @@ function mirror() {
   document.documentElement.dataset.music = state.status;
 }
 
-/** Created on the first user gesture; browsers refuse to start audio before that. */
+/** Created when playback is first attempted; browser policy may require a gesture. */
 function ensureEngine(): Engine {
   if (engine) return engine;
   const ctx = new AudioContext();
@@ -242,7 +242,7 @@ function isStale(source: Source) {
   );
 }
 
-async function start(track: QueueItem, resume: boolean) {
+async function start(track: QueueItem, resume: boolean, automatic = false) {
   const e = ensureEngine();
   const gen = ++generation;
   const { source } = track;
@@ -256,7 +256,12 @@ async function start(track: QueueItem, resume: boolean) {
       ? { at: performance.now(), swing: !holds }
       : null;
   if (!reuse) silence(e);
-  fadeIn(e, cue ? cueLandsMs(cue) : 0);
+  if (automatic) {
+    // Start audibly so the browser checks its policy before accepting playback.
+    e.direct.volume = 1;
+  } else {
+    fadeIn(e, cue ? cueLandsMs(cue) : 0);
+  }
   setState({ status: reuse ? "playing" : "loading", track, cue });
   // Started before any await: strict browsers honour resume() and play() only
   // inside the click's own task.
@@ -277,7 +282,8 @@ async function start(track: QueueItem, resume: boolean) {
         element.currentTime = startAt;
       }
       loaded = reuse ? loaded : { id: track.id, at: Date.now() };
-      await Promise.all([e.audio.play(), resuming]);
+      await e.audio.play();
+      if (!automatic || e.audio !== e.direct) await resuming;
     }
     if (gen === generation) setState({ status: "playing", track, cue });
     warm();
@@ -285,6 +291,7 @@ async function start(track: QueueItem, resume: boolean) {
     if (gen !== generation) return;
     // Autoplay refusals are about the gesture, not the track.
     if (error instanceof DOMException && error.name === "NotAllowedError") {
+      silence(e);
       setState({ status: "idle", blocked: true });
     } else {
       fail(track);
@@ -356,6 +363,11 @@ export function play(id?: string) {
     return;
   }
   void start(track, same && state.status === "paused");
+}
+
+export function autoplay() {
+  const first = queue[0];
+  if (first) void start(first, false, true);
 }
 
 export function pause() {

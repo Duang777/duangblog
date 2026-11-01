@@ -86,7 +86,7 @@ function tickerText(s: PlayerState) {
 }
 
 const EMPTY_HINT = "还没有能在这里放的歌";
-const BLOCKED_HINT = "浏览器拦下了播放，再点一次试试";
+const BLOCKED_HINT = "点击播放，开始听歌";
 
 function showHint(text: string) {
   const hint = document.querySelector<HTMLElement>("[data-music-hint]");
@@ -161,7 +161,11 @@ function render() {
     }
   }
   const stateLabel = document.querySelector("[data-now-state]");
-  if (stateLabel) stateLabel.textContent = NOW_STATE[state.status];
+  if (stateLabel)
+    stateLabel.textContent =
+      state.status === "idle" && state.blocked
+        ? "点击播放"
+        : NOW_STATE[state.status];
 
   const scrub = document.querySelector<HTMLInputElement>("[data-player-scrub]");
   if (scrub) {
@@ -668,7 +672,8 @@ let boundMain: Element | null = null;
 
 function onPageLoad() {
   const main = document.querySelector("main");
-  if (main !== boundMain) {
+  const entered = main !== boundMain;
+  if (entered) {
     boundMain = main;
     bindPage();
   }
@@ -680,6 +685,7 @@ function onPageLoad() {
   fillDurations();
   probeDurations();
   render();
+  if (entered) player.autoplay();
 }
 
 /** Safe to call on every page load: listeners attach once per window. */
