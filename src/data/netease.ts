@@ -99,4 +99,15 @@ export const neteaseSongs: readonly NeteaseSong[] = [
     playable: false,
     addedAt: "2026-11-02",
   },
+  {
+    id: 1846188607,
+    title: "Distance",
+    artist: "Ollie",
+    album: "Distance",
+    cover:
+      "https://p1.music.126.net/FrB8mSF0gj2IH1FsYqPb6g==/109951165991660282.jpg",
+    durationMs: 163121,
+    playable: true,
+    addedAt: "2026-11-02",
+  },
 ];
