@@ -23,6 +23,17 @@ export type NeteaseSong = {
 
 export const neteaseSongs: readonly NeteaseSong[] = [
   {
+    id: 1870113092,
+    title: "Change My Clothes",
+    artist: "Dream / Alec Benjamin",
+    album: "Change My Clothes",
+    cover:
+      "https://p1.music.126.net/jrb7yPnYS8Y3rMmyneeF9Q==/109951166291302074.jpg",
+    durationMs: 186358,
+    playable: true,
+    addedAt: "2026-11-02",
+  },
+  {
     id: 2673161004,
     title: "Off The Hook",
     artist: "Jeff Jarvis",
