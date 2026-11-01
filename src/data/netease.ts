@@ -88,4 +88,15 @@ export const neteaseSongs: readonly NeteaseSong[] = [
     playable: false,
     addedAt: "2026-10-31",
   },
+  {
+    id: 1435296659,
+    title: "Leyla",
+    artist: "Mesto",
+    album: "Spinnin' Sessions Shanghai 2020",
+    cover:
+      "https://p1.music.126.net/oMPkNVC2TxdlSFoxFAH9-A==/109951164852484605.jpg",
+    durationMs: 181810,
+    playable: false,
+    addedAt: "2026-11-02",
+  },
 ];
