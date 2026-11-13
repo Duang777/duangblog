@@ -1,6 +1,10 @@
 "use client";
 // beui.dev/components/motion/tabs
+// The pill indicator is a goopUI blob (attachTabsIndicator). The solid
+// fallback stays until the engine attaches, so the active label never
+// sits on the paper with no surface behind it.
 
+import { attachTabsIndicator } from "@goopui/core";
 import {
   motion,
   MotionConfig,
@@ -11,8 +15,10 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -105,8 +111,26 @@ export function TabsList({
   className?: string;
 }) {
   const { variant } = useTabs();
+  const listRef = useRef<HTMLDivElement>(null);
+  const goo = variant !== "underline";
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || !goo) return;
+    const handle = attachTabsIndicator(list, { preset: "subtle" });
+    list.dataset.goopReady = "true";
+    return () => {
+      handle.destroy();
+      delete list.dataset.goopReady;
+    };
+  }, [goo]);
+
   return (
-    <div role="tablist" className={cn(listClasses[variant], className)}>
+    <div
+      ref={listRef}
+      role="tablist"
+      className={cn(listClasses[variant], goo && "goop-tabs", className)}
+    >
       {children}
     </div>
   );
@@ -131,6 +155,7 @@ export function TabsTrigger({
       <button
         type="button"
         role="tab"
+        data-state={active ? "active" : "inactive"}
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(
@@ -146,6 +171,7 @@ export function TabsTrigger({
           <motion.span
             layoutId={layoutId}
             layout="position"
+            data-tab-fallback=""
             className={cn(
               "bg-primary absolute right-0 -bottom-px left-0 h-px",
               indicatorClassName
@@ -160,21 +186,23 @@ export function TabsTrigger({
 
   return (
     <div className="relative">
-      {active ? (
-        <motion.span
-          layoutId={layoutId}
-          layout="position"
-          style={{ borderRadius: variant === "pill" ? 9999 : 8 }}
-          className={cn(
-            "bg-primary absolute inset-0",
-            radius,
-            indicatorClassName
-          )}
-        />
-      ) : null}
+        {active ? (
+          <motion.span
+            layoutId={layoutId}
+            layout="position"
+            data-tab-fallback=""
+            style={{ borderRadius: variant === "pill" ? 9999 : 8 }}
+            className={cn(
+              "bg-primary absolute inset-0",
+              radius,
+              indicatorClassName
+            )}
+          />
+        ) : null}
       <button
         type="button"
         role="tab"
+        data-state={active ? "active" : "inactive"}
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(

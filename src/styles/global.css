@@ -4253,3 +4253,57 @@ html[data-theme="dark"] .bottle-shelf-card.is-unlocked .bottle-shelf-art {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* goopUI, retinted to the paper palette. The engine paints --goop-color. */
+.goop-tabs {
+  --goop-color: var(--primary);
+  overflow: visible;
+}
+
+.goop-tabs[data-goop-ready] [data-tab-fallback] {
+  display: none;
+}
+
+.goop-cta {
+  --goop-color: var(--accent);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.45rem 1.05rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 0.92rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.goop-cta[data-goop-active] {
+  background: transparent;
+}
+
+.goop-cta [data-goop-label] {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.goop-cta svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goop-cta:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 70%, var(--foreground));
+  outline-offset: 3px;
+}

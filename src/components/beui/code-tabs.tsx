@@ -38,7 +38,7 @@ export function CodeTabs({
   return (
     <div
       className={cn(
-        "border-border bg-card overflow-hidden rounded-2xl border",
+        "border-border bg-card overflow-visible rounded-2xl border",
         className
       )}
     >

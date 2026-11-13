@@ -2,7 +2,6 @@
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { getBlogHomeUrl } from "@/utils/blogHome";
-import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
@@ -16,7 +15,7 @@ import HomeColumnSection from "@/components/HomeColumnSection.astro";
 import HomeDualLang from "@/components/HomeDualLang.astro";
 import sketchTakingNote from "@/assets/notion/oc-taking-note.svg?raw";
 import sketchPuzzle from "@/assets/notion/oc-puzzle.svg?raw";
-import LinkButton from "@/components/LinkButton.astro";
+import { GoopCta } from "@/components/goop/GoopCta";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getPostSlugPath, getPostUrl } from "@/utils/getPostPaths";
 import { useTranslations } from "@/i18n";
@@ -224,10 +223,11 @@ const termIdeas = [
       <HomeDualLang />
 
       <div class="my-8 flex items-center justify-center gap-4">
-        <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
-          {t.home.allPosts}
-          <IconArrowRight class="inline-block rtl:-rotate-180" />
-        </LinkButton>
+        <GoopCta
+          client:visible
+          href={getRelativeLocaleUrl(locale, "posts")}
+          label={t.home.allPosts}
+        />
       </div>
     </div>
   </main>
