@@ -15,6 +15,7 @@ description: 最近在看的内容。
 
 已整理：
 
+- [一块黑板如何承接一群 Agent：解读 Antigravity /swarm 的实现](/posts/antigravity-swarm-blackboard/)
 - [你的 agent 是一个装满 Markdown 和 TypeScript 的文件夹：Cursor Agent SDK 转正了](/posts/cursor-agent-sdk-folder/)
 - [所有主动式 Agent，本质上都是带 prompt 的 cron job](/posts/proactive-agents-cron-prompt/)
 - [当 Claude Code 和 Codex 开始自己 battle：Agent Relay 实测手记](/posts/agent-relay-claude-codex/)
