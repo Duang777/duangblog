@@ -5,16 +5,16 @@ title: "接管协议，还是旁听终端：T3 Code 与 Orca 的技术实现解�
 featured: true
 draft: false
 tags:
-  - Agent 拆解专栏
-  - T3 Code
-  - Orca
+  - thinking
 description: T3 Code 通过结构化协议接管 Agent，把会话做成事件溯源系统；Orca 让 Agent 跑在终端里，靠 hook 和 OSC 7501 旁路感知状态。差异都来自一个问题：会话状态由谁持有。
 revisions:
   - date: 2026-11-26
-    note: 首发。论述按飞书成稿对齐；边注另加，不改论述。
+    note: 首发。按飞书成稿整理，挂到 thinking。
 ---
 
-<strong>拆解说明</strong>｜这是 [Agent 拆解专栏](/posts/agent-breakdown/) 的一篇。对象是 [`pingdotgg/t3code`](https://github.com/pingdotgg/t3code) 和 [`stablyai/orca`](https://github.com/stablyai/orca)，源码口径为 2026-11-26 的 `main` 分支。
+2026-11-26 · thinking
+
+本文挂在 [thinking](/tags/thinking/)。拆解对象是 [`pingdotgg/t3code`](https://github.com/pingdotgg/t3code) 和 [`stablyai/orca`](https://github.com/stablyai/orca)，源码口径为 2026-11-26 的 `main` 分支。
 
 过去一年里，Claude Code、Codex 这一类 Coding Agent 已经证明，单个 Agent 可以在较少人工干预的情况下完成一段完整的开发任务。开发者的角色也随之上移：从逐行编写代码，转向分派任务、审阅结果和处理 Agent 提出的审批。
 
